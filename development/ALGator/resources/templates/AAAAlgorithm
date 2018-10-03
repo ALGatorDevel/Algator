@@ -1,0 +1,16 @@
+/**
+ *
+ * @author ...
+ */
+public class <AAA>Algorithm extends <PPP>AbsAlgorithm {
+
+  @Override
+  protected <PPP>Output execute(<PPP>Input input) {
+    
+    // TODO: implement the algorithm that uses the input and generates the output
+    
+    <PPP>Output output = new <PPP>Output(/* TODO: add parameters for constructor */);    
+    return output;
+  }
+
+}

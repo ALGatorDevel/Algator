@@ -1,0 +1,13 @@
+Usage examples
+
+java algator.Analyse RunOne BasicSort -a BubbleSort -s {"N":500}
+  Run BubbleSort with N=500 (for other parameters ALGator uses a default value)
+
+java algator.Analyse FindLimit BasicSort -a BubbleSort -p N
+   Finds the size of input (N) that can be executed in one second
+
+java algator.Analyse FindLimit BasicSort -p N -a InsertionSort -s '{Group:SORTED}' -v 2
+  Finds the size of input (N) for parameter Group=SORTED. Use "-v 2" to see the progress.
+
+
+

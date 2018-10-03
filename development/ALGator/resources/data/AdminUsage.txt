@@ -1,0 +1,20 @@
+Usage examples
+
+
+To create a new project named "Sorting":
+  java algator.Admin -cp Sorting
+
+To create a new algorithm named "BubbleSort" in "Sorting" project:
+  java algator.Admin -ca Sorting BubbleSort
+
+To create a new project in non-dafault data_root folder:
+  java algator.Admin -dr ./test_algator -cp Sorting 
+
+To list all projects
+  java algator.Admin -i
+
+To print the information about the "Sorting" project:
+  java algator.Admin -i
+
+To print the information about the "BubbleSort" algorithm of the "Sorting" project:
+  java algator.Admin -i Sorting -a BubbleSort

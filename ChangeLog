@@ -1,0 +1,116 @@
+ChangeLog for project ALGator since November 2014
+
+C15 (September 2018, Tomaž)
+  - a major change in ALGator API and logic
+    - new classes <Project>Input, <Project>Output
+    - testcase generation in <Project>TestCase (insteda of in TestSetIterator)
+    - indicatior calculation in <Project>Output (insrtead of in done() method)
+  - changes in BasicSort and BasicMatrixMul (to support new logic and API)
+
+
+C14 (Februar 2017, Ziga Zorman)
+  - patch for the execution of the project on the Windows system 
+    (Analyser.java, ATTools.java, Execute.java, ExternalExecutor.java, RSync.java, StatFunction-java)
+
+C13 (August 2016, Ernest Stukelj)
+  - new query language (A-SQL) was added:
+
+      - New files: ASqlObject.java, AlgInterpreter.java, Cache.java, CacheEntry.java, 
+        LengthComparator.java, ReadResultsInitData.java, ASQLComposer.java, ASQLComposer.form, 
+        IQueryComposer.java
+
+  Changed files:
+  - Analyse.java: new format added
+  - DataAnalyser.java
+  - TableData.java: changes in the getComparator()
+  - QueryAndGraphPanel: new GUI for A-SQL
+  - QueryComposer: new form fields
+    interface IQueryComposer. 
+  - Entity.java: new method public ErrorStatus initFromFile(File entityFile, 
+    String format, Project project) in overload. ID_NAME public.
+  - EQuery.java: new method public String getCacheKey()
+  - VariableSet.java: added the iterator iterface Iterable<EVariable>, 
+  - ExternalExecuter: due to the change variables -> VariableSet 3 new for loops were added.
+
+
+C12 (April 2016)
+  - major changes in system configuration + documentation update
+  - algator.Admin class added
+  
+C11 (July 2015, td)
+  - TaskServer and TaskClient programs were added
+
+C10 (June 2015, td)
+- new entities (EGlobalConfig, ELocalConfig, EComputerFamily
+  and EComputer) were added
+
+C9 (June 2015, td)
+- a new folder structure was introduced and implemented; to run ALGator 
+  successfully, only the $ALGATOR_ROOT environment variable has to be set
+  (see ALGator.doc, section 2. The structure of the system).
+
+C8 (May 2015, td)
+- ALGator was extended with 'jvm' measurements. To measure jvm bytecode
+  consumption, install jamvm virtual machine in <jamvm> folder and set
+  VMEP and VMEPClasspath variables in ALGator configuration file 
+  (<data_root>/config/algator.conf) as follows:
+    VMEP          = <jamvm>/bin/jamvm
+    VMEPClasspath = <jamvm>/share/jamvm/classes.zip:<jre_dir>/lib/rt.jar
+
+
+C7 (1/22/2015, td)
+
+- Analyser: added option to view query&graph in more than one tab
+- Analyser: new graph types were added (line, stair, bar, box)
+- Analyser: changes if the interface for defining X and y axis 
+
+C6 (1/12/2015, td)
+
+- A Pass column added to an output array of Analyser.
+- A "Query" wrapper added to a query printed to stdout by Analyser.
+- A parameter with range @(from,to,step) added to the filter of a query.
+
+ 
+
+C5 (12/20/2014)
+A TimeLimit parameter was added to atts file. If the execution of an 
+algorithm on a given testcase exceedes TimeLimit seconds, the execution
+is killed. Default value for this parameter is 10 (sec).
+
+
+C4 (11/28/2014)
+Filter fixed to accepts output parameters. If an output parameter is a
+part of a filter, filter keeps only those lines in which filter is true
+for EVERY selected algorithm.
+
+Property "subtype" added to parameter of type Double. Subtype is used to
+define number of decimal places of a double.
+
+Fix: the main form of Analyse changed from JDialog to JFrame.
+
+A COUNT option was added to a query. 
+
+A Testset column added to an output array of Analyser. 
+
+C3 (11/24/2014)  td
+Changed class si.fri.algotest.timer.Timer to enable several different 
+timers to be used. Default usage (timer.start(), timer.stop()) wasn't 
+changed. Simplest way to use several timers is by calling the method 
+timer.next(), which stops the current timer and starts the next one.
+
+
+C2 (11/21/2014)  td
+Added -sourcepath option to javac. This enables source files in src 
+folder to be in packages. Only the main class (algorithm class) must 
+be in root (i.e. ALG-<name>/src) folder.
+
+C1 (11/21/2014)  td
+Two new atributes added to the project entity:
+    ProjectJARs   ... the JAR files needed to compile the project
+    AlgorithmJARs ... the JAR files provided by project administrator
+                          that are alowed to be used in algorithms 
+		
+    Note: the filenames for these atributes are relative to the projects 
+          lib folder (<project_root>/proj/lib)
+
+

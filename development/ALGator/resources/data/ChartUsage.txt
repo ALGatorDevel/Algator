@@ -1,0 +1,37 @@
+Usage examples:
+
+java algator.Chart Sorting
+  Run a program (Chart) with project Sorting selected. The project is read 
+  from the folder $ALGATOR_DATA_ROOT/projects/PROJ-Sorting
+
+
+export MYROOT = /home/my_data_root
+  Defines an environment variable $MYROOT that points to my data root folder 
+
+
+java algator.Chart -d $MYROOT Sorting
+  In this case the project Sorting is read from the folder 
+  $MYROOT/projects/PROJ-Sorting, i.e., /home/my_data_root/projects/PROJ-Sorting
+
+
+java algator.Chart -q test1 Sorting
+  Opens project Sorting, runs a query test1 and prints the result to the screen. 
+  Query is read from $ALGATOR_DATA_ROOT/projects/PROJ-Sorting/queries/test1.atqd
+
+
+java algator.Chart -d $MYROOT -q q1 Sorting
+  The project and the query are read from $MYROOT/projects/PROJ-Sorting/...
+
+
+java algator.Chart -o F -q $MYROOT/queries/q1.atqd Sorting
+  The project is read from $ALGATOR_DATA_ROOT/..., the query is read from 
+  $MYROOT/queries foled.
+
+java algator.Chart -o S Sorting
+  In this case the query is read from standard input. You can copy-paste
+  query (and finish with Ctrl-D) or you can pipe a query with '<', i.e.
+ 
+    java algator.Chart -o S Sorting < my_query.atqd
+
+  
+  

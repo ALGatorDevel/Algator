@@ -1,0 +1,20 @@
+import si.fri.algotest.execute.AbstractAlgorithm;
+
+/**
+ *
+ * @author ...
+ */
+public abstract class <PPP>AbsAlgorithm extends AbstractAlgorithm {
+ 
+  @Override
+  public <PPP>TestCase getCurrentTestCase() {
+    return (<PPP>TestCase) super.getCurrentTestCase(); 
+  }
+
+  protected abstract <PPP>Output execute(<PPP>Input <pPP>Input);
+
+  @Override
+  public void run() {    
+    algorithmOutput = execute(getCurrentTestCase().getInput());
+  }
+}

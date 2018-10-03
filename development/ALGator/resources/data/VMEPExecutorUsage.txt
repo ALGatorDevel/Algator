@@ -1,0 +1,5 @@
+Usage examples
+
+jamvm algator.VMEPExecute Sorting QuickSort TestSet1 /tmp/test1
+
+Note: this class has to executed by jamvm virtual machine.
