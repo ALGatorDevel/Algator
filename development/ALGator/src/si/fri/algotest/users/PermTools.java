@@ -28,7 +28,23 @@ public class PermTools {
   private   static String OPTIONS      = "?autoReconnect=true&useSSL=false";
 
   
+  // This method return true if a file "$ALGATOR_ROOT/mysql-stop"  exists.
+  // If this file exists, ALGator will not try to connect to MySQL server.
+  // This file is used only in the docker container (to prevent connections
+  // to mysql, because docker can not reach the server running on the host;
+  //  any attemp to connect to the server causes huge delays).
+  public static boolean preventConnection() {
+    try {
+      File f = new File(ATGlobal.getALGatorRoot(), "mysql-stop");
+      return f.exists();
+    } catch (Exception e) {
+      return false;
+    }
+  }
+  
   public static Connection connectToDatabase() {
+    if (preventConnection()) return null;
+    
     Connection conn = null;
     
     try {

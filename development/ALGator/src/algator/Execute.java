@@ -236,6 +236,19 @@ public class Execute {
     }
   }
 
+  public static boolean syncTests(String projName) {
+    String dataRootTests  = ATGlobal.getTESTSroot(ATGlobal.getALGatorDataRoot(),  projName);
+    String dataLocalTests = ATGlobal.getTESTSroot(ATGlobal.getALGatorDataLocal(), projName);
+    ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing tests from %s to %s", dataRootTests, dataLocalTests));
+    int syncStatus = RSync.mirror(dataRootTests, dataLocalTests);    
+    if (syncStatus != 0) {      
+      ATLog.log("Syncing failed  (sync status: " + syncStatus +") " + ErrorStatus.getLastErrorMessage(), 1);      
+      return false;
+    }
+    ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing tests done"));    
+    return true;
+  }
+  
   private static void runAlgorithms(String dataRoot, String projName, String algName,
 	  String testsetName, MeasurementType mType, boolean alwaysCompile, 
           boolean alwaysRun, boolean printOnly) {
@@ -248,16 +261,9 @@ public class Execute {
     }
     
     // before executing algorithms we sync test folder from data_root to data_local
-    String dataRootTests  = ATGlobal.getTESTSroot(ATGlobal.getALGatorDataRoot(),  projName);
-    String dataLocalTests = ATGlobal.getTESTSroot(ATGlobal.getALGatorDataLocal(), projName);
-    ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing tests from %s to %s", dataRootTests, dataLocalTests));
-    int syncStatus = RSync.mirror(dataRootTests, dataLocalTests);    
-    if (syncStatus != 0) {      
-      ATLog.log("Syncing failed  (sync status: " + syncStatus +") " + ErrorStatus.getLastErrorMessage(), 1);      
-      System.exit(0);
-    }
-    ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing tests done"));
-    
+    if (!syncTests(projName)) 
+      return;
+
     // Test the project
     Project projekt = new Project(dataRoot, projName);
     if (!projekt.getErrors().get(0).equals(ErrorStatus.STATUS_OK)) {

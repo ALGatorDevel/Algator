@@ -6,6 +6,7 @@ import si.fri.algotest.entities.EVariable;
 import si.fri.algotest.entities.MeasurementType;
 import si.fri.algotest.entities.Variables;
 import si.fri.algotest.global.ATGlobal;
+import si.fri.algotest.global.ATLog;
 import si.fri.algotest.global.ErrorStatus;
 import si.fri.algotest.timer.Timer;
 
@@ -115,12 +116,18 @@ public abstract class AbstractAlgorithm implements Cloneable, Serializable {
   public Variables done() {
     Variables result = new Variables(currentTestCase.getExpectedOutput().getIndicators());
      
-    for (EVariable eVariable : result) {
-      Object value = currentTestCase.getExpectedOutput().
-        getIndicatorValue(currentTestCase, algorithmOutput, eVariable.getName());
-
-      if (value != null)
+    for (EVariable eVariable : result) {      
+      Object value = null;
+      try {
+        value = currentTestCase.getExpectedOutput().
+          getIndicatorValue(currentTestCase, algorithmOutput, eVariable.getName());
+      } catch (Exception e) {
+        ATLog.log("Invalid result " + e.toString(), 1);
+      }
+      
+      if (value != null) {
         eVariable.setValue(value);
+      }
     }
     return result;
   }  

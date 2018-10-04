@@ -245,6 +245,8 @@ public class Analyse {
 
         System.exit(0);      
       }
+      
+      Execute.syncTests(projectName);
       Project project = new Project(dataRoot, projectName);
 
       ArrayList<String> algorithms = new ArrayList<>();
@@ -294,7 +296,7 @@ public class Analyse {
     return parameters;
   }
 
-  private static void runOne(String data_root, Project project, ArrayList<String> algorithms, Variables defaultParams, int timeLimit, int timesToExecute) {      
+  private static void runOne(String data_root, Project project, ArrayList<String> algorithms, Variables defaultParams, int timeLimit, int timesToExecute) {          
     Executor.projectMakeCompile(data_root, project.getName(), false);
 
     for (String algName : algorithms) {
@@ -337,7 +339,7 @@ public class Analyse {
   }
   
   
-  private static void getParameterLimit(String data_root, Project project, ArrayList<String> algorithms, String paramName, Variables parameters, int timeLimit) {      
+  private static void getParameterLimit(String data_root, Project project, ArrayList<String> algorithms, String paramName, Variables parameters, int timeLimit) {            
     Executor.projectMakeCompile(data_root, project.getName(), false);    
     
     HashMap<String, Variables>  results = new HashMap<>();
