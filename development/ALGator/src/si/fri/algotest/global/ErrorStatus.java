@@ -52,6 +52,13 @@ public enum ErrorStatus {
     }
   },
   
+  ERROR_CANT_WRITEFILE       {
+    public String toString() {
+      return "Error: Can not write a file";
+    }
+  },
+  
+  
   ERROR_CONVERT_FIELD       {
     public String toString() {
       return "Error: Can not convert the value of a field";

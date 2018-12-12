@@ -54,7 +54,7 @@ public abstract class Notificator {
             = new Notificator() {
 
       public void notify(int i, ExecutionStatus status) {
-        if ((ATLog.getLogTarget() & ATLog.LOG_TARGET_STDOUT) != 0) {
+        if ((ATLog.getLogTarget() & ATLog.TARGET_STDOUT) != 0) {
           System.out.println(String.format("[%s, %s, %s]: test %3d / %-3d - %s",
                   alg, testSet, mt.getExtension(), i, this.getN(), status.toString()));
         }

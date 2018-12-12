@@ -17,12 +17,12 @@ public class ATLog {
   
   public static final String logFile = "algator.log";
   
-  public static final int LOG_TARGET_OFF    = 0;
-  public static final int LOG_TARGET_STDOUT = 1;
-  public static final int LOG_TARGET_FILE   = 2;
+  public static final int TARGET_OFF    = 0;
+  public static final int TARGET_STDOUT = 1;
+  public static final int TARGET_FILE   = 2;
 
-  private static int logTarget     = LOG_TARGET_STDOUT; // default
-  private static int lastLogTarget = LOG_TARGET_STDOUT;
+  private static int logTarget     = TARGET_STDOUT; // default
+  private static int lastLogTarget = TARGET_STDOUT;
     
   // maximal error size in bytes (to truncate very long error messages)
   private static int MAX_ERROR_SIZE = 2048;
@@ -38,7 +38,7 @@ public class ATLog {
   public static void setPateFilename(String pateFN) {
     pateFilename = pateFN;
 
-    if (logTarget == LOG_TARGET_FILE) {
+    if (logTarget == TARGET_FILE) {
       // ob priklopu na datoteko izpišem ločilo, da so logi jasno ločeni eden od drugega
       try (PrintWriter pw = new PrintWriter(new FileWriter(new File(pateFN), true))) {
         pw.println("-------------------------------------------------------------");
@@ -49,7 +49,7 @@ public class ATLog {
   
   public static void disableLog() {
     lastLogTarget = logTarget;
-    logTarget = LOG_TARGET_OFF;
+    logTarget = TARGET_OFF;
   }
   public static void enableLog(){
     logTarget = lastLogTarget;
@@ -70,7 +70,7 @@ public class ATLog {
    * ali oboje (kam=3).
    */
   public static void log(String msg, int kam) {
-    if (logTarget == LOG_TARGET_OFF || ATGlobal.verboseLevel == 0) return;
+    if (logTarget == TARGET_OFF || ATGlobal.verboseLevel == 0) return;
     
     msg = msg.substring(0, Math.min(msg.length(), MAX_ERROR_SIZE));
 
@@ -86,11 +86,11 @@ public class ATLog {
 
     
     // loggint to stdout
-    if ((logTarget & LOG_TARGET_STDOUT) != 0)
+    if ((logTarget & TARGET_STDOUT) != 0)
       System.out.println(logMsg);
 
     // loging to file
-    if ((logTarget & LOG_TARGET_FILE) != 0) {
+    if ((logTarget & TARGET_FILE) != 0) {
       if (algatorLogFileName.isEmpty())
         algatorLogFileName = ATGlobal.getAlgatorLogFilename();
       

@@ -1,12 +1,10 @@
 package si.fri.algotest.analysis;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -95,18 +93,12 @@ public class DataAnalyser {
 
   private static ResultPack getResultPack(EResult eResultDesc, EResult eResultDesc0, EResult eResultDesc1) {
     String key = eResultDesc.toString() + eResultDesc0.toString() + eResultDesc1.toString();
-    String resultDescription = (String) Cache.get(key);
     ResultPack resPack = new ResultPack();
-    if (resultDescription == null) {
-      resPack = new ResultPack();
-      // add the current resultdescription parameters to the resPack resultDescription parameterset
-      resPack.resultDescription.getVariables().addVariables(eResultDesc.getVariables(), false);
-      resPack.resultDescription.getVariables().addVariables(eResultDesc0.getVariables(), false);
-      resPack.resultDescription.getVariables().addVariables(eResultDesc1.getVariables(), false);
-      Cache.set(key, resPack.resultDescription.toJSONString());
-    } else {
-      resPack.resultDescription.initFromJSON(resultDescription);
-    }
+
+    // add the current resultdescription parameters to the resPack resultDescription parameterset
+    resPack.resultDescription.getVariables().addVariables(eResultDesc.getVariables(), false);
+    resPack.resultDescription.getVariables().addVariables(eResultDesc0.getVariables(), false);
+    resPack.resultDescription.getVariables().addVariables(eResultDesc1.getVariables(), false);
     return resPack;
   }
 
@@ -154,25 +146,19 @@ public class DataAnalyser {
       resFileName = ATTools.getTaskResultFileName(project, algorithm, testset, measurement.getExtension());
     }
 
-    lines = (ArrayList<String>) Cache.get(project.getName() + algorithm + measurement.name() + resFileName);
-    if (lines == null) {
+    lines = new ArrayList<>();
+    File resFile = new File(resFileName);
 
-      lines = new ArrayList<>();
-
-      File resFile = new File(resFileName);
-
-      try (Scanner sc = new Scanner(resFile)) {
-        while (sc.hasNextLine()) {
-          String line = sc.nextLine();
-          if (line == null) {
-            line = "";
-          }
-          lines.add(line);
+    try (Scanner sc = new Scanner(resFile)) {
+      while (sc.hasNextLine()) {
+        String line = sc.nextLine();
+        if (line == null) {
+          line = "";
         }
-      } catch (Exception e) {
-        ATLog.log("Can't read results: " + e, 1);
+        lines.add(line);
       }
-      Cache.set(project.getName() + algorithm + measurement.name() + resFileName, lines);
+    } catch (Exception e) {
+      ATLog.log("Can't read results: " + e, 1);
     }
 
     readResults(resPack, project, algorithm, testset, computerID, initData, lines);
@@ -200,13 +186,14 @@ public class DataAnalyser {
 
       String[] lineFields = line.split(delim);
 
-      String testName = lineFields[2];
-      String pass = lineFields[3];
+      String curTestSet = lineFields[1];
+      String testName   = lineFields[2];
+      String pass       = lineFields[4];
 
       // sets the value of default parameters
       algPS.getVariable(EResult.algParName).set(EVariable.ID_Value, algorithm);
-      algPS.getVariable(EResult.tstParName).set(EVariable.ID_Value, testset);
-      algPS.getVariable(EResult.testIDParName).set(EVariable.ID_Value, testName);
+      algPS.getVariable(EResult.tstParName).set(EVariable.ID_Value, curTestSet);
+      algPS.getVariable(EResult.instanceIDParName).set(EVariable.ID_Value, testName);
       algPS.getVariable(EResult.passParName).set(EVariable.ID_Value, pass);
 
       int lineFiledsPos = EResult.FIXNUM;
@@ -242,7 +229,7 @@ public class DataAnalyser {
       }
 
       // add this ParameterSet to the ResultPack
-      String key = testset + "-" + testName;
+      String key = curTestSet + "-" + testName;
       Variables ps = resPack.getResult(key);
       // If ParameterSet for this testset-test doesn't exist ...
       if (ps == null) {
@@ -323,7 +310,7 @@ public class DataAnalyser {
 
     if (query.startsWith("{")) {
       EProject project = new EProject(new File(ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projectname)));
-      EQuery eQuery = new EQuery(query, params);
+        EQuery eQuery = new EQuery(query, params);
       return runQuery(project, eQuery, computerID).toString();
     } else {
       try {
@@ -460,8 +447,7 @@ public class DataAnalyser {
   }
 
   public static TableData runQuery_NO_COUNT(EProject eProject, EQuery query, String computerID, Map<String, TableData> queryResults) {
-
-    TableData td = null; // (TableData) Cache.get(eProject.getName() + query.getCacheKey() + computerID);
+    TableData td = null; 
 
     if (td != null && (queryResults == null || queryResults.size() == 0)) {
       TableData tdCache = new TableData();
@@ -572,19 +558,27 @@ public class DataAnalyser {
       NameAndAbrev[] outPars = new NameAndAbrev[outParsAL.size()];
 
       outParsAL.toArray(outPars);
-            //new NameAndAbrev[emPars.length + cntPars.length + jvmPars.length];
 
-            //NameAndAbrev[] outPars = query.getNATabFromJSONArray(EQuery.ID_outParameters);
-            // ver 1.0: the order of testset-test key is obtained from the first algorithm (this order
+      // ver 1.0: the order of testset-test key is obtained from the first algorithm (this order
       // should be the same for all algorithms, therefore the selection of the algorithms  is arbitrary).
       // ver 2.0 (jan2016): The above statement is not true! If the results of the first algorithm are corrupted,
       // keyOrder can be null. Therefore, in this version we take the keyOrder with maximum number of keys.
-      ArrayList<String> keyOrder = null;
-      NameAndAbrev alg0 = null;
+      //ArrayList<String> keyOrder = null;
+      //NameAndAbrev alg0 = null;
+      //for (NameAndAbrev alg : algs) {
+      //  if (keyOrder == null || keyOrder.size() < results.get(alg.getName()).keyOrder.size()) {
+      //    alg0 = alg;
+      //    keyOrder = results.get(alg0.getName()).keyOrder;
+      //  }
+      //}
+      // ver 3.0: in new version some results file might contain tests that other don't. Therefore
+      // we build keyOrder as a union of all test orders
+      ArrayList<String> keyOrder = new ArrayList<>();      
       for (NameAndAbrev alg : algs) {
-        if (keyOrder == null || keyOrder.size() < results.get(alg.getName()).keyOrder.size()) {
-          alg0 = alg;
-          keyOrder = results.get(alg0.getName()).keyOrder;
+        if (results.get(alg.getName()) != null && results.get(alg.getName()).keyOrder != null) {
+          ArrayList<String> tmpKeyOrder = new ArrayList<>(results.get(alg.getName()).keyOrder);
+          tmpKeyOrder.removeAll(keyOrder);
+          keyOrder.addAll(tmpKeyOrder);          
         }
       }
 
@@ -593,7 +587,7 @@ public class DataAnalyser {
 
       td.header.add(EResult.tstParName);
 
-      td.header.add(EResult.testIDParName);
+      td.header.add(EResult.instanceIDParName);
 
       td.header.add(EResult.passParName);
 
@@ -629,14 +623,22 @@ public class DataAnalyser {
         testNUM++;
         ArrayList<Object> line = new ArrayList<>();
 
-        if (alg0 != null) {
-          String alg0Name = alg0.getName();
-          Variables ps = results.get(alg0Name).getResult(key);
+        // fina an algorithm that contains values for this key
+        NameAndAbrev alg0 = null;
+        for (NameAndAbrev alg : algs) {          
+          if (results.get(alg.getName()).getResult(key) != null) {
+            alg0 = alg;
+            break;
+          }
+        }
+        
+        if (alg0 != null) {          
+          Variables ps = results.get(alg0.getName()).getResult(key);
 
           // add values for 3 default test parameters
           line.add(testNUM);
           line.add(ps.getVariable(EResult.tstParName).get(EVariable.ID_Value));
-          line.add(ps.getVariable(EResult.testIDParName).get(EVariable.ID_Value));
+          line.add(ps.getVariable(EResult.instanceIDParName).get(EVariable.ID_Value));
           line.add(ps.getVariable(EResult.passParName).get(EVariable.ID_Value));
 
           //line.add(testNUM);
@@ -660,17 +662,17 @@ public class DataAnalyser {
             name = AlgInterpreter.prepareExpression(name);
           }
           for (NameAndAbrev alg : algs) {
-            Object value;
-            try {
-              if (exp.length > 1) {
-                value = getCalcField(name, results, sortedPars, key, algs, alg);
-              } else {
-                Variables ps2 = results.get(alg.getName()).getResult(key);
-                EVariable parameter = ps2.getVariable(name);
-                value = parameter.getValue();
-              }
-            } catch (Exception e) {
-              value = "?";
+            Object value = "?";
+            if (results.get(alg.getName()).getResult(key) != null) {
+              try {
+                if (exp.length > 1) {
+                  value = getCalcField(name, results, sortedPars, key, algs, alg);
+                } else {
+                  Variables ps2 = results.get(alg.getName()).getResult(key);
+                  EVariable parameter = ps2.getVariable(name);
+                  value = parameter.getValue();
+                }
+              } catch (Exception e) {}
             }
             line.add(value);
           }
@@ -679,12 +681,10 @@ public class DataAnalyser {
         td.data.add(line);
       }
 
-      if (queryResults
-              == null) {
+      if (queryResults == null) {
         TableData tdCache = new TableData();
         tdCache.header = td.header;
         tdCache.data = (ArrayList<ArrayList<Object>>) td.data.clone();
-        Cache.set(eProject.getName() + query.getCacheKey() + computerID, tdCache);
       }
     }
 
@@ -708,7 +708,7 @@ public class DataAnalyser {
       ArrayList<String> resultOrder = new ArrayList<>();
       resultPS.addVariable(new EVariable(EResult.algParName, VariableType.STRING, ""));
       resultPS.addVariable(new EVariable(EResult.tstParName, VariableType.STRING, ""));
-      resultPS.addVariable(new EVariable(EResult.testIDParName, VariableType.STRING, ""));
+      resultPS.addVariable(new EVariable(EResult.instanceIDParName, VariableType.STRING, ""));
       resultPS.addVariable(new EVariable(EResult.passParName, VariableType.STRING, ""));
       for (int i = EResult.FIXNUM; i < qTd.header.size(); i++) {
         String varName = qTd.header.get(i);
@@ -727,7 +727,7 @@ public class DataAnalyser {
         // sets the value of default parameters
         algPS.getVariable(EResult.algParName).set(EVariable.ID_Value, alg.getName());
         algPS.getVariable(EResult.tstParName).set(EVariable.ID_Value, testSet);
-        algPS.getVariable(EResult.testIDParName).set(EVariable.ID_Value, testName);
+        algPS.getVariable(EResult.instanceIDParName).set(EVariable.ID_Value, testName);
         algPS.getVariable(EResult.passParName).set(EVariable.ID_Value, pass);
 
         // sets the value of result parameters

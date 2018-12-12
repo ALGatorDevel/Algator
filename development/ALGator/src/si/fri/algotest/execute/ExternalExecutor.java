@@ -25,9 +25,10 @@ import si.fri.algotest.entities.VariableType;
 import si.fri.algotest.entities.Project;
 import si.fri.algotest.entities.StatFunction;
 import si.fri.algotest.global.ATGlobal;
+import si.fri.algotest.global.ATLog;
 import si.fri.algotest.global.ErrorStatus;
 import si.fri.algotest.global.ExecutionStatus;
-import si.fri.algotest.timer.Timer;
+import si.fri.algotest.tools.UniqueIDGenerator;
 
 /**
  *
@@ -82,7 +83,9 @@ public class ExternalExecutor {
    * @return
    */
   public static void iterateTestSetAndRunAlgorithm(Project project, String algName, AbstractTestSetIterator it, 
-          Notificator notificator, MeasurementType mType, File resultFile) {
+          Notificator notificator, MeasurementType mType, File resultFile, int whereToPrint) {
+    
+    String instanceID = "Test"; //UniqueIDGenerator.getNextID();
 
     ETestSet testSet = it.testSet;
 
@@ -123,11 +126,9 @@ public class ExternalExecutor {
         String testSetName = it.testSet.getName();
 
         Variables resultVariables = runTestCase(project, algName, testCase, mType,
-                testSetName, testID, timesToExecute, timeLimit, notificator);
+                testSetName, testID, timesToExecute, timeLimit, notificator, instanceID+"-"+testID);
 
-        PrintWriter pw = new PrintWriter(new FileWriter(resultFile, true));
-        pw.println(resultVariables.toString(resultDesc.getVariableOrder(), false, ATGlobal.DEFAULT_CSV_DELIMITER));
-        pw.close();
+        printVariables(resultVariables, resultFile, resultDesc.getVariableOrder(), whereToPrint);
       }
       it.close();
     } catch (Exception e) {
@@ -140,7 +141,10 @@ public class ExternalExecutor {
   public static Variables runTestCase(
           Project project, String algName, AbstractTestCase testCase, MeasurementType mType,
           String testSetName, int testID, int timesToExecute, int timeLimit,
-          Notificator notificator) {
+          Notificator notificator, String instanceID) {
+    
+    if (instanceID == null || instanceID.isEmpty())
+      instanceID = UniqueIDGenerator.getNextID();
 
     AbstractAlgorithm algorithm      = New.algorithmInstance(project, algName, mType);
     AbstractInput     input          = testCase != null ? testCase.getInput() : null;
@@ -236,11 +240,13 @@ public class ExternalExecutor {
       if (algorithm.getCurrentInput() != null) {
         resultVariables.addVariables(algorithm.getCurrentInput().getParameters());
       }
-
+           
       resultVariables.addVariables(algResultIndicators, false);
       resultVariables.addVariable(EResult.getAlgorithmNameParameter(algName), true);
       resultVariables.addVariable(EResult.getTestsetNameParameter(testSetName), true);
-      resultVariables.addVariable(EResult.getTestIDParameter("Test-" + testID), true);
+      resultVariables.addVariable(EResult.getTimestampParameter(System.currentTimeMillis()), true);
+      resultVariables.addVariable(EResult.getInstanceIDParameter(instanceID), true);
+            
       resultVariables.addVariable(executionStatusParameter, true); 
 
     } catch (Exception e) {
@@ -252,6 +258,23 @@ public class ExternalExecutor {
 
   }
 
+  /**
+   * Prints varibles (parameters and indicators) in a given order to stdout and/or file.
+   * Parameter whereToPrint: 0 ... none, 1 ... stdout, 2 ... file (note: 3 = both, 1 and 2).
+   */
+  public static void printVariables(Variables resultVariables, File resultFile, String [] order, int whereToPrint) {
+    if (resultVariables != null) {
+      // print to stdout
+      if (((whereToPrint & ATLog.TARGET_STDOUT) == ATLog.TARGET_STDOUT))            
+        resultVariables.printToFile(new PrintWriter(System.out), order);      
+      
+      // print to file
+      if (((whereToPrint & ATLog.TARGET_FILE) == ATLog.TARGET_FILE) && (resultFile != null))
+        resultVariables.printToFile(resultFile, order);          
+    }  
+  }
+  
+  
   // has the process finished?
   private static boolean processIsTerminated(Process process) {
     try {
@@ -473,7 +496,10 @@ public class ExternalExecutor {
       return f.length();
     } catch (Exception e) {
       return 0;
-    }
+    }    
   }
+  
+  void a(Object a) {}
+  void a(String a) {}
 
 }

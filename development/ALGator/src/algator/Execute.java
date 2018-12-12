@@ -89,6 +89,12 @@ public class Execute {
             .hasArg(true)
             .withDescription("where to print information (1 = stdout (default), 2 = file, 3 = both")
             .create("log");
+
+    Option whereResults = OptionBuilder.withArgName("where_results")
+            .hasArg(true)
+            .withDescription("where to print results (1 = stdout, 2 = file (default), 3 = both (default)")
+            .create("w");
+    
     
     options.addOption(algorithm);
     options.addOption(testset);
@@ -99,6 +105,7 @@ public class Execute {
         
     options.addOption(verbose);
     options.addOption(logTarget);
+    options.addOption(whereResults);
     
     options.addOption("h", "help", false,
 	    "print this message");
@@ -218,18 +225,24 @@ public class Execute {
           ATGlobal.verboseLevel = 2;
       }
       
-      ATGlobal.logTarget = ATLog.LOG_TARGET_STDOUT;
+      ATGlobal.logTarget = ATLog.TARGET_STDOUT;
       if (line.hasOption("log")) {
         if (line.getOptionValue("log").equals("0"))
-          ATGlobal.logTarget = ATLog.LOG_TARGET_OFF;
+          ATGlobal.logTarget = ATLog.TARGET_OFF;
         if (line.getOptionValue("log").equals("2"))
-          ATGlobal.logTarget = ATLog.LOG_TARGET_FILE;
+          ATGlobal.logTarget = ATLog.TARGET_FILE;
         if (line.getOptionValue("log").equals("3"))
-          ATGlobal.logTarget = ATLog.LOG_TARGET_FILE + ATLog.LOG_TARGET_STDOUT;
+          ATGlobal.logTarget = ATLog.TARGET_FILE + ATLog.TARGET_STDOUT;
       }     
       ATLog.setLogTarget(ATGlobal.logTarget);
            
-      runAlgorithms(dataRoot, projectName, algorithmName, testsetName, mType, alwaysCompile, alwaysRunTests, listOnly);
+      int whereToPrint = 3; // both, stdout and file
+      if (line.hasOption("where_results")) try {
+        whereToPrint = Integer.parseInt(line.getOptionValue("where_results"));
+      } catch (Exception e) {}            
+
+      
+      runAlgorithms(dataRoot, projectName, algorithmName, testsetName, mType, alwaysCompile, alwaysRunTests, listOnly, whereToPrint);
 
     } catch (ParseException ex) {
       printMsg(options);
@@ -251,7 +264,7 @@ public class Execute {
   
   private static void runAlgorithms(String dataRoot, String projName, String algName,
 	  String testsetName, MeasurementType mType, boolean alwaysCompile, 
-          boolean alwaysRun, boolean printOnly) {
+          boolean alwaysRun, boolean printOnly, int whereToPrint) {
     
     if (!ATGlobal.projectExists(dataRoot, projName)) {
       ATGlobal.verboseLevel=1;
@@ -346,7 +359,7 @@ public class Execute {
           ATLog.setPateFilename(ATGlobal.getTaskHistoryFilename(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType.getExtension()));
           Notificator notificator = Notificator.getNotificator(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType);
 	  error = Executor.algorithmRun(projekt, eAlgs.get(i).getName(), 
-		  eTests.get(j).getName(),  mType, notificator, alwaysCompile, alwaysRun); 
+		  eTests.get(j).getName(),  mType, notificator, alwaysCompile, alwaysRun, whereToPrint); 
           
           // when execution failes, all batch is canceled
           // Is this a good idea?  Probably not!

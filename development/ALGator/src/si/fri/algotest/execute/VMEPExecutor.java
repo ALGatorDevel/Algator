@@ -79,7 +79,7 @@ public class VMEPExecutor {
         
         AbstractInput testCase = it.getCurrent().getInput();
         if (testCase != null) {
-          EVariable testP = testCase.getParameters().getVariable(EResult.testIDParName);
+          EVariable testP = testCase.getParameters().getVariable(EResult.instanceIDParName);
           result.addVariable(testP,  true);
           
           executionStatus = runWithLimitedTime(project.getName(), algName, testSetName, testID, 

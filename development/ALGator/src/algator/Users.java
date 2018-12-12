@@ -1582,12 +1582,16 @@ public class Users {
       }
       ATGlobal.setALGatorDataRoot(dataRoot);
 
-      ATGlobal.logTarget = ATLog.LOG_TARGET_STDOUT;
+      ATGlobal.logTarget = ATLog.TARGET_STDOUT;
       ATLog.setLogTarget(ATGlobal.logTarget);
 
       conn = PermTools.connectToDatabase();
       if (conn == null) {
-        System.out.println("Can not connect to database. Please, check your settings in the algator.acfg file.");
+        String err = PermTools.preventConnection() ?
+           "File $ALGATOR_ROOT/mysql-stop is preventing connection." :
+           "Please, check your settings in the algator.acfg file.";
+        
+        System.out.println("Can not connect to database. " + err);
         return;
       }
 

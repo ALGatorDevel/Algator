@@ -1,10 +1,15 @@
 package si.fri.algotest.entities;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ATLog;
+import si.fri.algotest.global.ErrorStatus;
 
 /**
  * A set of variables.
@@ -164,6 +169,23 @@ public class Variables implements Serializable, Iterable<EVariable> {
       result += delim + variables.get(EResult.errorParName).getValue();
     }
     return result;
+  }
+  
+  public void printToFile(File resultFile, String [] variablesOrder) {
+    try {
+      PrintWriter pw = new PrintWriter(new FileWriter(resultFile, true));
+        printToFile(pw, variablesOrder);        
+      pw.close();
+    } catch (Exception e) {
+      ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_WRITEFILE, e.toString());
+    } 
+  }
+  public void printToFile(PrintWriter pw, String [] variablesOrder) {
+    try {
+      pw.println(this.toString(variablesOrder, false, ATGlobal.DEFAULT_CSV_DELIMITER));
+      pw.flush();
+    } catch (Exception e) {
+    }
   }
   
   @Override

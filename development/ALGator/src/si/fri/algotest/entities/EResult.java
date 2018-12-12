@@ -1,8 +1,11 @@
 package si.fri.algotest.entities;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ErrorStatus;
 import si.fri.algotest.global.ExecutionStatus;
 
@@ -15,12 +18,13 @@ public class EResult extends Entity {
    * The numnber of fileds added to every result file.
    * Currently: 4 (the name of the algorithm, the testset, the test and pass (DONE/FAILED))
    */
-  public static final int FIXNUM = 4;
-  public static final String algParName      = "Algorithm"; 
-  public static final String tstParName      = "Testset"; 
-  public static final String testIDParName   = "TestID";   // Unique identificator of a test within a testset  
-  public static final String passParName     = "Pass";     // DONE if algorithem finished within the given time limit, FAILED otherwise
-  public static final String errorParName    = "Error";    // if an error occures, this parameter contains error message
+  public static final int FIXNUM = 5;
+  public static final String algParName        = "Algorithm"; 
+  public static final String tstParName        = "Testset"; 
+  public static final String instanceIDParName = "InstanceID"; // Unique instance identificator of a test instance
+  public static final String passParName       = "Pass";       // DONE if algorithem finished within the given time limit, FAILED otherwise
+  public static final String timeStampName     = "Timestamp";  // timestamp of test end
+  public static final String errorParName      = "Error";      // if an error occures, this parameter contains error message
   
   // unique sequence number of a test in a tabel (id of table row)
   public static final String testNoParName   = "ID";     
@@ -79,7 +83,8 @@ public class EResult extends Entity {
       // add FIXNUM default parameters ...
       result.addVariable(getAlgorithmNameParameter("/"), true);
       result.addVariable(getTestsetNameParameter("/"), true);
-      result.addVariable(getTestIDParameter("/"), true);
+      result.addVariable(getInstanceIDParameter("/"), true);
+      result.addVariable(EResult.getTimestampParameter(0), true);      
       // ... and the execution status indicator
       result.addVariable(getExecutionStatusIndicator(ExecutionStatus.UNKNOWN), false);
       
@@ -151,8 +156,9 @@ public class EResult extends Entity {
     // The number of parameters added to every result line is defined in EResult.FIXNUM
     order[0] = EResult.algParName;
     order[1] = EResult.tstParName;
-    order[2] = EResult.testIDParName;
-    order[3] = EResult.passParName;
+    order[2] = EResult.instanceIDParName;
+    order[3] = EResult.timeStampName;
+    order[4] = EResult.passParName;
     
     int k = FIXNUM;
     for (int i = 0; i < orderA.length; i++) 
@@ -162,9 +168,6 @@ public class EResult extends Entity {
     
     return order;
   }
-  
-  
-  
   
   /**
    * Returns a parameter that represents the algorithm name
@@ -189,10 +192,18 @@ public class EResult extends Entity {
   /**
    * Returns a testID paremeter
    */
-  public static EVariable getTestIDParameter(String testID) {
-    return new EVariable(testIDParName, "Test identificator", VariableType.STRING, testID);
+  public static EVariable getInstanceIDParameter(String testID) {
+    return new EVariable(instanceIDParName, "Instance identificator", VariableType.STRING, testID);
   }
 
+  /**
+   * Returns a timestamp paremeter
+   */
+  public static EVariable getTimestampParameter(long timestamp) {    
+    return new EVariable(timeStampName, "Timestamp identificator", VariableType.INT, timestamp);
+  }
+  
+  
   /**
    * Returns an error indicator
    */

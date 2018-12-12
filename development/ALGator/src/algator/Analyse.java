@@ -3,7 +3,6 @@ package algator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
-import java.util.TreeSet;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -13,21 +12,18 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.json.JSONObject;
-import si.fri.algotest.entities.EAlgorithm;
+import si.fri.algotest.analysis.Analysis;
+import static si.fri.algotest.analysis.Analysis.FindLimitTestsetID;
 import si.fri.algotest.entities.EResult;
 import si.fri.algotest.entities.EVariable;
 import si.fri.algotest.entities.MeasurementType;
 import si.fri.algotest.entities.Project;
-import si.fri.algotest.entities.VariableType;
 import si.fri.algotest.entities.Variables;
-import si.fri.algotest.execute.AbstractTestCase;
-import si.fri.algotest.execute.Executor;
-import si.fri.algotest.execute.ExternalExecutor;
-import si.fri.algotest.execute.New;
+import si.fri.algotest.execute.Notificator;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ATLog;
-import si.fri.algotest.global.ExecutionStatus;
 import si.fri.algotest.tools.ATTools;
+import si.fri.algotest.tools.UniqueIDGenerator;
 
 /**
  *
@@ -35,14 +31,7 @@ import si.fri.algotest.tools.ATTools;
  */
 public class Analyse {
   private static String introMsg = "ALGator Analyse, " + Version.getVersion();
-  
-  static final String GENERATED_TestSetName = "[generated]";
-  static final String MY_TIMER              = "_Tmin_";
-      
-  // when the relative difference between lastOK and lastKILLED value of parameter  
-  // is <= precisionLevel, algorithm getParameterLimit will stop
-  static final double precisionLevel        = 0.01;
-  
+          
   
   private static Options getOptions() {
     Options options = new Options();
@@ -82,6 +71,13 @@ public class Analyse {
             .withDescription("where to print information (1 = stdout (default), 2 = file, 3 = both")
             .create("log");
     
+    Option whereResults = OptionBuilder.withArgName("where_results")
+            .withLongOpt("where_results")            
+            .hasArg(true)
+            .withDescription("where to print results (1 = stdout, 2 = file, 3 = both (default)")
+            .create("w");
+    
+    
     Option param = OptionBuilder.withArgName("parameter_name")
     	    .withLongOpt("parameter")
             .hasArg(true)
@@ -102,8 +98,17 @@ public class Analyse {
             .hasArg(true)
             .withDescription("number of times to execute algorithm; defulat: 1")
             .create("te");
+    Option measurement = OptionBuilder.withArgName("mtype_name")
+	    .withLongOpt("mtype")
+	    .hasArg(true)
+	    .withDescription("the name of the measurement type to use (EM, CNT or JVM); if the measurement type is not given, the EM measurement type is used")
+	    .create("m");
 
-    
+    Option instanceID = OptionBuilder.withArgName("instance_id")
+	    .withLongOpt("instance_id")
+	    .hasArg(true)
+	    .withDescription("identifier of this test instance; default: unique random value")
+	    .create("i");
     
     options.addOption(algorithm);
     options.addOption(data_root);
@@ -113,10 +118,13 @@ public class Analyse {
     options.addOption(params);
     options.addOption(timeLimit);
     options.addOption(timesToExecute);
+    options.addOption(measurement);
+    options.addOption(instanceID);
     
         
     options.addOption(verbose);
     options.addOption(logTarget);
+    options.addOption(whereResults);
     
     options.addOption("h", "help", false,
 	    "print this message");        
@@ -127,7 +135,7 @@ public class Analyse {
 
   private static void printMsg(Options options) {    
     HelpFormatter formatter = new HelpFormatter();
-    String header = "function: FindLimit | RunOne\n";
+    String header = "functions: FindLimit | FindLimits | RunOne\n";
     formatter.printHelp("algator.Analyse [options] function project_name", header,  options, "");
 
     System.exit(0);
@@ -194,6 +202,13 @@ public class Analyse {
 	algorithmName = line.getOptionValue("algorithm");
       }
       
+      MeasurementType mType = MeasurementType.EM;
+      if (line.hasOption("mtype")) {
+	try {
+          mType = MeasurementType.valueOf(line.getOptionValue("mtype").toUpperCase());
+        } catch (Exception e) {}  
+      }      
+      
       ATGlobal.verboseLevel = 0;
       if (line.hasOption("verbose")) {
         if (line.getOptionValue("verbose").equals("1"))
@@ -202,17 +217,26 @@ public class Analyse {
           ATGlobal.verboseLevel = 2;
       }
       
-      ATGlobal.logTarget = ATLog.LOG_TARGET_STDOUT;
+      ATGlobal.logTarget = ATLog.TARGET_STDOUT;
       if (line.hasOption("log")) {
         if (line.getOptionValue("log").equals("0"))
-          ATGlobal.logTarget = ATLog.LOG_TARGET_OFF;
+          ATGlobal.logTarget = ATLog.TARGET_OFF;
         if (line.getOptionValue("log").equals("2"))
-          ATGlobal.logTarget = ATLog.LOG_TARGET_FILE;
+          ATGlobal.logTarget = ATLog.TARGET_FILE;
         if (line.getOptionValue("log").equals("3"))
-          ATGlobal.logTarget = ATLog.LOG_TARGET_FILE + ATLog.LOG_TARGET_STDOUT;
+          ATGlobal.logTarget = ATLog.TARGET_FILE + ATLog.TARGET_STDOUT;
       }     
       ATLog.setLogTarget(ATGlobal.logTarget);
 
+      String instanceID = UniqueIDGenerator.getNextID();
+      if (line.hasOption("instance_id"))
+        instanceID = line.getOptionValue("instance_id");
+        
+      int whereToPrint = 3; // both, stdout and file
+      if (line.hasOption("where_results")) try {
+        whereToPrint = Integer.parseInt(line.getOptionValue("where_results"));
+      } catch (Exception e) {}            
+      
       int timeLimit = 1;
       if (line.hasOption("timelimit")) {
         try {
@@ -258,9 +282,12 @@ public class Analyse {
       } else
         algorithms.add(algorithmName);
       
+      //Notificator notificator = Notificator.getNotificator(projectName, "", FindLimitTestsetID, MeasurementType.EM);
+      Notificator notificator = null;
+      
       switch (function.toUpperCase()) {
         case "RUNONE":
-          runOne(dataRoot, project, algorithms, parameters, timeLimit, timesToExecute);
+          Analysis.runOne(dataRoot, project, algorithms, parameters, timeLimit, timesToExecute, mType, instanceID, whereToPrint);
           break;
         
         case "FINDLIMIT":
@@ -270,9 +297,20 @@ public class Analyse {
 
            System.exit(0);       
           }
-          
-          getParameterLimit(dataRoot, project, algorithms, parameterName, parameters, timeLimit);
+          ArrayList<Variables> results = 
+            Analysis.getParameterLimit(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator);
           break;
+          
+        case "FINDLIMITS":
+          if (parameterName.isEmpty()) {
+            ATGlobal.verboseLevel=1;
+            ATLog.log("Missing parameter (option -p).", 1);
+
+           System.exit(0);       
+          }
+          
+          Analysis.getParameterLimits(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator);
+          break;          
           
         default:
           ATGlobal.verboseLevel=1;
@@ -288,156 +326,27 @@ public class Analyse {
     HashMap<String, Object> params = new HashMap<>();
     try {
       params = ATTools.jSONObjectToMap(new JSONObject(paramsJSON));
-    } catch (Exception e) {}
+    } catch (Exception e) {
+    }
     Variables parameters = new Variables();
-    for (String paramName: params.keySet()) {
+    for (String paramName : params.keySet()) {
       parameters.addVariable(new EVariable(paramName, params.get(paramName)));
     }
     return parameters;
   }
-
-  private static void runOne(String data_root, Project project, ArrayList<String> algorithms, Variables defaultParams, int timeLimit, int timesToExecute) {          
-    Executor.projectMakeCompile(data_root, project.getName(), false);
-
-    for (String algName : algorithms) {
-      Executor.algorithmMakeCompile(data_root, project.getName(), algName, MeasurementType.EM, false);
-      runOne(data_root, project, algName, defaultParams, timeLimit, timesToExecute);
-    }    
-  }
-  private static void runOne(String data_root, Project project, String algName, Variables defaultParams, int timeLimit, int timesToExecute) {  
-    
-    EAlgorithm eAlgorithm = project.getAlgorithms().get(algName);
-    if (eAlgorithm == null) {
-        ATGlobal.verboseLevel=1;
-        ATLog.log(String.format("Algorithm '%s' does not exist.",algName), 1);
-
-        System.exit(0);      
-    }
-    
-    int testID = 0;
-    
-    EResult emResultDesc = project.getResultDescriptions().get(MeasurementType.EM);
-    if (emResultDesc == null) emResultDesc = new EResult();
-    Variables parameters = emResultDesc.getParameters();
-    
-    // apply the given values of the parameters
-    for (EVariable defParam : defaultParams) {
-      EVariable param = parameters.getVariable(defParam.getName());
-      if (param != null) param.setValue(defParam.getValue());
-    } 
-    
-    
- 
-    AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(parameters);
-    Variables result = 
-      ExternalExecutor.runTestCase(
-          project, algName, testCase, MeasurementType.EM, GENERATED_TestSetName, ++testID, timesToExecute, timeLimit, null);
-    
-    System.out.println(
-      result.toString(emResultDesc.getVariableOrder(), false, ATGlobal.DEFAULT_CSV_DELIMITER)
-    );        
-  }
   
-  
-  private static void getParameterLimit(String data_root, Project project, ArrayList<String> algorithms, String paramName, Variables parameters, int timeLimit) {            
-    Executor.projectMakeCompile(data_root, project.getName(), false);    
-    
-    HashMap<String, Variables>  results = new HashMap<>();
+  private static void printResult(Project project, ArrayList<String> algorithms, ArrayList<Variables> results ) {
+        EResult emResultDesc = project.getResultDescriptions().get(MeasurementType.EM);
 
-    for (String algName : algorithms) {
-      Executor.algorithmMakeCompile(data_root, project.getName(), algName, MeasurementType.EM, false);
-      results.put(algName, getParameterLimit(project, algName, paramName, parameters, timeLimit));
-    }    
-    
-    EResult emResultDesc = project.getResultDescriptions().get(MeasurementType.EM);
-    
-    for (String algName : algorithms) {
-      Variables result = results.get(algName);
+    for (int i=0; i<results.size(); i++) {
+      Variables result = results.get(i);
       if (result != null) {
         System.out.print(
           result.toString(emResultDesc.getVariableOrder(), false, ATGlobal.DEFAULT_CSV_DELIMITER)
-        );        
-        System.out.println(ATGlobal.DEFAULT_CSV_DELIMITER + result.getVariable(MY_TIMER).getLongValue());
-      } else {
-        System.out.println(algName + ATGlobal.DEFAULT_CSV_DELIMITER + "?");
+        );
+        System.out.println(ATGlobal.DEFAULT_CSV_DELIMITER + 
+          result.getVariable(Analysis.MY_TIMER).getLongValue());
       }
     }
   }
-
-  /**
-   * Method runs algorihm for several times and try to find the value of the parameter paramName
-   * for which the execution of the test case generated with parameters+paramName lasts about 
-   * timeLimit seconds. 
-   */
-  private static Variables getParameterLimit(Project project, String algName, String paramName, Variables parameters, int timeLimit) {    
-    // to control the execution time we need one additional indicator - time of execution (_time_)
-    EResult resultDesc = project.getResultDescriptions().get(MeasurementType.EM); 
-    EVariable timer    = new EVariable(MY_TIMER, VariableType.TIMER, 0); timer.setMeta("{\"ID\":0, \"STAT\":\"MIN\"}");
-    resultDesc.additionalIndicators.addVariable(timer);                   
-
-    Variables lastOKResult   = null;
-    
-    int lastOKParamValue     = 5;  // tu bi bilo treba vzeti privzeto min vrednost za parameter
-    int lastKilledParamValue = 10; // privzeta min vrednost*2
-    int curParamValue        = 10; // privzeta min vrednost*2
-    
-    long lastOKTime          = 0;
-        
-    EVariable param = parameters.getVariable(paramName);
-    if (param == null) {
-      param = new EVariable(paramName, lastOKParamValue);
-      parameters.addVariable(param);
-    }
-        
-    int testID = 0;
-    
-    boolean bisectionMode = false;
-    
-    while (true) {       
-      param.setValue(curParamValue);
-      AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(parameters);
-
-      Variables result = 
-        ExternalExecutor.runTestCase(project, algName, testCase, MeasurementType.EM, GENERATED_TestSetName, ++testID, 1, 2*timeLimit, null);
-
-      long time = result.getVariable(MY_TIMER).getLongValue(2*timeLimit*1000000);
-      
-      String status  = (String) result.getVariable(EResult.passParName).getValue();
-      if (time > 1000000 * timeLimit) status =  ExecutionStatus.KILLED.toString();
-
-      boolean killed = status.equals(ExecutionStatus.KILLED.toString()) || time > timeLimit*1000000;
-            
-      if (ATGlobal.verboseLevel == 2)
-        System.out.println(String.format("%s=%9d, T=%9d, status=%s", paramName, curParamValue, time, status));
-      
-      if (killed) bisectionMode = true;
-      
-      if (bisectionMode) {
-        if (killed) 
-          lastKilledParamValue = curParamValue;
-        else {
-          lastOKParamValue     = curParamValue;
-          lastOKTime           = time;
-
-          lastOKResult         = result.copy();
-        }
-        
-        curParamValue = (lastOKParamValue + lastKilledParamValue) / 2;
-        
-      } else {
-        lastOKTime       = time;
-        lastOKParamValue = curParamValue;
-        curParamValue    = 2*curParamValue;
-        
-        lastOKResult         = result.copy();
-      }
-      
-      
-      if (1.0*Math.abs(curParamValue - lastOKParamValue) / lastOKParamValue < precisionLevel) break;      
-    }
-    if (ATGlobal.verboseLevel == 2)
-      System.out.printf("Alg: %s, Param value: %d, time: %d\n", algName, lastOKParamValue, lastOKTime);
-    
-    return lastOKResult;
-  }  
 }

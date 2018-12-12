@@ -7,10 +7,12 @@ java algator.Analyse FindLimit BasicSort -p N
   Finds a limit for N for all algorithms of BasicSort (and default values of other parameters)
 
 java algator.Analyse FindLimit BasicSort -a BubbleSort -p N
-   Finds the size of input (N) that can be executed in one second
+   Finds a limit for N for BubbleSort algorithm (and default values of other parameters)
 
 java algator.Analyse FindLimit BasicSort -p N -a InsertionSort -s '{Group:SORTED}' -v 2
-  Finds the size of input (N) for parameter Group=SORTED. Use "-v 2" to see the progress.
 
+java algator.Analyse FindLimits BasicSort -a JavaSort -p N
+  Finds limits for all possible combinations of emun parameters
 
-
+java algator.Analyse FindLimits BasicSort -a JavaSort -p N -s {Div:SMALL}
+  Finds limits for all possible combinations of emun parameters where Div=SMALL

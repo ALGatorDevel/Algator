@@ -176,7 +176,7 @@ public class Executor {
    * @return
    */
   public static ErrorStatus algorithmRun(Project project, String algName, String testSetName,
-          MeasurementType mType, Notificator notificator, boolean alwaysCompile, boolean alwaysRun) {
+          MeasurementType mType, Notificator notificator, boolean alwaysCompile, boolean alwaysRun, int whereToPrint) {
 
     if (project == null) {
       return ErrorStatus.ERROR;
@@ -262,7 +262,7 @@ public class Executor {
 
       try {
         if (mType.equals(MeasurementType.EM) || mType.equals(MeasurementType.CNT)) 
-          ExternalExecutor.iterateTestSetAndRunAlgorithm(project, algName, tsIt, notificator, mType, resFile);
+          ExternalExecutor.iterateTestSetAndRunAlgorithm(project, algName, tsIt, notificator, mType, resFile, whereToPrint);
         else
           VMEPExecutor.iterateTestSetAndRunAlgorithm(project, algName, testSetName, resDesc, tsIt, notificator, resFile);
       } catch (Exception e) {

@@ -38,6 +38,7 @@ import si.fri.algotest.global.ErrorStatus;
 import si.fri.algotest.global.ExecutionStatus;
 import si.fri.algotest.global.VMEPErrorStatus;
 import si.fri.algotest.tools.ATTools;
+import si.fri.algotest.tools.UniqueIDGenerator;
 
 /**
  * VMEPExecute class is used to execute algorithm with vmep virtual machine. It 
@@ -203,7 +204,8 @@ public class VMEPExecute {
     Variables result = new Variables();
     result.addVariable(EResult.getAlgorithmNameParameter(algName), true);
     result.addVariable(EResult.getTestsetNameParameter(testsetName), true);
-    result.addVariable(EResult.getTestIDParameter("Test"+testNumber), true); // if testCase won't initialize, a testcase ID is giver here 
+    result.addVariable(EResult.getInstanceIDParameter(UniqueIDGenerator.getNextID()), true); // if testCase won't initialize, a testcase ID is giver here 
+    result.addVariable(EResult.getTimestampParameter(System.currentTimeMillis()), true);    
     result.addVariable(EResult.getExecutionStatusIndicator(ExecutionStatus.UNKNOWN), true);
     
     // An error that appears as a result of JVM error is not caught by the following catch; however, the finally block
@@ -261,7 +263,8 @@ public class VMEPExecute {
         result.addVariable(EResult.getExecutionStatusIndicator(ExecutionStatus.DONE), true);
         result.addVariable(EResult.getAlgorithmNameParameter(algName), true);
         result.addVariable(EResult.getTestsetNameParameter(testsetName), true);
-        result.addVariable(input.getParameters().getVariable(EResult.testIDParName));
+        result.addVariable(input.getParameters().getVariable(EResult.instanceIDParName));
+        result.addVariable(EResult.getTimestampParameter(System.currentTimeMillis()), true);
       } else {
         result.addVariable(EResult.getExecutionStatusIndicator(ExecutionStatus.FAILED), true);
         result.addVariable(EResult.getErrorIndicator("Invaldi testset or test."), true);
@@ -400,12 +403,12 @@ public class VMEPExecute {
           ATGlobal.verboseLevel = 2;
       }
       
-      ATGlobal.logTarget = ATLog.LOG_TARGET_STDOUT;
+      ATGlobal.logTarget = ATLog.TARGET_STDOUT;
       if (line.hasOption("log")) {
         if (line.getOptionValue("log").equals("2"))
-          ATGlobal.logTarget = ATLog.LOG_TARGET_FILE;
+          ATGlobal.logTarget = ATLog.TARGET_FILE;
         if (line.getOptionValue("log").equals("3"))
-          ATGlobal.logTarget = ATLog.LOG_TARGET_FILE + ATLog.LOG_TARGET_STDOUT;
+          ATGlobal.logTarget = ATLog.TARGET_FILE + ATLog.TARGET_STDOUT;
       }     
       ATLog.setLogTarget(ATGlobal.logTarget);
 

@@ -8,6 +8,7 @@ import si.fri.algotest.entities.ETestSet;
 import si.fri.algotest.entities.Project;
 import si.fri.algotest.global.ATLog;
 import si.fri.algotest.global.ErrorStatus;
+import si.fri.algotest.tools.UniqueIDGenerator;
 
 /**
  * DefaultTestSetIterator provides the methods to iterate throught  testsets in which 
@@ -117,8 +118,8 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
         return null;
       }  
       
-      // iterator labels each test with an unique label
-      testCase.getInput().getParameters().addVariable(EResult.getTestIDParameter("Test-" + lineNumber), true);                        
+      // iterator labels each test with an unique label (which will probably be overriden by callers)      
+      testCase.getInput().getParameters().addVariable(EResult.getInstanceIDParameter(UniqueIDGenerator.getNextID()), true);                              
     } catch (Exception e) {
       reportInvalidDataFormat("can not create testCase instance");     
     }
