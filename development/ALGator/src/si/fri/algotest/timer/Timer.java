@@ -75,8 +75,6 @@ public class Timer implements Serializable {
    * 3) starts (new) current timer
    */
   public void next() {
-    stop();
-
     curTimer++;
     if (curTimer >= MAX_TIMERS) {
       throw new RuntimeException("Maximum number of timers exceeded.");

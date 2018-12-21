@@ -69,12 +69,20 @@ public class Admin {
             .hasArg(true)
             .withDescription("print additional information (0 = OFF (default), 1 = some, 2 = all")
             .create("v");
+        
+    Option presenterType = OptionBuilder.withArgName("presenter_type")
+            .withLongOpt("pType")
+            .hasArg(true)
+            .withDescription("presenter type (0=MainProject, 1=Project (default), 2=MainAlg, 3=Alg); applicable for create_presenter")
+            .create("pt");
+    
     
     
     options.addOption(data_root);
     options.addOption(algator_root);    
     options.addOption(algorithm);
     options.addOption(verbose);
+    options.addOption(presenterType);
     
     options.addOption("h", "help", false,
 	    "print this message");
@@ -85,6 +93,11 @@ public class Admin {
 	    "create a new algorithm for a given project");
     options.addOption("ct", "create_testset", false,
 	    "create a new testset for a given project");    
+    options.addOption("cdp", "create_presenter", false,
+	    "create a new presenter for a given project");
+    options.addOption("rdp", "remove_presenter", false,
+	    "remove a presenter for a project");
+
     
     options.addOption("u", "usage", false, "print usage guide");
     options.addOption("i", "info", false, "print info about entity");
@@ -161,8 +174,7 @@ public class Admin {
         if (line.getOptionValue("verbose").equals("2"))
           ATGlobal.verboseLevel = 2;
       }
-      
-      
+            
       if (line.hasOption("info")) {
         String project   = (curArgs.length != 0) ? curArgs[0] : "";
         String algorithm = line.hasOption("algorithm") ? line.getOptionValue("algorithm") : "";
@@ -199,6 +211,54 @@ public class Admin {
           printMsg(options); 
         } else {
           createTestset(curArgs[0], curArgs[1]);
+          return;
+        }
+      }
+
+      if (line.hasOption("create_presenter")) {
+	if (curArgs.length < 1) {
+          System.out.println("Invalid project or presenter name");
+          printMsg(options); 
+        } else {
+          String presenterName = "";
+          if (curArgs.length == 2)
+            presenterName = curArgs[1];
+          
+          int type = 1;
+          if (line.hasOption("pType"))
+            try{type=Integer.parseInt(line.getOptionValue("pType"));} catch (Exception e) {}
+          
+          String result = createPresenter(curArgs[0], presenterName, type);
+          if (result!=null) System.out.println(result);
+          return;
+        }
+      }
+
+      if (line.hasOption("create_presenter")) {
+	if (curArgs.length < 1) {
+          System.out.println("Invalid project or presenter name");
+          printMsg(options); 
+        } else {
+          String presenterName = "";
+          if (curArgs.length == 2)
+            presenterName = curArgs[1];
+          
+          int type = 1;
+          if (line.hasOption("pType"))
+            try{type=Integer.parseInt(line.getOptionValue("pType"));} catch (Exception e) {}
+          
+          String result = createPresenter(curArgs[0], presenterName, type);
+          if (result!=null) System.out.println(result);
+          return;
+        }
+      }
+
+      if (line.hasOption("remove_presenter")) {
+	if (curArgs.length != 2) {
+          System.out.println("Invalid number of parameters (exactly two required)");
+          printMsg(options); 
+        } else {          
+          System.out.println(removePresenter(curArgs[0], curArgs[1]));
           return;
         }
       }
@@ -357,7 +417,125 @@ public class Admin {
     }    
     return true;
   }
+
+
+  private static String createPresenter(String proj_name, String presenter_name, int type) {
+    if (presenter_name==null || presenter_name.isEmpty())
+      presenter_name = getNextAvailablePresenterName(proj_name, type);
+    
+    String dataroot = ATGlobal.getALGatorDataRoot();         
+    String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
+    String presenterRoot = ATGlobal.getPRESENTERSroot(dataroot, proj_name);
+
+    
+    HashMap<String,String> substitutions = getSubstitutions(proj_name);
+    substitutions.put("<TP>", presenter_name);
+    
+    // first create project if it does not exist
+    File projFolderFile = new File(projRoot);
+    if (!projFolderFile.exists()) {
+      if (!createProject(proj_name))
+        return null;
+    }    
+    
+    System.out.println("Creating presenter " + presenter_name +  " for the project " + proj_name);
+    try {                              
+      
+      File presenterFolderFile = new File(presenterRoot);
+      if (!presenterFolderFile.exists()) {
+        presenterFolderFile.mkdirs();
+      }
+      
+      File presenterFile = new File(presenterRoot + File.separator + presenter_name+".atpd");
+      if (presenterFile.exists()) {
+        System.out.printf("\n Presenter %s already exists!\n", presenter_name);
+        return null;
+      }
+                         
+      copyFile("templates/TP.atpd",  presenterRoot,  presenter_name + ".atpd", substitutions);
+      
+      copyFile("templates/TP.html",  presenterRoot,  presenter_name + ".html", substitutions);
+            
+      String id = EProject.ID_ProjPresenters;
+      switch (type) {
+        case 0: id = EProject.ID_MainProjPresenters;break;
+        case 1: id = EProject.ID_ProjPresenters;    break;
+        case 2: id = EProject.ID_MainAlgPresenters; break;
+        case 3: id = EProject.ID_AlgPresenters;     break;
+      }
+      
+      EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
+      ArrayList tp = new ArrayList<String>(Arrays.asList(eProject.getStringArray(id)));
+        tp.add(presenter_name);
+      eProject.set(id, tp.toArray());
+      eProject.saveEntity();
+
+    } catch (Exception e) {
+      System.out.println("Can not create presenter: " + e.toString());
+      return null;
+    }    
+    return presenter_name;
+  }
+    
+  private static String getNextAvailablePresenterName(String proj_name, int type) {
+    String presenterName = "Presenter";
+    
+    String dataroot = ATGlobal.getALGatorDataRoot();
+    String presenterPath = ATGlobal.getPRESENTERSroot(dataroot, proj_name);    
+    EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
+    
+    String prefix = "";
+    switch (type) {
+      case 0: prefix = "mp"; break;
+      case 1: prefix = "p";  break;
+      case 2: prefix = "ma"; break;
+      case 3: prefix = "a";  break;
+    }
   
+      ArrayList<String> tp = new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_MainProjPresenters)));
+           tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_ProjPresenters))));
+           tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_MainAlgPresenters))));
+           tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_AlgPresenters))));      
+      tp.replaceAll(x -> x.toUpperCase());
+           
+      int id=1;
+      while (true) {
+        presenterName = prefix + "Presenter" + id++;
+        if (!tp.contains(presenterName.toUpperCase()) && !new File(presenterPath, presenterName+".atpd").exists()) break;
+      }
+                
+    return presenterName;
+  }
+  
+  
+  private static String removePresenter(String proj_name, String presenter_name) {   
+    String dataroot = ATGlobal.getALGatorDataRoot();         
+    String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
+    String presenterRoot = ATGlobal.getPRESENTERSroot(dataroot, proj_name);
+    
+    try {
+      EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
+      String [] presIDs = new String[] {EProject.ID_MainProjPresenters, EProject.ID_ProjPresenters, EProject.ID_MainAlgPresenters,EProject.ID_AlgPresenters};
+      for (String presID : presIDs) {
+        ArrayList<String> tp = new ArrayList<String>(Arrays.asList(eProject.getStringArray(presID)));
+        if (tp.contains(presenter_name)) {
+          tp.remove(presenter_name);          
+          eProject.set(presID, tp.toArray());
+          eProject.saveEntity();
+          
+          new File(presenterRoot, presenter_name + ".atpd").delete();
+          new File(presenterRoot, presenter_name + ".html").delete();
+                 
+          return "Presenter "+presenter_name + " sucessfully removed.";         
+        }
+      }
+      return "Presenter "+presenter_name+" does not exist.";
+      
+
+    } catch (Exception e) {      
+      return "Can not remove presenter: " + e.toString();
+    }    
+  }  
   /**
    * Returns: list of all projects (if projectName.isEmpty), info about project (if projectName is 
    * defined and algorithmName.isEmpty) and info about algorithm (if both, projectName and 
@@ -401,6 +579,15 @@ public class Admin {
         jaS.put(testsetName);
       }
       projInfo.put("TestSets", jaS);
+      
+      
+      JSONArray mpp = new JSONArray();
+            
+      projInfo.put("MainProjPresenters", new JSONArray(project.getEProject().getStringArray(EProject.ID_MainProjPresenters)));
+      projInfo.put("ProjPresenters",     new JSONArray(project.getEProject().getStringArray(EProject.ID_ProjPresenters)));
+      projInfo.put("MainAlgPresenters",  new JSONArray(project.getEProject().getStringArray(EProject.ID_MainAlgPresenters)));      
+      projInfo.put("AlgPresenters",      new JSONArray(project.getEProject().getStringArray(EProject.ID_AlgPresenters)));      
+      
       
       HashMap<MeasurementType,EResult> rDesc = project.getResultDescriptions();
       JSONObject jrDesc = new JSONObject();
