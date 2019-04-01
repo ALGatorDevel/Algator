@@ -205,7 +205,7 @@ public class EVariable extends Entity  implements Serializable {
   public String getStringValue(String defaultValue) {
     String result = defaultValue;
     try {
-      result = (String) getValue();
+      result = getValue().toString();
     } catch (Exception e) {}
     return result;
   }
