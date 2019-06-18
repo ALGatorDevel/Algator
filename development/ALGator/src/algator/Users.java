@@ -729,7 +729,7 @@ public class Users {
         test_permissions.add(new DBEntityPermission(rs_test.getInt("id"), rs_test.getString("name"), rs_test.getInt("type"), rs_test.getString("permissions"), rs_test.getInt("parent_id"), rs_test.getString("parent_name")));
       }
 
-    } catch (SQLException e) {
+    } catch (Exception e) {
       System.out.println(e.toString());
     }
   }
@@ -1283,7 +1283,7 @@ public class Users {
     System.out.println("");
   }
   
-  public static String do_users(String[] sinput) {    
+  public static String do_users(String ... sinput) {    
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintStream ps = new PrintStream(baos);
     PrintStream old = System.out;
