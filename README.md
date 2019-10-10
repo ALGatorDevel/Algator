@@ -118,7 +118,7 @@ A single-user version instalation of the ALGator system on Linux system (see als
 
 ## Prerequisits 
 
-	- java >= 8.0 
+Current version of ALGator works only with java 8.  
 
 
 ## ALGator on GitHub
