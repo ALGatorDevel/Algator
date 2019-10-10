@@ -101,9 +101,14 @@ A single-user version instalation of the ALGator system on Linux system (see als
   
    - Install the docker (see https://docs.docker.com/install/ for details) 
   
-   - Run the command
+   - Run the docker's container 
   
      ```docker run --mount type=bind,source=$ALGATOR_ROOT/data_root,target=/home/algator/ALGATOR_ROOT/data_root -p 8081:8081 algator/algatorweb```
+
+
+   - Run the query-processing server 
+  
+     ```java algator.TaskServer```
 
    - Open a web browser and type in the following address
   
