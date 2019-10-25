@@ -75,7 +75,7 @@ A single-user version instalation of the ALGator system on Linux system (see als
 	
 3. To **plot a chart** of the results
 
-	```java algator.Analyse BasicSort```
+	```java algator.Chart BasicSort```
 	
 4. To **create** a new project
 
