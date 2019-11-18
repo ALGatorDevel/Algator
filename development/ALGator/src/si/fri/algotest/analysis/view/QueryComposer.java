@@ -190,10 +190,10 @@ public class QueryComposer extends javax.swing.JPanel implements IQueryComposer 
         algNAAs = createNAAPanels(algs, algPanel, new String[]{"*"});
         tstsNAAs = createNAAPanels(tsts, tstsPanel, new String[]{"*"});
 
-        String[] inPars = Project.getTestParameters(project.getResultDescriptions());
+        String[] inPars = Project.getTestParameters(project.getTestCaseDescription());
         infieldNAAs = createNAAPanels(inPars, infieldPanel, new String[]{"*"});
 
-        outfieldNAAs = createNAAPanels(Project.getResultParameters(project.getResultDescriptions()), outfieldPanel, new String[]{"*EM", "*CNT", "*JVM"});
+        outfieldNAAs = createNAAPanels(Project.getIndicators(project.getResultDescriptions()), outfieldPanel, new String[]{"*EM", "*CNT", "*JVM"});
 
     }
 

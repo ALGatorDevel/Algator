@@ -233,7 +233,7 @@ public class Entity implements Cloneable, Serializable {
   }
 
   public Object get(String fieldKey) {
-    if (fields.containsKey(fieldKey)) {
+    if (fields.containsKey(fieldKey) && fields.get(fieldKey)!=null) {
       return fields.get(fieldKey);
     } else {
       return unknown_value;

@@ -1,1 +1,12 @@
-... this file should exactly contain N lines (the value of N is defined in <TS>.atts; each line of this file describes one test case
+# ... this file should contain exactly N non-comment lines (for N see <TS>.atts); 
+# ... line starting with # is a comment line
+# ... each non-comment line of this file describes one test case; 
+# ... ... values in a line are separated by colon :
+# ... ... the first value is the type of generator (TYPE0, TYPE1, ....)
+# ... ... the second valus is the name of a test case
+# ... ... number and meaning of other values depend on the type of generator
+# ...
+# ... Example: next line contains a test case named "test1" with the value
+# ...          of the first parameter 10. To create a test case, a generator
+# ...          of TYPE0 will be used
+Type0:test1:10

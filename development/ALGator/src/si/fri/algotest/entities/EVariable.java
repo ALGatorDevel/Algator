@@ -81,16 +81,27 @@ public class EVariable extends Entity  implements Serializable {
       try {
         switch (this.type) { 
 	  case INT: case TIMER:
-	    fields.put(fieldKey, Integer.parseInt((String) object));
+            if (object instanceof Integer || object instanceof Long)
+              fields.put(fieldKey, object);
+            else
+	      try {
+                fields.put(fieldKey, Integer.parseInt((String) object));
+              } catch (Exception e) {
+                // to se bo zgodilo, na primer, ko bom skušal v counter (ki je kot tipa int) stlačiti 3,4,5,6
+                fields.put(fieldKey, object);
+              }            
 	    break; 
 	  case DOUBLE:
-	    fields.put(fieldKey, Double.parseDouble((String) object));
+            if (object instanceof Double)
+              fields.put(fieldKey, object);
+            else 
+              fields.put(fieldKey, Double.parseDouble((String) object));
 	    break;
 	  default:
 	    fields.put(fieldKey, object);
 	}
-      } catch (Exception e) {
-	fields.put(fieldKey, object);
+      } catch (Exception e) {        
+	fields.put(fieldKey, get(ID_Default));
       }
     }
   }
@@ -127,6 +138,18 @@ public class EVariable extends Entity  implements Serializable {
 
   public HashMap<String,Object> getMetaData() {
     return metadata;
+  }
+  public void setMetaData(HashMap<String,Object> metadata) {
+    this.metadata = metadata;
+    Object defaultValue = metadata.get("Default");
+    set(ID_Default, defaultValue);    
+  }
+  
+  public Object getDefaultValue() {
+    HashMap meta = getMetaData();
+    if (meta!=null)
+      return meta.get("Default");
+    return null;
   }
     
   public Object getValue() {

@@ -27,12 +27,13 @@ public class ATGlobal {
   
     
   // File extensions for AT entities
-  public static final String AT_FILEEXT_project    = "atp";
-  public static final String AT_FILEEXT_algorithm  = "atal";
-  public static final String AT_FILEEXT_testset    = "atts";
-  public static final String AT_FILEEXT_resultdesc = "atrd";
-  public static final String AT_FILEEXT_query      = "atqd";
-  public static final String AT_FILEEXT_presenter  = "atpd";
+  public static final String AT_FILEEXT_project      = "atp";
+  public static final String AT_FILEEXT_algorithm    = "atal";
+  public static final String AT_FILEEXT_testset      = "atts";
+  public static final String AT_FILEEXT_testcasedesc = "attc";  
+  public static final String AT_FILEEXT_resultdesc   = "atrd";
+  public static final String AT_FILEEXT_query        = "atqd";
+  public static final String AT_FILEEXT_presenter    = "atpd";
 
   // For the structure of the Project folder see ALGator.docx documentation
   public static final String ATDIR_data_local     = "data_local";
@@ -69,7 +70,7 @@ public class ATGlobal {
   
   /**
    * Normally ALGator executes algorithms in a separate JVM which enables ALGator to control 
-   * the execution time (and kill process in it last for too long). This functionality 
+   * the execution time (and kill process if it lasts for too long). This functionality 
    * disables debuging (in Netbeans, for example), since the algorithm does not run in 
    * the current JVM.
    * By setting debugMode = true, the algorithm is executed in the same JVM and it can be debuged. 
@@ -276,6 +277,15 @@ public class ATGlobal {
   }
 
   
+  
+  
+  
+  /************* TestCase *+++++++++++++++++++++*/
+  public static String getTESTCASEDESCfilename(String dataRoot, String projName) {
+    String projectRoot = getPROJECTroot(dataRoot, projName);
+    return projectRoot + File.separator + ATDIR_projConfDir + File.separator + projName + "." + AT_FILEEXT_testcasedesc;
+  }
+
   
   /************* RESULTS *+++++++++++++++++++++*/
   public static String getRESULTDESCfilename(String projectRoot, String projName, MeasurementType measurementType) {

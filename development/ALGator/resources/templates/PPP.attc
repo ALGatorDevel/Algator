@@ -1,28 +1,22 @@
 {
-  "Result":
+  "TestCase":
   { 
-    "ParameterOrder" : ["N"],
-    "Parameters":   [	    
+    "TestCaseParameters"   : ["N"],      
+  
+    "Parameters":   [     
       {
-       "Name"         : "N",             
-       "Description"  : "The size of the test", 
-       "Type"         : "int",  
-       "Meta"         : {"Default": 1000, "Min": 2, "Step": 1000}     
+       "Name":        "N",             
+       "Description": "The size of the test", 
+       "Type":        "int",
+       "Meta":        {"Min":100, "Max": 1000, "Step":100, "Default": 500}      
       }
-    ], 
+    ],
 
-    "IndicatorOrder" : ["Tmin", "Check"],
-    "Indicators":   [	    
+    "Generators": [
       {
-       "Name"        : "Tmin",             
-       "Description" : "MIN time of execution",             
-       "Type"        : "timer",          
-       "Subtype"     : {"ID" : 0, "STAT": "MIN"}        
-      },
-      {
-       "Name"        : "Check",             
-       "Description" : "The correctness of the algorithm (OK or NOK)", 
-       "Type"        : "string"       
+       "Type":                   "Type0",             
+       "Description":            "Default generator",
+       "GeneratingParameters":   ["N"]
       }
     ]
   }

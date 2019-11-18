@@ -1,11 +1,8 @@
 package si.fri.algotest.entities;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ErrorStatus;
 import si.fri.algotest.global.ExecutionStatus;
 
@@ -33,16 +30,13 @@ public class EResult extends Entity {
   public static final String ID_Result   = "Result";
   
   // Fields
-  public static final String ID_ParOrder        = "ParameterOrder";   // String []
-  public static final String ID_IndOrder        = "IndicatorOrder";   // String []
-  public static final String ID_parameters      = "Parameters";       // EVariable []
+  public static final String ID_IndOrder        = "IndicatorsOrder";   // String []
   public static final String ID_indicators      = "Indicators";       // EVariable []
   
   
   // variables of this result
   private Variables variables;
   
-  private Variables parameters;
   private Variables indicators;
   
   // indicators added for special purposes (for example, for evaluation process)
@@ -52,8 +46,7 @@ public class EResult extends Entity {
    public EResult() {
      
      super(ID_Result, 
-	 new String [] {ID_ParOrder, ID_IndOrder, ID_parameters, ID_indicators});
-         set(ID_parameters, new JSONArray());
+	 new String [] {ID_IndOrder, ID_indicators});
          set(ID_indicators, new JSONArray());
   }
   
@@ -88,17 +81,7 @@ public class EResult extends Entity {
       // ... and the execution status indicator
       result.addVariable(getExecutionStatusIndicator(ExecutionStatus.UNKNOWN), false);
       
-      JSONArray ja = getField(ID_parameters);
-      parameters = new Variables();
-      // add parameters ...
-      if (ja != null) for (int i = 0; i < ja.length(); i++) {
-	JSONObject jo = ja.getJSONObject(i);
-        EVariable var = new EVariable(jo.toString());
-	result.addVariable(var, true);
-        parameters.addVariable(var, true);
-      }
-      // ... and indicators
-      ja = getField(ID_indicators);
+      JSONArray ja = getField(ID_indicators);
       indicators = new Variables();
       if (ja != null) for (int i = 0; i < ja.length(); i++) {
 	JSONObject jo = ja.getJSONObject(i);
@@ -121,54 +104,17 @@ public class EResult extends Entity {
       
       return result;
     } catch (Exception e) {
-      ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_NOT_A_RESULTPARAMETER_ARRAY, ID_parameters);
+      ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_NOT_A_RESULTPARAMETER_ARRAY, ID_indicators);
       
       return new Variables();
     }
   }
   
-  public Variables getParameters() {
-    if (variables == null) getVariables();
-    return parameters;
-  }
   public Variables getIndicators() {
     if (variables == null) getVariables();
     return indicators;
   }
-  
-  /**
-   * Method returns the order of the variables to be printed in the result file. The 
-   * variables are returned in the following order: defulat parameters (e.q. alg. name and testset name), 
-   * test parameters (ID_ParOrder order) and  result indicators in ID_IndOrder order.
-   */
-  public String [] getVariableOrder() {
-    String [] orderA = getStringArray(EResult.ID_ParOrder);
-    String [] orderB = getStringArray(EResult.ID_IndOrder);
-
-//    if (!ErrorStatus.getLastErrorStatus().isOK()) {
-//      ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_INVALID_RESULTDESCRIPTION, ErrorStatus.getLastErrorMessage());
-//      //return null;
-//    }
-
-    String [] order = new String[orderA.length + orderB.length + FIXNUM];
     
-    // Add "Algorithm", "TestSet" and "Pass" parameters to the set of output parameters.
-    // The number of parameters added to every result line is defined in EResult.FIXNUM
-    order[0] = EResult.algParName;
-    order[1] = EResult.tstParName;
-    order[2] = EResult.instanceIDParName;
-    order[3] = EResult.timeStampName;
-    order[4] = EResult.passParName;
-    
-    int k = FIXNUM;
-    for (int i = 0; i < orderA.length; i++) 
-      order[k++] = orderA[i];
-    for (int i = 0; i < orderB.length; i++) 
-      order[k++] = orderB[i];
-    
-    return order;
-  }
-  
   /**
    * Returns a parameter that represents the algorithm name
    */
@@ -210,5 +156,42 @@ public class EResult extends Entity {
   public static EVariable getErrorIndicator(String errorMsg) {
     return new EVariable(errorParName, "Error message", VariableType.STRING, errorMsg.replaceAll("\n", " "));
   }
+  
+  
+/* *****************************************
+ *   Static methods 
+ ***************************************** 
+*/
+  
+   /**
+   * Method returns the order of the variables to be printed in the result file. The 
+   * variables are returned in the following order: defulat parameters (e.q. alg. name and testset name), 
+   * test parameters (ID_ParOrder order) and  result indicators in ID_IndOrder order.
+   */
+  public static String [] getVariableOrder(ETestCase eTestCase, EResult eResult) {
+    String [] orderA = eTestCase.getStringArray(ETestCase.ID_ParOrder);
+    String [] orderB = eResult.  getStringArray(EResult  .ID_IndOrder);
+
+    String [] order = new String[orderA.length + orderB.length + FIXNUM];
+    
+    // Add "Algorithm", "TestSet" and "Pass" parameters to the set of output parameters.
+    // The number of parameters added to every result line is defined in EResult.FIXNUM
+    order[0] = EResult.algParName;
+    order[1] = EResult.tstParName;
+    order[2] = EResult.instanceIDParName;
+    order[3] = EResult.timeStampName;
+    order[4] = EResult.passParName;
+    
+    int k = FIXNUM;
+    for (int i = 0; i < orderA.length; i++) 
+      order[k++] = orderA[i];
+    for (int i = 0; i < orderB.length; i++) 
+      order[k++] = orderB[i];
+    
+    return order;
+  }
+
+  
+  
 
 }

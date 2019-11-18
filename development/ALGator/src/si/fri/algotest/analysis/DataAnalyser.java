@@ -19,6 +19,7 @@ import si.fri.algotest.entities.EVariable;
 import si.fri.algotest.entities.EProject;
 import si.fri.algotest.entities.EQuery;
 import si.fri.algotest.entities.EResult;
+import si.fri.algotest.entities.ETestCase;
 import si.fri.algotest.entities.MeasurementType;
 import si.fri.algotest.entities.NameAndAbrev;
 import si.fri.algotest.entities.Variables;
@@ -91,14 +92,16 @@ public class DataAnalyser {
     return result;
   }
 
-  private static ResultPack getResultPack(EResult eResultDesc, EResult eResultDesc0, EResult eResultDesc1) {
-    String key = eResultDesc.toString() + eResultDesc0.toString() + eResultDesc1.toString();
+  private static ResultPack getResultPack(ETestCase eTestCase, EResult eResultDesc, EResult eResultDesc0, EResult eResultDesc1) {
     ResultPack resPack = new ResultPack();
 
+    Variables paramsAndIndicators = resPack.resultDescription.getVariables();
+    
     // add the current resultdescription parameters to the resPack resultDescription parameterset
-    resPack.resultDescription.getVariables().addVariables(eResultDesc.getVariables(), false);
-    resPack.resultDescription.getVariables().addVariables(eResultDesc0.getVariables(), false);
-    resPack.resultDescription.getVariables().addVariables(eResultDesc1.getVariables(), false);
+    paramsAndIndicators.addVariables(eTestCase.getParameters(), false);
+    paramsAndIndicators.addVariables(eResultDesc.getVariables(), false);
+    paramsAndIndicators.addVariables(eResultDesc0.getVariables(), false);
+    paramsAndIndicators.addVariables(eResultDesc1.getVariables(), false);
     return resPack;
   }
 
@@ -111,10 +114,10 @@ public class DataAnalyser {
     String resDescFilename = ATGlobal.getRESULTDESCfilename(project.getProjectRoot(), project.getName(), measurement);
     EResult eResultDesc = new EResult(new File(resDescFilename));
 
-    Variables resultPS = eResultDesc.getVariables();
+    Variables resultPS = Variables.join(project.getTestCaseDescription().getParameters(), eResultDesc.getVariables());
 
     // test parameters are only defined in EM file
-    String[] testOrder = eResultDesc.getStringArray(EResult.ID_ParOrder);
+    String[] testOrder = project.getTestCaseDescription().getStringArray(ETestCase.ID_ParOrder);
     if (testOrder == null) {
       testOrder = new String[0];
     }
@@ -496,20 +499,20 @@ public class DataAnalyser {
       HashMap resultDescriptions = new HashMap();
       Project.readResultDescriptions(eProject.getProjectRootDir(), eProject.getName(), resultDescriptions, errors);
 
-      String[] allINParamaters = Project.getTestParameters(resultDescriptions);
+      String[] allINParamaters = Project.getTestParameters(project.getTestCaseDescription());
       String inParameters[] = getQueryEntities(query, EQuery.ID_Parameters, allINParamaters);
       NameAndAbrev[] inPars = query.getNATabFromJSONArray(inParameters);
 
       // calculate EM parameters ...
-      String[] allEMParamaters = Project.getResultParameters(resultDescriptions, MeasurementType.EM);
+      String[] allEMParamaters = Project.getIndicators(resultDescriptions, MeasurementType.EM);
       String emParameters[] = getQueryEntities(query, EQuery.ID_Indicators, allEMParamaters, "*EM");
       NameAndAbrev[] emPars = query.getNATabFromJSONArray(emParameters);
       // ... CNT parameters ...
-      String[] allCNTParamaters = Project.getResultParameters(resultDescriptions, MeasurementType.CNT);
+      String[] allCNTParamaters = Project.getIndicators(resultDescriptions, MeasurementType.CNT);
       String cntParameters[] = getQueryEntities(query, EQuery.ID_Indicators, allCNTParamaters, "*CNT");
       NameAndAbrev[] cntPars = query.getNATabFromJSONArray(cntParameters);
       // ... JVM parameters ...
-      String[] allJVMParamaters = Project.getResultParameters(resultDescriptions, MeasurementType.JVM);
+      String[] allJVMParamaters = Project.getIndicators(resultDescriptions, MeasurementType.JVM);
       String jvmParameters[] = getQueryEntities(query, EQuery.ID_Indicators, allJVMParamaters, "*JVM");
       NameAndAbrev[] jvmPars = query.getNATabFromJSONArray(jvmParameters);
       // ... and join all together
@@ -538,7 +541,7 @@ public class DataAnalyser {
       List<String> sortedPars = new LinkedList<>();
 
       for (NameAndAbrev alg : algs) {
-        ResultPack rPack = getResultPack(initDataEM.eResultDesc, initDataCNT.eResultDesc, initDataJVM.eResultDesc);
+        ResultPack rPack = getResultPack(project.getTestCaseDescription(), initDataEM.eResultDesc, initDataCNT.eResultDesc, initDataJVM.eResultDesc);
         Variables resultPS = new Variables();
         if (queryResults != null) {
           readResults(queryResults, tsts, resultPS, alg, sortedPars, rPack);

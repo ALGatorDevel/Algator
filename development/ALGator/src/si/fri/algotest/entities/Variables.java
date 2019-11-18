@@ -27,7 +27,7 @@ public class Variables implements Serializable, Iterable<EVariable> {
     this();
     for (EVariable var : variables.variables.values()) {
       try {
-                addVariable((EVariable) var.clone(), true);
+        addVariable((EVariable) var.clone(), true);
       } catch (CloneNotSupportedException ex) {
 	ATLog.log("Can't clone (EVariable)", 2);
       }
@@ -191,6 +191,17 @@ public class Variables implements Serializable, Iterable<EVariable> {
   @Override
   public Iterator<EVariable> iterator() {
       return variables.values().iterator();
+  }
+  
+
+
+
+  public static Variables join(Variables v1, Variables v2) {
+    Variables result = new Variables();
+    result.addVariables(v1, true);    
+    result.addVariables(v2, false);
+    
+    return result;
   }
 
 }

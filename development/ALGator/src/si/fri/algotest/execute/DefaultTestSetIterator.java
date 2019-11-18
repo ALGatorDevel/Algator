@@ -37,10 +37,11 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
       
   
   // This method is used to report an error in input file
-  protected void reportInvalidDataFormat(String note) {
+  protected void reportInvalidDataFormat() {
+    String oldMsg = ErrorStatus.getLastErrorMessage();
     String msg = String.format("Invalid input data in file %s in line %d.", testFileName, lineNumber);
-    if (!note.isEmpty())
-      msg += " ("+note+")";
+    if (ErrorStatus.getLastErrorStatus()!=ErrorStatus.STATUS_OK && !oldMsg.isEmpty())
+      msg += " ("+oldMsg+")";
     
     ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR,msg);
   }
@@ -76,13 +77,22 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
   
   @Override
   public void readNext() {
-    if (inputSource == null || !inputSource.hasNextLine()) {
-      ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "No more input to read!");
+    try {
+      if (inputSource == null){
+        ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "No more input to read!");
+        return;
+      }
+      
+      currentInputLine = null;             
+      while (inputSource.hasNextLine()) {
+        currentInputLine = inputSource.nextLine(); lineNumber++;
+        
+        if (!currentInputLine.startsWith("#")) break;        
+      }
+    } catch (Exception e) {
+       ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "Can not read next line: " + e.toString());      
+       currentInputLine="";
     }
-    
-    currentInputLine = inputSource.nextLine(); 
-    if (currentInputLine == null) currentInputLine = "";
-    lineNumber++;
   }
 
   @Override
@@ -112,16 +122,17 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
       if (testCaseInstance == null)
         testCaseInstance = New.testCaseInstance(project);
       
-      testCase = testCaseInstance.getTestCase(currentInputLine, filePath);
+      testCase = testCaseInstance.getTestCase(project, currentInputLine, filePath);
       if (testCase == null) {
-        reportInvalidDataFormat("");
+        reportInvalidDataFormat();
         return null;
       }  
       
       // iterator labels each test with an unique label (which will probably be overriden by callers)      
       testCase.getInput().getParameters().addVariable(EResult.getInstanceIDParameter(UniqueIDGenerator.getNextID()), true);                              
     } catch (Exception e) {
-      reportInvalidDataFormat("can not create testCase instance");     
+      ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "can not create testCase instance");
+      reportInvalidDataFormat();     
     }
     return testCase;   
   }

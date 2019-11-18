@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ATLog;
 import si.fri.algotest.global.ErrorStatus;
@@ -16,16 +15,17 @@ import si.fri.algotest.global.ErrorStatus;
  */
 public class Project {  
   // the data_root folder name ...
-  private String dataRoot;
+  private final String dataRoot;
   // .. and the project name
-  private String projectName;
+  private final String projectName;
   
   
-  private TreeMap<String, EAlgorithm> algorithms;
-  private TreeMap<String, ETestSet>   testsets;
-  private HashMap<MeasurementType, EResult>   resultDescriptions;
+  private final TreeMap<String, EAlgorithm> algorithms;
+  private final TreeMap<String, ETestSet>   testsets;
+  private final HashMap<MeasurementType, EResult>   resultDescriptions;
+  private ETestCase testCaseDescription;
 	  
-  private EProject eProject;
+  private final EProject eProject;
   
   /**
    * If an error occures when reading EProject file, the first entry of this list is
@@ -42,9 +42,10 @@ public class Project {
     
     errors = new ArrayList();
     
-    algorithms = new TreeMap();
-    testsets   = new TreeMap();
-    resultDescriptions = new HashMap();
+    algorithms           = new TreeMap();
+    testsets             = new TreeMap();
+    resultDescriptions   = new HashMap();
+    testCaseDescription  = null;
     
     // read the eProject
     String projFilename = ATGlobal.getPROJECTfilename(dataRoot, projectName);
@@ -82,6 +83,9 @@ public class Project {
     
     // read the resultDescriptions
     readResultDescriptions(eProject.getProjectRootDir(), projectName, resultDescriptions, errors);
+    
+    String tcdFilename = ATGlobal.getTESTCASEDESCfilename(dataRoot, projectName);            
+    testCaseDescription = new ETestCase(new File(tcdFilename));
   }
 
   public EProject getEProject() {
@@ -118,26 +122,34 @@ public class Project {
   public HashMap<MeasurementType, EResult> getResultDescriptions() {
     return resultDescriptions;
   }
-  
+
+  public ETestCase getTestCaseDescription() {
+    if (testCaseDescription==null)
+      return new ETestCase();
+    else
+      return testCaseDescription;
+  }  
+
+
   
   //*********************  static methods ************************
 
   
   /**
-   * Returns an array of test parameters present in resultDescriptions
+   * Returns an array of test parameters presented in testcase entity
    * @return 
    */
-  static public String[] getTestParameters(HashMap<MeasurementType, EResult> resultDescriptions) {
-    if (resultDescriptions == null || resultDescriptions.get(MeasurementType.EM) == null) 
+  static public String[] getTestParameters(ETestCase eTestCase) {
+    if (eTestCase == null ) 
       return new String[0];
     else
-      return resultDescriptions.get(MeasurementType.EM).getStringArray(EResult.ID_ParOrder);
+      return eTestCase.getStringArray(ETestCase.ID_ParOrder);
   }
   
   /**
-   * Returns an array of result parameters (merged from all result descriptions)
+   * Returns an array of indicators (merged from all result descriptions)
    */
-  static public String[] getResultParameters(HashMap<MeasurementType, EResult> resultDescriptions) {
+  static public String[] getIndicators(HashMap<MeasurementType, EResult> resultDescriptions) {
     ArrayList<String> params = new ArrayList();
     
     for (EResult eRedDesc : resultDescriptions.values()) {
@@ -151,9 +163,9 @@ public class Project {
   }
   
   /**
-   * Returns an array of result parameters for a given measurement type
+   * Returns an array of indicators for a given measurement type
    */
-  static public String[] getResultParameters(HashMap<MeasurementType, EResult> resultDescriptions, MeasurementType mType) {
+  static public String[] getIndicators(HashMap<MeasurementType, EResult> resultDescriptions, MeasurementType mType) {
     if (resultDescriptions == null) return new String []{};
 
     EResult eRedDesc = resultDescriptions.get(mType);

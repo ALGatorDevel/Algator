@@ -198,7 +198,7 @@ public class VMEPExecute {
           AbstractTestSetIterator testsetIterator, String resFilename) {
                 
     // the order of parameters to be printed
-    String[] order = resultDesc.getVariableOrder();
+    String[] order = EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc);
     String delim   = ATGlobal.DEFAULT_CSV_DELIMITER;
 
     Variables result = new Variables();
@@ -245,7 +245,7 @@ public class VMEPExecute {
           ATLog.log("********* Bytecode commands used *********************************************", 2);
                 
         // write results to the result set.
-        Variables pSet = resultDesc.getVariables();
+        Variables pSet = Variables.join(project.getTestCaseDescription().getParameters(), resultDesc.getVariables());
         int[] instFreq=instrMonitor.getCounts();
         String toLog = "";
         for(int i=0;i<instFreq.length;i++){

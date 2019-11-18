@@ -16,3 +16,22 @@ java algator.Analyse FindLimits BasicSort -a JavaSort -p N
 
 java algator.Analyse FindLimits BasicSort -a JavaSort -p N -s {Div:SMALL}
   Finds limits for all possible combinations of emun parameters where Div=SMALL
+
+
+java algator.Analyse TimeComplexity BasicSort -s "{"mode":"outliers", "testSet":"TestSet1", "M":2.4, "observedValue":"Tfirst"}" -p N -v 1 -a InsertionSort
+    Finds outliers of InsertionSort algorithm on test set TestSet1, when observed value is Tfirst and threshold for outliers is set to M=2.4.
+    
+java algator.Analyse TimeComplexity BasicSort -s "{"mode":"PowerLawPredictor", "testSet":"TestSet2", "observedValue":"Tavg", "data":"all"}" -p N -v 1 -a InsertionSort
+    Finds power law function, that has minimum least squares error for InsertionSort algorithm on test set TestSet2, when observed value is Tavg and all points are taken into consideration.
+    
+java algator.Analyse TimeComplexity BasicMatrixMul -s "{"mode":"PowerLawPredictor", "testSet":"TestSet2", "observedValue":"TFirst", "data":"subintervals"}" -p N -v 1 -a Strassen
+    Finds power law function, that has minimum least squares error for Strassen algorithm on test set TestSet2, when observed value is TFirst and only first points of found subintervals are taken into consideration.
+    
+java algator.Analyse TimeComplexity BasicSort -s "{"mode":"LeastSquaresPredictor", "testSet":"TestSet1", "observedValue":"Tavg"}" -p N -v 1 -a QuickSort
+    Finds function that approximates QuickSort minimising least squares error on test set TestSet1, when observed value is Tavg.
+    
+java algator.Analyse TimeComplexity BasicSort -s "{"mode":"GAPredictor", "testSet":"TestSet2", "observedValue":"Tavg", "numberOfAllPopulations": 20, "populationSize": 200, "funcNumber":4, "iter": 10, "onePopulationIter": 20}" -p N -v 1 -a QuickSort
+    Finds function that approximates measurement of QuickSort algorithm on test set TestSet2 when observed value is Tavg using genetic algorithm with multiple populations. Each population consists of 200 individuals, and there are total 20 populations. funcNumber defines number of basic functions which will compose final result. onePopulationIter defines number of generations inside one population, and iter defines number of migrations between distinct populations. All together there is iter*onePopulationIter generations.
+
+java algator.Analyse TimeComplexity BasicSort -s "{"mode":"CompareAlgorithms", "testSet":"TestSet1", "observedValue":"Tavg"}" -p N -v 1
+    Computes values for algorithms from project BasicSort on test set TestSet1 and obsered value is Tavg. Lower value indicates faster algorithm.

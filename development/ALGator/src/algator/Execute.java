@@ -11,9 +11,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import si.fri.adeserver.ADETask;
-import si.fri.adeserver.ADETools;
-import si.fri.adeserver.TaskStatus;
 import si.fri.algotest.entities.EAlgorithm;
 import si.fri.algotest.entities.ELocalConfig;
 import si.fri.algotest.entities.EResult;
@@ -26,7 +23,6 @@ import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ATLog;
 import si.fri.algotest.tools.ATTools;
 import si.fri.algotest.global.ErrorStatus;
-import si.fri.algotest.global.ExecutionStatus;
 import static si.fri.algotest.tools.ATTools.getTaskResultFileName;
 import si.fri.algotest.tools.RSync;
 
@@ -285,7 +281,7 @@ public class Execute {
 
       System.exit(0);
     }
-     
+            
     // Test algorithms
     ArrayList<EAlgorithm> eAlgs;
     if (!algName.isEmpty()) {

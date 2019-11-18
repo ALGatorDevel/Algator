@@ -26,6 +26,7 @@ import org.json.JSONObject;
 import si.fri.algotest.entities.EAlgorithm;
 import si.fri.algotest.entities.EProject;
 import si.fri.algotest.entities.EResult;
+import si.fri.algotest.entities.ETestCase;
 import si.fri.algotest.entities.ETestSet;
 import si.fri.algotest.entities.EVariable;
 import si.fri.algotest.entities.MeasurementType;
@@ -298,6 +299,8 @@ public class Admin {
       copyFile("templates/PPP-em.atrd",        projConfFolder,  proj_name+"-em.atrd",             substitutions);
       copyFile("templates/PPP-cnt.atrd",       projConfFolder,  proj_name+"-cnt.atrd",            substitutions);      
       copyFile("templates/PPP-jvm.atrd",       projConfFolder,  proj_name+"-jvm.atrd",            substitutions);
+      
+      copyFile("templates/PPP.attc",           projConfFolder,  proj_name+".attc",                substitutions);
       
       copyFile("templates/PPPAbsAlgorithm",    projSrcFolder,   proj_name+"AbsAlgorithm.java",    substitutions);
       copyFile("templates/PPPTestCase",        projSrcFolder,   proj_name+"TestCase.java",        substitutions);
@@ -589,6 +592,8 @@ public class Admin {
       projInfo.put("AlgPresenters",      new JSONArray(project.getEProject().getStringArray(EProject.ID_AlgPresenters)));      
       
       
+      ETestCase eTestCase = project.getTestCaseDescription();
+      
       HashMap<MeasurementType,EResult> rDesc = project.getResultDescriptions();
       JSONObject jrDesc = new JSONObject();
       for(MeasurementType mType : rDesc.keySet()) {
@@ -598,7 +603,7 @@ public class Admin {
         JSONObject params     = new JSONObject();
         JSONObject indicators = new JSONObject();
         
-        for (EVariable var : eRes.getParameters()) {
+        for (EVariable var : eTestCase.getParameters()) {
           params.put(var.getName(), new JSONObject(var.toJSONString()));
         }
         
@@ -609,7 +614,7 @@ public class Admin {
         JSONObject curRD = new JSONObject();
         curRD.put("Parameters", params);
         curRD.put("Indicators", indicators);
-        curRD.put("VariableOrder", eRes.getVariableOrder());
+        curRD.put("VariableOrder", EResult.getVariableOrder(eTestCase, eRes));
         jrDesc.put(mType.name(), curRD);
       } 
       projInfo.put("Result", jrDesc);

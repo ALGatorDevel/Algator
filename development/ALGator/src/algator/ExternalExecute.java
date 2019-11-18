@@ -133,8 +133,10 @@ public class ExternalExecute {
         classPath += File.pathSeparator +  "/Users/Tomaz/Dropbox/FRI/ALGATOR_dev/ALGator/development/ALGator/dist/lib/commons-cli-1.2.jar";
       }
       //*/
-    
-      String jvmCommand = "java";
+      // DEBUG!!!
+      String path = "/Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home";
+      
+      String jvmCommand = (path.isEmpty() ? "" : path + "/bin/") + "java";
       if (mType.equals(MeasurementType.JVM)) {
         String vmepCmd = ELocalConfig.getConfig().getField(ELocalConfig.ID_VMEP);
         String vmepCP  = ELocalConfig.getConfig().getField(ELocalConfig.ID_VMEPClasspath);

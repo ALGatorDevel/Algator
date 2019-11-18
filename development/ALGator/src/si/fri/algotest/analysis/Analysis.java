@@ -2,8 +2,11 @@ package si.fri.algotest.analysis;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import si.fri.algotest.entities.EAlgorithm;
 import si.fri.algotest.entities.EResult;
+import si.fri.algotest.entities.ETestCase;
 import si.fri.algotest.entities.EVariable;
 import si.fri.algotest.entities.MeasurementType;
 import si.fri.algotest.entities.Project;
@@ -20,6 +23,7 @@ import si.fri.algotest.global.ErrorStatus;
 import si.fri.algotest.global.ExecutionStatus;
 import si.fri.algotest.tools.PolyCounter;
 import si.fri.algotest.tools.UniqueIDGenerator;
+import si.fri.timeComplexityAnalysis.Data;
 
 /**
  *
@@ -68,7 +72,8 @@ public class Analysis {
     if (emResultDesc == null) {
       emResultDesc = new EResult();
     }
-    Variables parameters = emResultDesc.getParameters();
+    
+    Variables parameters = project.getTestCaseDescription().getParameters();
 
     // apply the given values of the parameters
     for (EVariable defParam : defaultParams) {
@@ -78,7 +83,7 @@ public class Analysis {
       }
     }
 
-    AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(parameters);
+    AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(ETestCase.defaultGeneratorType, parameters);
     
     Variables result = ExternalExecutor.runTestCase(project, algName, testCase, MeasurementType.EM, OtherTestsetName, 1, timesToExecute, timeLimit, null, instanceID);
 
@@ -88,7 +93,7 @@ public class Analysis {
         algName, OtherTestsetName, mType, ATGlobal.getThisComputerID()
     );
     
-    ExternalExecutor.printVariables(result, new File(resFilename), emResultDesc.getVariableOrder(), whereToPrint);
+    ExternalExecutor.printVariables(result, new File(resFilename), EResult.getVariableOrder(project.getTestCaseDescription(), emResultDesc), whereToPrint);
     
     return result;
   }
@@ -99,8 +104,8 @@ public class Analysis {
     // get all enum parameters
     Variables enumParams = new Variables();    
     try {
-      EResult emResultDesc = project.getResultDescriptions().get(MeasurementType.EM);        
-      for (EVariable par : emResultDesc.getParameters()) {
+      ETestCase eTestCase = project.getTestCaseDescription();
+      for (EVariable par : eTestCase.getParameters()) {
         if (par != null && par.getType().equals(VariableType.ENUM)) { // non-null parameter
           // add only parameters with undefined value
           if (parameters.getVariable(par.getName()) == null) 
@@ -158,8 +163,7 @@ public class Analysis {
         algName, OtherTestsetName, MeasurementType.EM, ATGlobal.getThisComputerID()
       );
       File resultFile = new File(resFilename);
-      ExternalExecutor.printVariables(result, resultFile, emResultDesc.getVariableOrder(), whereToPrint);
-
+      ExternalExecutor.printVariables(result, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), emResultDesc), whereToPrint);
       
       results.add(result);
     }
@@ -181,7 +185,7 @@ public class Analysis {
 
     Variables lastOKResult = null;
 
-    EVariable defParam = resultDesc.getParameters().getVariable(paramName);
+    EVariable defParam = project.getTestCaseDescription().getParameters().getVariable(paramName);
     if (defParam == null) defParam = new EVariable();
     
     int lastOKParamValue = defParam.getMeta("Min", 10);  // tu bi bilo treba vzeti privzeto min vrednost za parameter
@@ -202,7 +206,7 @@ public class Analysis {
 
     while (true) {
       param.setValue(curParamValue);
-      AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(parameters);
+      AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(ETestCase.defaultGeneratorType, parameters);
 
       Variables result = ExternalExecutor.runTestCase(project, algName, testCase, MeasurementType.EM, OtherTestsetName, ++testID, 1, 2 * timeLimit, notificator, instanceID);
     
@@ -256,5 +260,109 @@ public class Analysis {
 
     return lastOKResult;
   }
+  
+  public static Data getParameterLimitFullData(Project project, String algName, String paramName, Variables parameters, int timeLimit, String instanceID, int whereToPrint, Notificator notificator) {
+    // to control the execution time we need one additional indicator - time of execution (_time_)
+    EResult resultDesc = project.getResultDescriptions().get(MeasurementType.EM);
+    EVariable timer = new EVariable(MY_TIMER, VariableType.TIMER, 0);
+    timer.setMeta("{\"ID\":0, \"STAT\":\"MIN\"}");
+    resultDesc.additionalIndicators.addVariable(timer);
+    ArrayList<Double> xValues = new ArrayList<>();
+    HashMap<Double, Double> mapping= new HashMap<>();
+
+    Variables lastOKResult = null;
+
+    EVariable defParam = project.getTestCaseDescription().getParameters().getVariable(paramName);
+    if (defParam == null) defParam = new EVariable();
+
+    int lastOKParamValue = defParam.getMeta("Min", 10);  // tu bi bilo treba vzeti privzeto min vrednost za parameter
+    int lastKilledParamValue = 2 * lastOKParamValue;
+    int curParamValue        = 2 * lastOKParamValue;
+
+    long lastOKTime = 0;
+
+    EVariable param = parameters.getVariable(paramName);
+    if (param == null) {
+      param = new EVariable(paramName, lastOKParamValue);
+      parameters.addVariable(param);
+    }
+
+    int testID = 0;
+
+    boolean bisectionMode = false;
+
+    while (true) {
+      param.setValue(curParamValue);
+      AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(ETestCase.defaultGeneratorType, parameters);
+
+      Variables result = ExternalExecutor.runTestCase(project, algName, testCase, MeasurementType.EM, OtherTestsetName, ++testID, 1, 2 * timeLimit, notificator, instanceID);
+
+      result.addVariable(EResult.getTestsetNameParameter(FindLimitTestsetID));
+
+
+      long time = result.getVariable(MY_TIMER).getLongValue(2 * timeLimit * 1000000);
+
+      String status = (String) result.getVariable(EResult.passParName).getValue();
+      if (time > 1000000 * timeLimit) {
+        status = ExecutionStatus.KILLED.toString();
+      }
+
+      boolean killed = status.equals(ExecutionStatus.KILLED.toString()) || time > timeLimit * 1000000;
+
+      if (ATGlobal.verboseLevel == 2) {
+        System.out.println(String.format("%s=%9d, T=%9d, status=%s", paramName, curParamValue, time, status));
+      }
+      if (status == "DONE"){
+        mapping.put((double)curParamValue, (double)time);
+      }
+
+      if (killed) {
+        bisectionMode = true;
+      }
+
+      if (bisectionMode) {
+        if (killed) {
+          lastKilledParamValue = curParamValue;
+        } else {
+          lastOKParamValue = curParamValue;
+          lastOKTime = time;
+
+          lastOKResult = result.copy();
+        }
+
+        curParamValue = (lastOKParamValue + lastKilledParamValue) / 2;
+
+      } else {
+        lastOKTime = time;
+        lastOKParamValue = curParamValue;
+        curParamValue = 2 * curParamValue;
+
+        lastOKResult = result.copy();
+      }
+
+      if (1.0 * Math.abs(curParamValue - lastOKParamValue) / lastOKParamValue < precisionLevel) {
+        break;
+      }
+    }
+    if (ATGlobal.verboseLevel == 2) {
+      System.out.printf("Alg: %s, Param value: %d, time: %d\n", algName, lastOKParamValue, lastOKTime);
+    }
+
+    // sort by increasing x values
+    int n = mapping.size();
+    double[] x = new double[n];
+    double[] y = new double[n];
+    int i = 0;
+    for (double d : mapping.keySet()){
+      x[i] = d;
+      i++;
+    }
+    Arrays.sort(x);
+    for (i=0; i < n; i++){
+      y[i] = mapping.get(x[i]);
+    }
+    return new Data("maxData", x,y);
+  }
+  
 
 }

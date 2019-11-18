@@ -1,7 +1,9 @@
 package algator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.Scanner;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -13,7 +15,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.json.JSONObject;
 import si.fri.algotest.analysis.Analysis;
-import static si.fri.algotest.analysis.Analysis.FindLimitTestsetID;
+import si.fri.algotest.analysis.DataAnalyser;
+import si.fri.algotest.entities.EQuery;
 import si.fri.algotest.entities.EResult;
 import si.fri.algotest.entities.EVariable;
 import si.fri.algotest.entities.MeasurementType;
@@ -24,6 +27,10 @@ import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ATLog;
 import si.fri.algotest.tools.ATTools;
 import si.fri.algotest.tools.UniqueIDGenerator;
+import si.fri.timeComplexityAnalysis.Data;
+import si.fri.timeComplexityAnalysis.GA;
+import si.fri.timeComplexityAnalysis.OutlierDetector;
+import si.fri.timeComplexityAnalysis.PowerLawFunction;
 
 /**
  *
@@ -135,7 +142,7 @@ public class Analyse {
 
   private static void printMsg(Options options) {    
     HelpFormatter formatter = new HelpFormatter();
-    String header = "functions: FindLimit | FindLimits | RunOne\n";
+    String header = "functions: FindLimit | FindLimits | RunOne | TimeComplexity \n";
     formatter.printHelp("algator.Analyse [options] function project_name", header,  options, "");
 
     System.exit(0);
@@ -291,6 +298,10 @@ public class Analyse {
           break;
         
         case "FINDLIMIT":
+          //TODO remove debug mode
+          si.fri.algotest.global.ATGlobal.debugMode = true;
+          ATGlobal.verboseLevel = 2;
+          
           if (parameterName.isEmpty()) {
             ATGlobal.verboseLevel=1;
             ATLog.log("Missing parameter (option -p).", 1);
@@ -300,7 +311,7 @@ public class Analyse {
           ArrayList<Variables> results = 
             Analysis.getParameterLimit(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator);
           break;
-          
+                              
         case "FINDLIMITS":
           if (parameterName.isEmpty()) {
             ATGlobal.verboseLevel=1;
@@ -310,6 +321,179 @@ public class Analyse {
           }
           
           Analysis.getParameterLimits(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator);
+          break;          
+          
+        case "TIMECOMPLEXITY":
+          //TODO remove debug mode
+          si.fri.algotest.global.ATGlobal.debugMode = true;
+
+          String[] params = new String[]{"N AS N"};
+          //String[] params = new String[]{""};
+          //String[] groupBy = new String[]{""};
+          String[] groupBy = new String[]{"N"}; //TODO
+          String[] filter = new String[]{""};
+          String[] sortBy = new String[]{""};
+          String count = "0";
+          String mode = parameters.getVariable("mode").getStringValue();
+          String computerID = ATGlobal.getThisComputerID();
+
+
+
+          switch (mode.toUpperCase()){
+            case "SUBINTERVALS":
+              // allow only one algorithm, use option -a to select algorithm
+              String[] algs = new String[]{algorithms.get(0)};
+              String testSet = parameters.getVariable("testSet").getStringValue();
+              String observedValue = parameters.getVariable("observedValue").getStringValue();
+              String[] testSets = new String[]{String.format("%s AS %s", testSet, testSet)};
+              String[] indicators = new String[]{"*EM AS *EM"};
+              String yColumn = String.format("%s.%s", algs[0], observedValue);
+              EQuery q = new EQuery(algs, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
+              si.fri.algotest.analysis.TableData td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+              int yIndex = td.header.indexOf(yColumn);
+
+              double M = parameters.getVariable("M").getDoubleValue();
+              int m = parameters.getVariable("m").getIntValue();
+              double threshold = parameters.getVariable("threshold").getDoubleValue();
+              int xIndex = td.header.indexOf("N"); // TODO N
+              Data d = Data.dataFromTableData("test",td,xIndex,yIndex);
+              ArrayList<Double> subs = d.findSubintervals(M,m,threshold,0);
+              System.out.println("X-values of detected subintervals:");
+              for (Double ind : subs){
+                System.out.println(ind);
+              }
+              break;
+            case "OUTLIERS":
+              // allow only one algorithm, use option -a to select algorithm
+              algs = new String[]{algorithms.get(0)};
+              testSet = parameters.getVariable("testSet").getStringValue();
+              observedValue = parameters.getVariable("observedValue").getStringValue();
+              testSets = new String[]{String.format("%s AS %s", testSet, testSet)};
+              indicators = new String[]{"*EM AS *EM"};
+              yColumn = String.format("%s.%s", algs[0], observedValue);
+              q = new EQuery(algs, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
+              td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+              yIndex = td.header.indexOf(yColumn);
+
+              M = parameters.getVariable("M").getDoubleValue();
+              xIndex = td.header.indexOf("N");
+              d = Data.dataFromTableData("test",td,xIndex,yIndex);
+              OutlierDetector.OutlierDetection od = OutlierDetector.detectOutliers(d,M);
+              System.out.println("X-values of detected outliers:");
+              for (Double ind : od.outlierXValues){
+                System.out.println(ind);
+              }
+              break;
+          case "LEASTSQUARESPREDICTOR":
+            // allow only one algorithm, use option -a to select algorithm
+              algs = new String[]{algorithms.get(0)};
+              testSet = parameters.getVariable("testSet").getStringValue();
+              observedValue = parameters.getVariable("observedValue").getStringValue();
+              testSets = new String[]{String.format("%s AS %s", testSet, testSet)};
+              indicators = new String[]{"*EM AS *EM"};
+              yColumn = String.format("%s.%s", algs[0], observedValue);
+              q = new EQuery(algs, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
+              td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+              yIndex = td.header.indexOf(yColumn);
+              xIndex = td.header.indexOf("N");
+
+              d = Data.dataFromTableData("test",td,xIndex,yIndex);
+              Data prediction = d.LeastSquares();
+              System.out.println("Predicted class:");
+              System.out.println(prediction.GetBest());
+              System.out.println("Predicted function:");
+              System.out.println(prediction.GetFunction());
+              break;
+            case "GAPREDICTOR":
+              // allow only one algorithm, use option -a to select algorithm
+              algs = new String[]{algorithms.get(0)};
+              testSet = parameters.getVariable("testSet").getStringValue();
+              observedValue = parameters.getVariable("observedValue").getStringValue();
+              int numberOfAllPopulations = parameters.getVariable("numberOfAllPopulations").getIntValue();
+              int populationSize = parameters.getVariable("populationSize").getIntValue();
+              int iter = parameters.getVariable("iter").getIntValue();
+              int onePopulationIter = parameters.getVariable("onePopulationIter").getIntValue();
+              int funcNumber = parameters.getVariable("funcNumber").getIntValue();
+              testSets = new String[]{String.format("%s AS %s", testSet, testSet)};
+              indicators = new String[]{"*EM AS *EM"};
+              yColumn = String.format("%s.%s", algs[0], observedValue);
+              q = new EQuery(algs, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
+              td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+              yIndex = td.header.indexOf(yColumn);
+              xIndex = td.header.indexOf("N");
+
+              d = Data.dataFromTableData("test",td,xIndex,yIndex);
+              GA.GAPredictor(d,numberOfAllPopulations,populationSize,iter,onePopulationIter,funcNumber);
+              System.out.println("Predicted function:");
+              System.out.println(d.GetFunction());
+              break;
+            case "MAXDATA":
+              // allow only one algorithm, use option -a to select algorithm
+              algs = new String[]{algorithms.get(0)};
+              Data  dd= Analysis.getParameterLimitFullData(project,algs[0],"N",parameters,timeLimit,instanceID,3,notificator);
+              prediction = dd.LeastSquares();
+              System.out.println("Predicted class:");
+              System.out.println(prediction.GetBest());
+              System.out.println("Predicted function:");
+              System.out.println(prediction.GetFunction());
+              break;
+            case "COMPAREALGORITHMS":
+              testSet = parameters.getVariable("testSet").getStringValue();
+              observedValue = parameters.getVariable("observedValue").getStringValue();
+              testSets = new String[]{String.format("%s AS %s", testSet, testSet)};
+              indicators = new String[]{"*EM AS *EM"};
+
+              for (String alg : algorithms){
+                yColumn = String.format("%s.%s", alg, observedValue);
+                q = new EQuery(new String[]{alg}, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
+                td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+                yIndex = td.header.indexOf(yColumn);
+                xIndex = td.header.indexOf("N");
+                d = Data.dataFromTableData("test",td,xIndex,yIndex);
+                System.out.println(alg);
+                System.out.println(d.NIntegrate());
+              }
+              break;
+            case "POWERLAWPREDICTOR":
+              // allow only one algorithm, use option -a to select algorithm
+              algs = new String[]{algorithms.get(0)};
+              testSet = parameters.getVariable("testSet").getStringValue();
+              observedValue = parameters.getVariable("observedValue").getStringValue();
+              testSets = new String[]{String.format("%s AS %s", testSet, testSet)};
+              indicators = new String[]{"*EM AS *EM"};
+              String data = parameters.getVariable("data").getStringValue();
+              yColumn = String.format("%s.%s", algs[0], observedValue);
+              q = new EQuery(algs, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
+              td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+              yIndex = td.header.indexOf(yColumn);
+
+
+              xIndex = td.header.indexOf("N");
+              d = Data.dataFromTableData("test",td,xIndex,yIndex);
+              if (data.equals("all")){
+                Data data2 = PowerLawFunction.getOptimalFittedData(d, -1, -1);
+                System.out.println(data2.GetFunction());
+              } else {
+                subs = d.findSubintervals(2.2, 5, 4, 0);
+                double[] xIntervals = new double[subs.size() + 1];
+                double[] yIntervals = new double[subs.size() + 1];
+                Collections.sort(subs);
+                xIntervals[0] = d.X[0];
+                yIntervals[0] = d.Y[0];
+                int j = 1;
+                for (Double ind : subs) {
+                  int i = d.GetIndex(ind);
+                  xIntervals[j] = ind;
+                  yIntervals[j] = d.Y[i];
+                  j++;
+                }
+                Data dataSub = new Data("subintervals", xIntervals, yIntervals);
+                Data data2 = PowerLawFunction.getOptimalFittedData(dataSub, -1, -1);
+                System.out.println(data2.GetFunction());
+              }
+              break;
+
+          }
           break;          
           
         default:
@@ -342,7 +526,7 @@ public class Analyse {
       Variables result = results.get(i);
       if (result != null) {
         System.out.print(
-          result.toString(emResultDesc.getVariableOrder(), false, ATGlobal.DEFAULT_CSV_DELIMITER)
+          result.toString(EResult.getVariableOrder(project.getTestCaseDescription(), emResultDesc), false, ATGlobal.DEFAULT_CSV_DELIMITER)
         );
         System.out.println(ATGlobal.DEFAULT_CSV_DELIMITER + 
           result.getVariable(Analysis.MY_TIMER).getLongValue());

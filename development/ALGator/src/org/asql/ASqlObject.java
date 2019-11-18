@@ -89,7 +89,7 @@ public class ASqlObject {
             selectClause = selectClause.substring(0, selectClause.length() - 1);
         }
         String selectStr[] = selectClause.split(",");
-        String[] projectParameters = Project.getTestParameters(project.getResultDescriptions());
+        String[] projectParameters = Project.getTestParameters(project.getTestCaseDescription());
         for (String selectStr1 : selectStr) {
             boolean parameter = false;
             String paramTrimmed = selectStr1.trim();

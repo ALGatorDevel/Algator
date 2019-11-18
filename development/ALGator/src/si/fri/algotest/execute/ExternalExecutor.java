@@ -124,11 +124,15 @@ public class ExternalExecutor {
 
         AbstractTestCase testCase = it.getCurrent();
         String testSetName = it.testSet.getName();
+        
+        String testName = "";
+        try {testName = testCase.getInput().getParameters().getVariable("Test", "").getStringValue();} catch (Exception e){}
+        if (testName.isEmpty()) testName = instanceID+"-"+testID;
 
         Variables resultVariables = runTestCase(project, algName, testCase, mType,
-                testSetName, testID, timesToExecute, timeLimit, notificator, instanceID+"-"+testID);
+                testSetName, testID, timesToExecute, timeLimit, notificator, testName);
 
-        printVariables(resultVariables, resultFile, resultDesc.getVariableOrder(), whereToPrint);
+        printVariables(resultVariables, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), whereToPrint);
       }
       it.close();
     } catch (Exception e) {
@@ -156,6 +160,7 @@ public class ExternalExecutor {
     // v atrd datoteki; recimo, če je tam definiram indikator tipa double, se prej podatki o tem indikatorju (recimo 
     // meta - število decimalk) ni prenesel in se je zato vedno uporabila default vrednost. Po tej spremembi se 
     // podatki pravilno prenesejo.
+    // ??? bi moral prenesti tudi parametre? Namesto resultDesc.getVariables() bi pisal join(project.getTestCaseDescription.getParameters, resultDesc.getVariables())
     if (expectedOutput != null) {
       for (EVariable evar : resultDesc.getVariables()) {
         expectedOutput.addIndicator(evar, false);
@@ -211,10 +216,10 @@ public class ExternalExecutor {
 
           switch (mType) {
             case EM:
-              algResultIndicators.addVariables(getTimeParameters(resultDesc, resultAlg), true);
+              algResultIndicators.addVariables(getTimeIndicators(resultDesc, resultAlg), true);
               break;
             case CNT:
-              algResultIndicators.addVariables(getCounterParameters(resultDesc, resultAlg), true);
+              algResultIndicators.addVariables(getCounterIndicators(resultDesc, resultAlg), true);
               break;
           }
         } else {
@@ -359,7 +364,7 @@ public class ExternalExecutor {
 
   // pregledam resultDesc parametre in za vsak parameter tipa "timer" ustvarim
   // parameter v results s pravo vrednostj
-  static Variables getTimeParameters(EResult resultDesc, AbstractAlgorithm algorithm) {
+  static Variables getTimeIndicators(EResult resultDesc, AbstractAlgorithm algorithm) {
     Variables timeParameters = new Variables();
     long[][] times = algorithm.getExecutionTimes();
 
@@ -376,9 +381,9 @@ public class ExternalExecutor {
             Long[] longObjects = ArrayUtils.toObject(times[tID]);
             ArrayList<Long> list = new ArrayList<>(java.util.Arrays.asList(longObjects));
 
-            Long time = (Long) StatFunction.getFunctionValue(fs, list);
-            EVariable timeP = new EVariable(
-                    (String) rdP.getName(), null, VariableType.TIMER, time);
+            Object time = StatFunction.getFunctionValue(fs, list);
+            VariableType vt = VariableType.TIMER; if (StatFunction.ALL.toString().equals(statDesc)) vt=VariableType.STRING;
+            EVariable timeP = new EVariable( (String) rdP.getName(), null, vt, time);
             timeParameters.addVariable(timeP, true);
           } catch (Exception e) {
             ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "Meta parameter invalid (" + e.toString() + ")");
@@ -389,7 +394,7 @@ public class ExternalExecutor {
     return timeParameters;
   }
 
-  static Variables getCounterParameters(EResult resultDesc, AbstractAlgorithm algorithm) {
+  static Variables getCounterIndicators(EResult resultDesc, AbstractAlgorithm algorithm) {
     Variables counterParameters = new Variables();
     HashMap<String, Integer> counters = algorithm.getCounters();
     if (resultDesc != null && counters != null) {
@@ -400,7 +405,8 @@ public class ExternalExecutor {
           if (counters.containsKey(counterName)) {
             value = counters.get(counterName);
           }
-          counterParameters.addVariable(new EVariable(counterName, null, null, value), true);
+          EVariable nev = new EVariable(counterName, null, VariableType.COUNTER, value);
+          counterParameters.addVariable(nev, true);
         }
       }
     }
@@ -424,6 +430,14 @@ public class ExternalExecutor {
     }
   }
 
+  // Java 9, Java 11, .... napaka: Base ClassLoader No Longer from URLClassLoader
+  // prej je spodnja metoda lepo delala, sedaj ne
+  // glej https://community.oracle.com/thread/4011800 za več razlage
+  //
+  // - spodnjo kodo bo treba popraviti, če želimo, da program dela tudi v Java 9 in naprej
+  //
+  // - poišči tudi ostale kode, kjer uporabljam URLClassLoader
+  //
   //need to do add path to Classpath with reflection since the URLClassLoader.addURL(URL url) method is protected:
   static void addPath(URL s) throws Exception {
     URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();

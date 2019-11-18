@@ -10,7 +10,7 @@ import java.util.Iterator;
  */
 public enum StatFunction {
 
-  UNKNOWN, MIN, MAX, AVG, SUM, FIRST, LAST, MED;
+  UNKNOWN, MIN, MAX, AVG, SUM, ALL, FIRST, LAST, MED;
 
   @Override
   public String toString() {
@@ -25,6 +25,8 @@ public enum StatFunction {
         return "AVG";
       case SUM:
         return "SUM";
+      case ALL:
+        return "ALL";        
       case FIRST:
         return "FIRST";
       case LAST:
@@ -156,9 +158,12 @@ public enum StatFunction {
           // this exception will probably occur only if values are not Numbers
           return -1;
         }
+      case ALL:
+        return values.toString().replaceAll("[\\[\\] ]", "");
+        
       default:
         return -1;
     }
   }
-
+  
 }

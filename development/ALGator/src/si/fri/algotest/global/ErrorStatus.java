@@ -77,6 +77,13 @@ public enum ErrorStatus {
     }
   },
   
+  ERROR_NOT_A_GENERATORS_ARRAY       {
+    public String toString() {
+      return "Error: The filed is not a Generators array.";
+    }
+  },
+  
+  
   ERROR_CANT_DELETEDIR {
     public String toString() {
       return "Error: Can't delete directory.";

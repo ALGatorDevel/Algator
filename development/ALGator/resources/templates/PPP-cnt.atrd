@@ -1,9 +1,8 @@
 {
   "Result":
   { 
-    "IndicatorOrder" : ["CNT1"],    	
+    "IndicatorsOrder" : ["CNT1"],    	
   
-
     "Indicators":   [     
       {
        "Name":        "CNT1",             

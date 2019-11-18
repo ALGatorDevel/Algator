@@ -475,8 +475,8 @@ public class ASQLComposer extends javax.swing.JPanel implements IQueryComposer {
 
         String[] algs = eProject.getStringArray(EProject.ID_Algorithms);
         String[] tsts = eProject.getStringArray(EProject.ID_TestSets);
-        String[] inPars = Project.getTestParameters(project.getResultDescriptions());
-        String[] outPars = Project.getResultParameters(project.getResultDescriptions());
+        String[] inPars = Project.getTestParameters(project.getTestCaseDescription());
+        String[] outPars = Project.getIndicators(project.getResultDescriptions());
 
         createButton("*", algButtonListener, algsPanel);
         createButton("*", tsButtonListener, testsetsPanel);
