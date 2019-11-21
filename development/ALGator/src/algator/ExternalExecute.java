@@ -129,12 +129,10 @@ public class ExternalExecute {
          // a path to "classes" folder which is not enough to execute ALGator.
          // To enable running ALGator in Netbeans, we add local ALGator distribution to classpath
       if (!classPath.contains("ALGator.jar"))  {      
-        classPath += File.pathSeparator +  "/Users/Tomaz/Dropbox/FRI/ALGATOR_dev/ALGator/development/ALGator/dist/ALGator.jar";
-        classPath += File.pathSeparator +  "/Users/Tomaz/Dropbox/FRI/ALGATOR_dev/ALGator/development/ALGator/dist/lib/commons-cli-1.2.jar";
+        classPath += File.pathSeparator +  "dist/ALGator.jar";
+        classPath += File.pathSeparator +  "dist/lib/commons-cli-1.2.jar";
       }
-      //*/
-      // DEBUG!!!
-      String path = "/Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home";
+      String path = System.getenv("JAVA_HOME");
       
       String jvmCommand = (path.isEmpty() ? "" : path + "/bin/") + "java";
       if (mType.equals(MeasurementType.JVM)) {

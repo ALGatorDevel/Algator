@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Scanner;
 import si.fri.algotest.entities.EResult;
 import si.fri.algotest.entities.ETestSet;
+import si.fri.algotest.entities.EVariable;
 import si.fri.algotest.entities.Project;
 import si.fri.algotest.global.ATLog;
 import si.fri.algotest.global.ErrorStatus;
@@ -38,10 +39,12 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
   
   // This method is used to report an error in input file
   protected void reportInvalidDataFormat() {
-    String oldMsg = ErrorStatus.getLastErrorMessage();
+    // to sem odstranil, ker se sicer napaka kopičijo (nihče jih ne postavi na "", 
+    // spodnji spstem pa jih samo dodaja, po nekaj klicih dobiš " sdfd (sdfsd (sdas (....))))"
+    //String oldMsg = ErrorStatus.getLastErrorMessage();
     String msg = String.format("Invalid input data in file %s in line %d.", testFileName, lineNumber);
-    if (ErrorStatus.getLastErrorStatus()!=ErrorStatus.STATUS_OK && !oldMsg.isEmpty())
-      msg += " ("+oldMsg+")";
+    //if (ErrorStatus.getLastErrorStatus()!=ErrorStatus.STATUS_OK && !oldMsg.isEmpty())
+    //  msg += " ("+oldMsg+")";
     
     ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR,msg);
   }
@@ -129,10 +132,11 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
       }  
       
       // iterator labels each test with an unique label (which will probably be overriden by callers)      
-      testCase.getInput().getParameters().addVariable(EResult.getInstanceIDParameter(UniqueIDGenerator.getNextID()), true);                              
+      EVariable iID = EResult.getInstanceIDParameter(UniqueIDGenerator.getNextID());
+      testCase.getInput().getParameters().addVariable(iID, true);                              
     } catch (Exception e) {
       ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "can not create testCase instance");
-      reportInvalidDataFormat();     
+      reportInvalidDataFormat();  
     }
     return testCase;   
   }

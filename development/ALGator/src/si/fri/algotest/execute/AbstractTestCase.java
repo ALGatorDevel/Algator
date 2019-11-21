@@ -36,7 +36,7 @@ public abstract class AbstractTestCase implements Serializable {
   }
   
   
-  public  AbstractTestCase getTestCase(Project project, String testCaseDescriptionLine, String path) {
+  public  AbstractTestCase getTestCase(Project project, String testCaseDescriptionLine, String path) {   
     String[] parts = testCaseDescriptionLine.split(":");
     
     // which type of generator should be used to generate test case? default: TYPE0
@@ -44,18 +44,18 @@ public abstract class AbstractTestCase implements Serializable {
     if (parts.length > 0) type = parts[0].toUpperCase();
     if (type.isEmpty()) type = ETestCase.defaultGeneratorType;
     
-    HashMap<String, EGenerator> generators = project.getTestCaseDescription().getGenerators();
+    HashMap<String, EGenerator> generators = project.getTestCaseDescription().getGenerators();    
     if (generators.containsKey(type)) {
       EGenerator gen = generators.get(type);
       if (gen!= null) {
         String [] genPar = gen.getGeneratingParameters();
-        
+                
         Variables inputParameters = new Variables();
         inputParameters.setVariable("Path", path);
         if (parts.length > 1) 
           inputParameters.setVariable("Test", parts[1]);
         
-        Variables pars = project.getTestCaseDescription().getParameters();
+        Variables pars = project.getTestCaseDescription().getParameters();        
         if (genPar != null) for (int i = 0; i < genPar.length; i++) {
           String paramValue = null; if (parts.length > 2+i)  paramValue = parts[2+i]; 
           EVariable param   = pars.getVariable(genPar[i]);
@@ -94,7 +94,7 @@ public abstract class AbstractTestCase implements Serializable {
    * process to generate test cases for algorithm inspection and evaluation. 
    */
   public AbstractTestCase generateTestCase(String type, Variables parameters) {
-    switch (type) {
+    switch (type) {                        
       case ETestCase.defaultGeneratorType: return testCaseGenerator (parameters);         
       case "TYPE1"                       : return testCaseGenerator1(parameters); 
       case "TYPE2"                       : return testCaseGenerator2(parameters); 
