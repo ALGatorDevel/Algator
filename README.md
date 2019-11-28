@@ -118,7 +118,7 @@ A single-user version instalation of the ALGator system on Linux system (see als
 
 ## Prerequisits 
 
-Current version of ALGator works only with java 8.  
+Current version of ALGator works only with Java 8.  Note: Environment variable JAVA_HOME should be set to Java 8 home.
 
 
 ## ALGator on GitHub

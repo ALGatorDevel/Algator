@@ -122,16 +122,34 @@ public class ExternalExecutor {
         it.readNext();
         testID++;
 
-        AbstractTestCase testCase = it.getCurrent();
+        if (ATGlobal.verboseLevel==2) {
+          System.out.print("\rGenerating testcase...");System.out.flush();
+        }
+          AbstractTestCase testCase = it.getCurrent();
+
+        if (ATGlobal.verboseLevel==2) {          
+          System.out.print("\r                      ");System.out.flush();
+        }
+        
         String testSetName = it.testSet.getName();
         
         String testName = "";
         try {testName = testCase.getInput().getParameters().getVariable("Test", "").getStringValue();} catch (Exception e){}
         if (testName.isEmpty()) testName = instanceID+"-"+testID;
 
+
+        if (ATGlobal.verboseLevel==2) {
+          System.out.print("\rRunning algorithm...");System.out.flush();
+        }
+        
         Variables resultVariables = runTestCase(project, algName, testCase, mType,
                 testSetName, testID, timesToExecute, timeLimit, notificator, testName);
 
+        if (ATGlobal.verboseLevel==2) {          
+          System.out.print("\r                     \r");System.out.flush();
+        }
+        
+        
         printVariables(resultVariables, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), whereToPrint);
       }
       it.close();
@@ -331,6 +349,10 @@ public class ExternalExecutor {
       long secondsPassed = (System.currentTimeMillis() - milis) / 1000;
 
       int expectedResults = (int) (secondsPassed / timeForOneExecution);
+      
+      //!!
+      //System.out.printf("seccondsPassed=%d, timeForOne=%d, ResultCount= %d, expectedResults=%d\n", secondsPassed, timeForOneExecution, resultsCount, expectedResults);
+      
       if (resultsCount < expectedResults) {
         externProcess.destroy();
         return ErrorStatus.setLastErrorMessage(ErrorStatus.PROCESS_KILLED,
