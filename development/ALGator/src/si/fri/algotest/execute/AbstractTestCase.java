@@ -16,6 +16,9 @@ import si.fri.algotest.global.ErrorStatus;
  */
 public abstract class AbstractTestCase implements Serializable {
   
+  // name of the properties field in a test case
+  public static final String PROPS = ETestCase.TESTCASE_PROPS;
+  
   private AbstractInput  input;
   private AbstractOutput expectedOutput;
 
@@ -50,10 +53,10 @@ public abstract class AbstractTestCase implements Serializable {
       if (gen!= null) {
         String [] genPar = gen.getGeneratingParameters();
                 
-        Variables inputParameters = new Variables();
-        inputParameters.setVariable("Path", path);
+        Variables generatingParameters = new Variables();
+        generatingParameters.setVariable("Path", path);
         if (parts.length > 1) 
-          inputParameters.setVariable("Test", parts[1]);
+          generatingParameters.setVariable("Test", parts[1]);
         
         Variables pars = project.getTestCaseDescription().getParameters();        
         if (genPar != null) for (int i = 0; i < genPar.length; i++) {
@@ -69,11 +72,11 @@ public abstract class AbstractTestCase implements Serializable {
               newParam.setValue(param.getDefaultValue());
             else 
               newParam.setValue(paramValue);
-            inputParameters.addVariable(newParam); 
+            generatingParameters.addVariable(newParam); 
           } else
-            inputParameters.setVariable(genPar[i], param); 
+            generatingParameters.setVariable(genPar[i], paramValue); 
         }
-        return generateTestCase(type, inputParameters);
+        return generateTestCase(type, generatingParameters);
       } else {
         ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "Invalid generator definition for type " + type);
         return null;
@@ -93,30 +96,30 @@ public abstract class AbstractTestCase implements Serializable {
    * getTestCase() method and b) as a method called by the ALGator's evaluate
    * process to generate test cases for algorithm inspection and evaluation. 
    */
-  public AbstractTestCase generateTestCase(String type, Variables parameters) {
+  public AbstractTestCase generateTestCase(String type, Variables generatingParameters) {
     switch (type) {                        
-      case ETestCase.defaultGeneratorType: return testCaseGenerator (parameters);         
-      case "TYPE1"                       : return testCaseGenerator1(parameters); 
-      case "TYPE2"                       : return testCaseGenerator2(parameters); 
-      case "TYPE3"                       : return testCaseGenerator3(parameters); 
-      case "TYPE4"                       : return testCaseGenerator4(parameters); 
-      case "TYPE5"                       : return testCaseGenerator5(parameters); 
-      case "TYPE6"                       : return testCaseGenerator6(parameters); 
-      case "TYPE7"                       : return testCaseGenerator7(parameters); 
-      case "TYPE8"                       : return testCaseGenerator8(parameters);       
-      case "TYPE9"                       : return testCaseGenerator9(parameters);       
+      case ETestCase.defaultGeneratorType: return testCaseGenerator (generatingParameters);         
+      case "TYPE1"                       : return testCaseGenerator1(generatingParameters); 
+      case "TYPE2"                       : return testCaseGenerator2(generatingParameters); 
+      case "TYPE3"                       : return testCaseGenerator3(generatingParameters); 
+      case "TYPE4"                       : return testCaseGenerator4(generatingParameters); 
+      case "TYPE5"                       : return testCaseGenerator5(generatingParameters); 
+      case "TYPE6"                       : return testCaseGenerator6(generatingParameters); 
+      case "TYPE7"                       : return testCaseGenerator7(generatingParameters); 
+      case "TYPE8"                       : return testCaseGenerator8(generatingParameters);       
+      case "TYPE9"                       : return testCaseGenerator9(generatingParameters);       
     }
     return null;
   }
   
-  public AbstractTestCase testCaseGenerator (Variables parameters){return null;}
-  public AbstractTestCase testCaseGenerator1(Variables parameters){return null;}
-  public AbstractTestCase testCaseGenerator2(Variables parameters){return null;}
-  public AbstractTestCase testCaseGenerator3(Variables parameters){return null;}
-  public AbstractTestCase testCaseGenerator4(Variables parameters){return null;}
-  public AbstractTestCase testCaseGenerator5(Variables parameters){return null;}
-  public AbstractTestCase testCaseGenerator6(Variables parameters){return null;}
-  public AbstractTestCase testCaseGenerator7(Variables parameters){return null;}
-  public AbstractTestCase testCaseGenerator8(Variables parameters){return null;}
-  public AbstractTestCase testCaseGenerator9(Variables parameters){return null;}
+  public AbstractTestCase testCaseGenerator (Variables generatingParameters){return null;}
+  public AbstractTestCase testCaseGenerator1(Variables generatingParameters){return null;}
+  public AbstractTestCase testCaseGenerator2(Variables generatingParameters){return null;}
+  public AbstractTestCase testCaseGenerator3(Variables generatingParameters){return null;}
+  public AbstractTestCase testCaseGenerator4(Variables generatingParameters){return null;}
+  public AbstractTestCase testCaseGenerator5(Variables generatingParameters){return null;}
+  public AbstractTestCase testCaseGenerator6(Variables generatingParameters){return null;}
+  public AbstractTestCase testCaseGenerator7(Variables generatingParameters){return null;}
+  public AbstractTestCase testCaseGenerator8(Variables generatingParameters){return null;}
+  public AbstractTestCase testCaseGenerator9(Variables generatingParameters){return null;}
 } 

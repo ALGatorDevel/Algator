@@ -299,7 +299,7 @@ public class Analyse {
         
         case "FINDLIMIT":
           //TODO remove debug mode
-          si.fri.algotest.global.ATGlobal.debugMode = true;
+          //si.fri.algotest.global.ATGlobal.debugMode = true;
           ATGlobal.verboseLevel = 2;
           
           if (parameterName.isEmpty()) {
@@ -325,7 +325,7 @@ public class Analyse {
           
         case "TIMECOMPLEXITY":
           //TODO remove debug mode
-          si.fri.algotest.global.ATGlobal.debugMode = true;
+          //si.fri.algotest.global.ATGlobal.debugMode = true;
 
           String[] params = new String[]{"N AS N"};
           //String[] params = new String[]{""};

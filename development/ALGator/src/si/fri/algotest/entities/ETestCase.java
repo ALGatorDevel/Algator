@@ -2,6 +2,7 @@ package si.fri.algotest.entities;
 
 import java.io.File;
 import java.util.HashMap;
+import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import si.fri.algotest.global.ErrorStatus;
@@ -17,11 +18,14 @@ public class ETestCase extends Entity {
   public static final String ID_TestCase       ="TestCase";
   
   //Fields
-  public static final String ID_ParOrder      = "TestCaseParameters";	  // String []
-  public static final String ID_parameters    = "Parameters";             // EVariable []
-  public static final String ID_generators    = "Generators";             // EGenerator []
+  private static final String ID_testcaseParameters  = "TestCaseParameters";	// String []
+  public static final String ID_parameters          = "Parameters";             // EVariable []
+  public static final String ID_generators          = "Generators";             // EGenerator []
+  
+  // The name of a test case PROPS parameter
+  public static final String TESTCASE_PROPS         = "TC_PROPS";
 
-  public static final String defaultGeneratorType = "TYPE0";
+  public static final String defaultGeneratorType   = "TYPE0";
   
   
   private Variables parameters;
@@ -31,7 +35,7 @@ public class ETestCase extends Entity {
    
   public ETestCase() {
      super(ID_TestCase, 
-	 new String [] {ID_ParOrder, ID_parameters, ID_generators});
+	 new String [] {ID_testcaseParameters, ID_parameters, ID_generators});
          set(ID_parameters, new JSONArray());
   }
   
@@ -45,6 +49,10 @@ public class ETestCase extends Entity {
     initFromJSON(json);
   }
     
+  
+  public String[] getTestCaseParameters() {
+    return ArrayUtils.add(getStringArray(ID_testcaseParameters), TESTCASE_PROPS);
+  }
   
   public Variables getParameters() {  
     if (parameters != null) return parameters;
@@ -60,14 +68,16 @@ public class ETestCase extends Entity {
 	result.addVariable(var, true);
         parameters.addVariable(var, true);
       }
+      
+      result.addVariable(new EVariable(TESTCASE_PROPS,VariableType.STRING, ""));
             
       // Add all undefined parameters - default type for undefined parameter is INT
-      String [] parameters = getStringArray(ID_ParOrder);
+      String [] parameters = getStringArray(ID_testcaseParameters);
       for (String indicatorName : parameters) {
         if (result.getVariable(indicatorName) == null)
           result.addVariable(new EVariable(indicatorName, indicatorName, VariableType.INT, 0), true);
       }
-            
+                        
       this.parameters = result;      
       
     } catch (Exception e) {
@@ -99,7 +109,7 @@ public class ETestCase extends Entity {
       if (!generators.containsKey(defaultGeneratorType)) {
         EGenerator gen = new EGenerator();
         gen.set(EGenerator.ID_Type, defaultGeneratorType);
-        gen.set(EGenerator.ID_GPars, get(ID_ParOrder));
+        gen.set(EGenerator.ID_GPars, get(ID_testcaseParameters));
         generators.put(defaultGeneratorType, gen);
       }
     } catch (Exception e) {

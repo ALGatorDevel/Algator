@@ -16,6 +16,10 @@ import si.fri.algotest.global.ErrorStatus;
  * @author tomaz
  */
 public class Variables implements Serializable, Iterable<EVariable> {
+  
+  // name of the properties field in a test case
+  public static final String PROPS = ETestCase.TESTCASE_PROPS;
+
 
   private HashMap<String, EVariable> variables;
 
@@ -109,6 +113,19 @@ public class Variables implements Serializable, Iterable<EVariable> {
     
     return variable;
   }
+  
+  
+  public void addProperty(String propVariableName, String propName, Object value) {
+    EVariable propVar = getVariable(propVariableName);
+    if (propVar == null) {
+      propVar = new EVariable(propVariableName, "");
+      addVariable(propVar);
+    }
+    String val = (String)propVar.getValue();
+    val += (val.isEmpty() ? "":",") + String.format("%s=%s", propName, value.toString()); 
+    propVar.setValue(val); 
+  }
+
   
   @Override
   public String toString() {

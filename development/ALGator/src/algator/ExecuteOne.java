@@ -11,9 +11,13 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import si.fri.algotest.entities.EAlgorithm;
+import si.fri.algotest.entities.EResult;
 import si.fri.algotest.entities.ETestSet;
 import si.fri.algotest.entities.MeasurementType;
 import si.fri.algotest.entities.Project;
+import si.fri.algotest.entities.Variables;
+import si.fri.algotest.execute.AbstractTestCase;
+import si.fri.algotest.execute.ExternalExecutor;
 import si.fri.algotest.global.ATGlobal;
 
 /**
@@ -183,6 +187,15 @@ public class ExecuteOne {
     
     System.out.println(qTestSetFIleName);
     System.out.println(test);
+    
+    AbstractTestCase testCase=null; //!!!
+    
+    Variables resultVariables = ExternalExecutor.runTestCase(project, algName, testCase, mType, eTestSet.getName(), testID, 1, 100, null, null);
+    //!!!!!!!
+    // ExternalExecutor.printVariables(resultVariables, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), whereToPrint);
+
+    
+    
   }
 
 }

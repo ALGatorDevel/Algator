@@ -82,8 +82,10 @@ public class Analysis {
         param.setValue(defParam.getValue());
       }
     }
+    
+    String generatorType = "TYPE" + defaultParams.getVariable("GeneratorType", "0").getStringValue();
 
-    AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(ETestCase.defaultGeneratorType, parameters);
+    AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(generatorType, parameters);
     
     Variables result = ExternalExecutor.runTestCase(project, algName, testCase, MeasurementType.EM, OtherTestsetName, 1, timesToExecute, timeLimit, null, instanceID);
 
@@ -208,12 +210,12 @@ public class Analysis {
       param.setValue(curParamValue);
       AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(ETestCase.defaultGeneratorType, parameters);
 
-      Variables result = ExternalExecutor.runTestCase(project, algName, testCase, MeasurementType.EM, OtherTestsetName, ++testID, 1, 2 * timeLimit, notificator, instanceID);
-    
-      result.addVariable(EResult.getTestsetNameParameter(FindLimitTestsetID));
-
+      Variables result = ExternalExecutor.runTestCase(project, algName, testCase, MeasurementType.EM, OtherTestsetName, ++testID, 1, timeLimit, notificator, instanceID);
       
-      long time = result.getVariable(MY_TIMER).getLongValue(2 * timeLimit * 1000000);
+      result.addVariable(EResult.getTestsetNameParameter(FindLimitTestsetID));
+      result.addProperty(AbstractTestCase.PROPS, "t", timeLimit);            
+      
+      long time = result.getVariable(MY_TIMER).getLongValue(timeLimit * 1000000); 
 
       String status = (String) result.getVariable(EResult.passParName).getValue();
       if (time > 1000000 * timeLimit) {
@@ -298,7 +300,7 @@ public class Analysis {
       Variables result = ExternalExecutor.runTestCase(project, algName, testCase, MeasurementType.EM, OtherTestsetName, ++testID, 1, 2 * timeLimit, notificator, instanceID);
 
       result.addVariable(EResult.getTestsetNameParameter(FindLimitTestsetID));
-
+      result.addProperty(AbstractTestCase.PROPS, "t", timeLimit);      
 
       long time = result.getVariable(MY_TIMER).getLongValue(2 * timeLimit * 1000000);
 

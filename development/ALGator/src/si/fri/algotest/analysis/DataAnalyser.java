@@ -117,7 +117,7 @@ public class DataAnalyser {
     Variables resultPS = Variables.join(project.getTestCaseDescription().getParameters(), eResultDesc.getVariables());
 
     // test parameters are only defined in EM file
-    String[] testOrder = project.getTestCaseDescription().getStringArray(ETestCase.ID_ParOrder);
+    String[] testOrder = project.getTestCaseDescription().getTestCaseParameters();
     if (testOrder == null) {
       testOrder = new String[0];
     }
@@ -143,7 +143,7 @@ public class DataAnalyser {
     String resFileName;
     // če imam eksplicitno podano ime racunalnika, vem, kjer moram iskati rezultate ...
     if (computerID != null && !computerID.isEmpty()) {
-      resFileName = ATGlobal.getRESULTfilename(project.getProjectRoot(), algorithm, testset, measurement, computerID);
+        resFileName = ATGlobal.getRESULTfilename(project.getProjectRoot(), algorithm, testset, measurement, computerID);
     } // ... sicer pa poiščem najbolj primerno datoteko
     else {
       resFileName = ATTools.getTaskResultFileName(project, algorithm, testset, measurement.getExtension());
