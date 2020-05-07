@@ -222,7 +222,7 @@ public class Analysis {
         status = ExecutionStatus.KILLED.toString();
       }
 
-      boolean killed = status.equals(ExecutionStatus.KILLED.toString()) || time > timeLimit * 1000000;
+      boolean killed = !status.equals(ExecutionStatus.DONE.toString()) || time > timeLimit * 1000000;
 
       if (ATGlobal.verboseLevel == 2) {
         System.out.println(String.format("%s=%9d, T=%9d, status=%s", paramName, curParamValue, time, status));
