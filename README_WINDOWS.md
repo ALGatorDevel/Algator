@@ -67,7 +67,6 @@ A single-user version instalation of the ALGator on Windows system (see also a <
 
     - Add ```C:\cygwin64\bin\``` to PATH in system environment. To test it run ```rsync``` in command prompt.
 
-    - Test: type ```rsync``` into a command prompt
 
 
 ## Usage examples
