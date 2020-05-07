@@ -81,7 +81,11 @@ public enum StatFunction {
 //  }
   public static Object getFunctionValue(StatFunction function, ArrayList<? extends Comparable> values) {
     Iterator it = values.iterator();
-    while (it.hasNext()) if (it.next().equals("null")) it.remove();    
+    while (it.hasNext()) {
+      Object next = it.next();
+      if (next.equals("null") || next.equals("?")) 
+        it.remove();
+    }    
     
     if (values == null || values.size() == 0) {
       return null;
