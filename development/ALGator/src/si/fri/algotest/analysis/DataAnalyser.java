@@ -647,9 +647,29 @@ public class DataAnalyser {
           //line.add(testNUM);
           for (NameAndAbrev inPar : inPars) {
             Object value;
-            try {
-              EVariable parameter = ps.getVariable(inPar.getName());
-              value = parameter.getValue();
+            try {              
+              String pName = inPar.getName();
+              
+              // if param is like tc_PROPS.Type, we have to split TP_PROPS and get only "Type" part of it ....
+              if (pName.startsWith("TC_PROPS")) {
+                  value="?";
+                  String tcProps = (String) ps.getVariable("TC_PROPS").get(EVariable.ID_Value);
+                  if (pName.contains(".")) {
+                    String prop = pName.split("[.]")[1];
+                    String [] tcParts = tcProps.split(",");
+                    for (String tcPart : tcParts) {
+                      if (tcPart.trim().startsWith(prop+"=")) {
+                        value = tcPart.split("=")[1];
+                      }
+                    }                    
+                  } else
+                    value = tcProps;
+                  
+              // ... else (for every other param)
+              } else {
+                EVariable parameter = ps.getVariable(pName);
+                value = parameter.getValue();                           
+              }
             } catch (Exception e) {
               value = "?";
             }
@@ -787,7 +807,7 @@ public class DataAnalyser {
     String[] groupby = query.getStringArray(EQuery.ID_GroupBy);
     for (int i = 0; i < groupby.length; i++) {
       td.groupBy(groupby[i]);
-    }
+    } 
 
     String[] sortby = query.getStringArray(EQuery.ID_SortBy);
     for (int i = 0; i < sortby.length; i++) {

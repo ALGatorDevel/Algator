@@ -297,7 +297,7 @@ public class TableData {
       return;
     }
     
-    // detect if the values of this filed are Srtings -> adjust sorting
+    // detect if the values of this filed are Strings -> adjust sorting
     String type = "+";
     try {
       // check the first entry in this column

@@ -18,10 +18,10 @@ public class EResult extends Entity {
   public static final int FIXNUM = 5;
   public static final String algParName        = "Algorithm"; 
   public static final String tstParName        = "Testset"; 
-  public static final String instanceIDParName = "InstanceID"; // Unique instance identificator of a test instance
-  public static final String passParName       = "Pass";       // DONE if algorithem finished within the given time limit, FAILED otherwise
-  public static final String timeStampName     = "Timestamp";  // timestamp of test end
-  public static final String errorParName      = "Error";      // if an error occures, this parameter contains error message
+  public static final String instanceIDParName = "InstanceID";     // Unique instance identificator of a test instance
+  public static final String passParName       = "Pass";           // DONE if algorithem finished within the given time limit, FAILED otherwise
+  public static final String timeStampName     = "Timestamp";      // timestamp of test end
+  public static final String errorParName      = "Error";          // if an error occures, this parameter contains error message
   
   // unique sequence number of a test in a tabel (id of table row)
   public static final String testNoParName   = "ID";     
@@ -172,7 +172,7 @@ public class EResult extends Entity {
     String [] orderA = eTestCase.getTestCaseParameters();
     String [] orderB = eResult.  getStringArray(EResult  .ID_IndOrder);
 
-    String [] order = new String[orderA.length + orderB.length + FIXNUM];
+    String [] order = new String[orderA.length  + orderB.length + FIXNUM];
     
     // Add "Algorithm", "TestSet" and "Pass" parameters to the set of output parameters.
     // The number of parameters added to every result line is defined in EResult.FIXNUM
@@ -184,7 +184,7 @@ public class EResult extends Entity {
     
     int k = FIXNUM;
     for (int i = 0; i < orderA.length; i++) 
-      order[k++] = orderA[i];
+      order[k++] = orderA[i];    
     for (int i = 0; i < orderB.length; i++) 
       order[k++] = orderB[i];
     

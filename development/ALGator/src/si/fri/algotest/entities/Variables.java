@@ -114,6 +114,14 @@ public class Variables implements Serializable, Iterable<EVariable> {
     return variable;
   }
   
+  public void clearProperties(String propVariableName) {
+    EVariable propVar = getVariable(propVariableName);
+    if (propVar == null) {
+      propVar = new EVariable(propVariableName, "");
+      addVariable(propVar);
+    }
+    propVar.setValue("");     
+  }
   
   public void addProperty(String propVariableName, String propName, Object value) {
     EVariable propVar = getVariable(propVariableName);
@@ -191,14 +199,16 @@ public class Variables implements Serializable, Iterable<EVariable> {
   public void printToFile(File resultFile, String [] variablesOrder) {
     try {
       PrintWriter pw = new PrintWriter(new FileWriter(resultFile, true));
-        printToFile(pw, variablesOrder);        
+        printToFile(pw, variablesOrder, false);        
       pw.close();
     } catch (Exception e) {
       ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_WRITEFILE, e.toString());
     } 
   }
-  public void printToFile(PrintWriter pw, String [] variablesOrder) {
-    try {
+  public void printToFile(PrintWriter pw, String [] variablesOrder, boolean isStdout) {
+    try {   
+      if (isStdout)
+        pw.print('\u200B'); // Zero-Width Space       &#8203;
       pw.println(this.toString(variablesOrder, false, ATGlobal.DEFAULT_CSV_DELIMITER));
       pw.flush();
     } catch (Exception e) {

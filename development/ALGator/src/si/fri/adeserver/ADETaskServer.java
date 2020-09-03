@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
@@ -338,7 +337,10 @@ public class ADETaskServer implements Runnable {
     return result;
   }
   
-  private String processRequest(String request) {    
+  private String processRequest(String request) {  
+    // najprej pocistim morebitne pozabljene ukaze in datoteke
+    ADECommandManager.sanitize();
+    
     String [] parts = request.split(" ");
     if (parts.length == 0) return "";
     
@@ -412,6 +414,8 @@ public class ADETaskServer implements Runnable {
       case ADEGlobal.REQ_GETFILE:
         return getFile(params);
         
+      case ADEGlobal.COMMAND:
+        return ADECommandManager.execute(params);                        
         
       default:
         return ADEGlobal.getErrorString("Unknown request");
@@ -451,8 +455,8 @@ public class ADETaskServer implements Runnable {
             pw.println("Byebye.");
             break;
           }
-                              
-          String response  =  processRequest(request).replaceAll("\n", "<br>");          
+                     
+           String response  =  processRequest(request).replaceAll("\n", "<br>");          
   
           if (!ADEGlobal.nonlogableRequests.contains(request))
             ADELog.log("[RESPONSE]: " + response);
@@ -484,7 +488,7 @@ public class ADETaskServer implements Runnable {
     try {
       ServerSocket socket1 = new ServerSocket(ADEGlobal.ADEPort);
 
-      ADELog.log("TaskServer Initialized");
+      ADELog.log("TaskServer Initialized on " + ADEGlobal.ADEPort);
       
       timeStarted = new java.util.Date().getTime();
       while (true) {

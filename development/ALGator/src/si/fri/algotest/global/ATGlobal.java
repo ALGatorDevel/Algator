@@ -57,6 +57,8 @@ public class ATGlobal {
   
   public static final String ATDIR_tmpDir         = "tmp";
   public static final String ATDIR_tmpFile        = "tmpF";
+  
+  public static final String ATDIR_cmdOutputDir   = "cmdOutput";
 
   public static final String ATDIR_docFolder      = "doc";
   
@@ -410,6 +412,19 @@ public class ATGlobal {
     deleteTMPDir(tmpFolderName, getALGatorDataLocal(), prefix);
   }
   
+  
+  /************* Filename for Commands output   *+++++++++++++++++++++*/
+  public static String getCommandOutputFolder() {    
+    String cmdFolder = getALGatorDataLocal() + File.separator + ATDIR_cmdOutputDir; 
+    File f = new File(cmdFolder);
+    if (!f.exists()) f.mkdirs();
+    return cmdFolder;
+  }
+  
+  public static String getCommandOutputFilename(int commandID) {    
+    String cmdFolder = getCommandOutputFolder();
+    return cmdFolder + File.separator + "command-" + Integer.toString((new Random()).nextInt(), 16) + "-" + commandID;
+  }
   
   
   /************* Configurations (local and global) *+++++++++++++++++++++*/

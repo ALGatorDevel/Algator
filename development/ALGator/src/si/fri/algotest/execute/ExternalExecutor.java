@@ -123,7 +123,7 @@ public class ExternalExecutor {
         testID++;
 
         if (ATGlobal.verboseLevel==2) {
-          System.out.print("\rGenerating testcase...");System.out.flush();
+            System.out.print("\rGenerating testcase...");System.out.flush();
         }
           AbstractTestCase testCase = it.getCurrent();
 
@@ -289,7 +289,7 @@ public class ExternalExecutor {
     if (resultVariables != null) {
       // print to stdout
       if (((whereToPrint & ATLog.TARGET_STDOUT) == ATLog.TARGET_STDOUT))            
-        resultVariables.printToFile(new PrintWriter(System.out), order);      
+        resultVariables.printToFile(new PrintWriter(System.out), order, true);      
       
       // print to file
       if (((whereToPrint & ATLog.TARGET_FILE) == ATLog.TARGET_FILE) && (resultFile != null))

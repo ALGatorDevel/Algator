@@ -33,6 +33,8 @@ public class ADEGlobal {
   public static final String REQ_ADMIN            = "ADMIN";          // admin (povezava do programa algator.Admin)  
   public static final String REQ_GETFILE          = "GETFILE";        // parameters: type projectName  [some more]
   
+  // dodana funkcionalnost za poganjanje ALGator ukazov (execute, analyse, ...) v svojem procesu. Za podrobnosti glej komentar v ADECommand
+  public static final String COMMAND              = "COMMAND";        // parameters: run / status / output / stop + params
   
   // a set of requests that do not log into log file
   public static final TreeSet<String> nonlogableRequests;
