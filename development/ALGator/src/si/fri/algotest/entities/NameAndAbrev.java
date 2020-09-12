@@ -1,7 +1,7 @@
 package si.fri.algotest.entities;
 
 /**
- * Name and abreviation of an entity
+ * Name and abreviation of an entity.
  * @author tomaz
  */
 public class NameAndAbrev {
@@ -10,6 +10,10 @@ public class NameAndAbrev {
 
   private String name;
   private String abrev;
+  
+  // if the name contains the type informatino (i.e. int a), this information is 
+  // stored here, otherwise type is set to null
+  private String type;
 
   public NameAndAbrev(String name, String abrev) {
     this.name = name;
@@ -17,8 +21,15 @@ public class NameAndAbrev {
   }
   
   public NameAndAbrev(String nameAndAbrev) {
-    String parts [] = nameAndAbrev.split(AS);
+      String parts [] = nameAndAbrev.split(AS);
     name = parts[0];
+    
+    // name can contain information about the type
+    if (name.contains(" ")) {
+      String [] nt = name.split("[ ]");      
+      type         = nt[0];
+      name         = nt[1];
+    }
     
     if (parts.length > 1)
       abrev = parts[1];
@@ -46,6 +57,15 @@ public class NameAndAbrev {
     this.abrev = abrev;
   }
 
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+  
+
   @Override
   public String toString() {
     String abrv = (abrev == null || abrev.isEmpty()) ? name : abrev;
@@ -56,5 +76,4 @@ public class NameAndAbrev {
   public boolean equals(Object obj) {
     return this.toString().equals(obj.toString());
   }
-  
 }

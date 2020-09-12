@@ -80,7 +80,7 @@ public class EVariable extends Entity  implements Serializable {
     else {
       try {
         switch (this.type) { 
-	  case INT: case TIMER:
+	  case INT: case TIMER: case COUNTER:
             if (object instanceof Integer || object instanceof Long)
               fields.put(fieldKey, object);
             else

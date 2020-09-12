@@ -3,6 +3,9 @@ Usage examples
 java algator.Analyse RunOne BasicSort -a BubbleSort -s {"N":500} -t 2 -te 10
   Run BubbleSort with N=500 (for other parameters ALGator uses a default value). Time limit: 2s, number of executions (of this test): 10.
 
+java algator.Analyse RunOne BasicSort -a BubbleSort -s "{N:30000, DORDER:'0.9', GeneratorType:3}" -te 10 -t 5
+  Use Type3 generator with DORDER=0.9
+
 java algator.Analyse RunOne IntegerFactorization -s '{"GeneratorType":"2", "Number":"15"}'
   Generate test case with generator of type TYPE2 with generating parameter number=15.
 
@@ -19,7 +22,6 @@ java algator.Analyse FindLimits BasicSort -a JavaSort -p N
 
 java algator.Analyse FindLimits BasicSort -a JavaSort -p N -s {Div:SMALL}
   Finds limits for all possible combinations of emun parameters where Div=SMALL
-
 
 java algator.Analyse TimeComplexity BasicSort -s "{"mode":"outliers", "testSet":"TestSet1", "M":2.4, "observedValue":"Tfirst"}" -p N -v 1 -a InsertionSort
     Finds outliers of InsertionSort algorithm on test set TestSet1, when observed value is Tfirst and threshold for outliers is set to M=2.4.

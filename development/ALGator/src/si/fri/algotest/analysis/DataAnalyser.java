@@ -661,7 +661,23 @@ public class DataAnalyser {
                       if (tcPart.trim().startsWith(prop+"=")) {
                         value = tcPart.split("=")[1];
                       }
-                    }                    
+                    }
+                    
+                    // check is parameter has a type defined
+                    String parType = inPar.getType();
+                    if (parType != null) {
+                      switch (parType) {
+                        case "int":
+                          try {value = Integer.parseInt(value.toString());} catch (Exception e) {}
+                          break;
+                        case "double":
+                          try {value = Double.parseDouble(value.toString());} catch (Exception e) {}
+                          break;
+                        case "long":
+                          try {value = Long.parseLong(value.toString());} catch (Exception e) {}
+                          break;
+                      }
+                    }
                   } else
                     value = tcProps;
                   

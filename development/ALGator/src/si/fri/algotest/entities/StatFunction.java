@@ -83,7 +83,7 @@ public enum StatFunction {
     Iterator it = values.iterator();
     while (it.hasNext()) {
       Object next = it.next();
-      if (next.equals("null") || next.equals("?")) 
+      if (next == null || next.equals("null") || next.equals("?")) 
         it.remove();
     }    
     

@@ -285,26 +285,50 @@ public class TableData {
   
   /**
    * Group data by a given field
+   * Example of a complex groupby value: "N:>,T; Tmax:SUM; MIN"
    */
   public void groupBy(String groupby) {
-    if (data.isEmpty() || groupby == null || groupby.isEmpty()) return;
+    if (groupby==null) return; // avoid null error
     
-    String [] gb = groupby.split(";");
-    String field = gb[0];
+    groupby = groupby.replaceAll(" ", ""); // remove spaces
     
-    int fieldNo = header.indexOf(field);
-    if (fieldNo == -1) {
-      return;
+    if (data.isEmpty() || groupby.isEmpty()) return;
+    
+    // the first column in groupby is the "field", which is of form: "field:sortType,field1,field2,..." 
+    String field = groupby.split(";")[0];    
+    
+    // fields are separated by ","; the first field is the main groupby field
+    String [] fields = field.split("[,]");
+    field            = fields[0];    
+    
+    String sortType = "+"; // default: numerical ascending sorting
+    if (field.contains(":")) {
+      String [] ops = field.split("[:]");
+      field         = ops[0];
+      sortType      = ops[1];
     }
     
-    // detect if the values of this filed are Strings -> adjust sorting
-    String type = "+";
+    fields[0] = field; // write only fieldname (without possible ":>) back to array
+    
+    // get the fields indeces in the header array
+    int [] fieldNo = new int[fields.length];
+    for (int i = 0; i < fieldNo.length; i++) {
+      fieldNo[i] = header.indexOf(fields[i]);
+      if (fieldNo[i] == -1) {
+        return;
+      }      
+    }
+            
+        
+    // detect if the values of the main filed are Strings -> adjust sorting
     try {
       // check the first entry in this column
-      if (data.get(0).get(fieldNo) instanceof String)
-        type = ">";
+      if (data.get(0).get(fieldNo[0]) instanceof String)
+        sortType = ">";
     } catch (Exception e) {}
-    sort(field+":"+type);
+    
+    // soring is performed over the main groupby field in the given (or default) order
+    sort(field+":"+sortType);
     
     ArrayList<ArrayList<Object>> newData = new ArrayList<>();
 
@@ -315,11 +339,23 @@ public class TableData {
       group = new ArrayList<>();
       group.add(data.get(kjeVData++));
       
-      // put into a group all elements that are equal to the first group element
-      while(kjeVData < data.size() && data.get(kjeVData).get(fieldNo)!= null && data.get(kjeVData).get(fieldNo).equals(group.get(0).get(fieldNo))) 
-        group.add(data.get(kjeVData++));
+      Object [] refFields = new Object[fieldNo.length];
+      for (int i = 0; i < refFields.length; i++) refFields[i] = group.get(0).get(fieldNo[i]);      
       
-      newData.add(squeezeGroup(group, groupby));
+      // put into a group all elements that are equal (according to the given fields) to the first group element
+      boolean inGroup = true;
+      if (kjeVData < data.size()) do {        
+        for (int i = 0; i < fieldNo.length; i++) {
+          Object curField = data.get(kjeVData).get(fieldNo[i]);
+          if (curField == null || !curField.equals(refFields[i])) {
+            inGroup =false;
+          }
+        }
+        if (inGroup) 
+          group.add(data.get(kjeVData++));
+      } while (kjeVData < data.size() && inGroup);
+      
+      newData.add(squeezeGroup(group, groupby));                        
     }
     data = newData;
   }
