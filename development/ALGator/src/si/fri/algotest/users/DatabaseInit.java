@@ -5,7 +5,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
+  
 /**
  *
  * @author Gregor
@@ -121,16 +121,16 @@ public class DatabaseInit {
       Statement stmt = (Statement) conn.createStatement();
 
       DatabaseMetaData meta = conn.getMetaData();
-      ResultSet res = meta.getTables(null, null, "GROUPS",
+      ResultSet res = meta.getTables(null, null, "AGROUPS",
               new String[]{"TABLE"});
 
       //check if exists
       if (res.next()) {
-        System.out.println("Table Groups already exists!");
+        System.out.println("Table AGroups already exists!");
         return false;
       }
 
-      String sql = "CREATE TABLE `groups` (\n"
+      String sql = "CREATE TABLE `agroups` (\n"
               + "	`id` INT(11) NOT NULL AUTO_INCREMENT,\n"
               + "	`name` VARCHAR(255) NOT NULL COLLATE 'utf8_slovenian_ci',\n"
               + "	`status` INT(1) NOT NULL DEFAULT '0' COMMENT '0 - active, 1 - inactive',\n"
@@ -144,7 +144,7 @@ public class DatabaseInit {
 
       int result = stmt.executeUpdate(sql);
 
-      System.out.println("Table Groups succesfully created!");
+      System.out.println("Table AGroups succesfully created!");
 
       return true;
     } catch (SQLException e) {
@@ -174,8 +174,8 @@ public class DatabaseInit {
               + "	`id_group` INT(11) NOT NULL,\n"
               + "	PRIMARY KEY (`id`),\n"
               + "	INDEX `FK__users` (`id_user`),\n"
-              + "	INDEX `FK__groups` (`id_group`),\n"
-              + "	CONSTRAINT `FK__groups` FOREIGN KEY (`id_group`) REFERENCES `groups` (`id`),\n"
+              + "	INDEX `FK__agroups` (`id_group`),\n"
+              + "	CONSTRAINT `FK__agroups` FOREIGN KEY (`id_group`) REFERENCES `agroups` (`id`),\n"
               + "	CONSTRAINT `FK__users` FOREIGN KEY (`id_user`) REFERENCES `users` (`id`)\n"
               + ")\n"
               + "COLLATE='utf8_slovenian_ci'\n"
@@ -287,7 +287,7 @@ public class DatabaseInit {
         return false;
       }
 
-      //permissions groups
+      //permissions agroups
       String sql = "CREATE TABLE `permissions_group` (\n"
               + "	`id` INT(11) NOT NULL AUTO_INCREMENT,\n"
               + "	`id_group` INT(11) NULL DEFAULT NULL,\n"
@@ -295,10 +295,10 @@ public class DatabaseInit {
               + "	`id_permission` INT(11) NULL DEFAULT NULL,\n"
               + "	PRIMARY KEY (`id`),\n"
               + "	INDEX `FK_permissions_group_entities` (`id_entity`),\n"
-              + "	INDEX `FK_permissions_group_groups` (`id_group`),\n"
+              + "	INDEX `FK_permissions_group_agroups` (`id_group`),\n"
               + "	INDEX `FK_permissions_group_permissions` (`id_permission`),\n"
               + "	CONSTRAINT `FK_permissions_group_entities` FOREIGN KEY (`id_entity`) REFERENCES `entities` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION,\n"
-              + "	CONSTRAINT `FK_permissions_group_groups` FOREIGN KEY (`id_group`) REFERENCES `groups` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION,\n"
+              + "	CONSTRAINT `FK_permissions_group_agroups` FOREIGN KEY (`id_group`) REFERENCES `agroups` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION,\n"
               + "	CONSTRAINT `FK_permissions_group_permissions` FOREIGN KEY (`id_permission`) REFERENCES `permissions` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION\n"
               + ")\n"
               + "COLLATE='utf8_slovenian_ci'\n"
@@ -339,10 +339,10 @@ public class DatabaseInit {
               + "	`id_permission` INT(11) NULL DEFAULT NULL,\n"
               + "	PRIMARY KEY (`id`),\n"
               + "	INDEX `FK_permissions_users_entities` (`id_entity`),\n"
-              + "	INDEX `FK_permissions_users_groups` (`id_user`),\n"
+              + "	INDEX `FK_permissions_users_agroups` (`id_user`),\n"
               + "	INDEX `FK_permissions_users_permissions` (`id_permission`),\n"
               + "	CONSTRAINT `FK_permissions_users_entities` FOREIGN KEY (`id_entity`) REFERENCES `entities` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION,\n"
-              + "	CONSTRAINT `FK_permissions_users_groups` FOREIGN KEY (`id_user`) REFERENCES `groups` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION,\n"
+              + "	CONSTRAINT `FK_permissions_users_agroups` FOREIGN KEY (`id_user`) REFERENCES `agroups` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION,\n"
               + "	CONSTRAINT `FK_permissions_users_permissions` FOREIGN KEY (`id_permission`) REFERENCES `permissions` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION\n"
               + ")\n"
               + "COLLATE='utf8_slovenian_ci'\n"
@@ -431,7 +431,7 @@ public class DatabaseInit {
     try {
       Statement stmt = (Statement) conn.createStatement();
 
-      String select = "SELECT * from " + PermTools.getDatabase() + ".groups WHERE name='Everyone'";
+      String select = "SELECT * from " + PermTools.getDatabase() + ".agroups WHERE name='Everyone'";
       ResultSet rs = stmt.executeQuery(select);
 
       if (rs.next()) {
@@ -440,7 +440,7 @@ public class DatabaseInit {
       }
 
       //add everyone
-      String insert = "INSERT INTO groups (name,status) VALUES ('Everyone',0);";
+      String insert = "INSERT INTO agroups (name,status) VALUES ('Everyone',0);";
 
       int result = stmt.executeUpdate(insert);
 

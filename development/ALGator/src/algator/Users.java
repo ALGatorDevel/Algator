@@ -154,7 +154,7 @@ public class Users {
             id_user = rs.getInt(1);
           }
 
-          String select = "SELECT * from " + PermTools.getDatabase() + ".groups WHERE name='Everyone'";
+          String select = "SELECT * from " + PermTools.getDatabase() + ".agroups WHERE name='Everyone'";
           rs = stmt.executeQuery(select);
           if (rs.next()) {
             id_group = rs.getInt(1);
@@ -186,7 +186,7 @@ public class Users {
       Statement stmt = (Statement) conn.createStatement();
 
       if (getGroupID(name, true) < 0) {
-        String insert = "INSERT INTO " + PermTools.getDatabase() + ".groups(name) VALUES ('" + name + "')";
+        String insert = "INSERT INTO " + PermTools.getDatabase() + ".agroups(name) VALUES ('" + name + "')";
 
         int result = stmt.executeUpdate(insert);
 
@@ -399,7 +399,7 @@ public class Users {
   private static void showGroups() {
     try {
       Statement stmt = (Statement) conn.createStatement();
-      String select = "SELECT * from " + PermTools.getDatabase() + ".groups";
+      String select = "SELECT * from " + PermTools.getDatabase() + ".agroups";
       ResultSet rs = stmt.executeQuery(select);
       if (format.equals("json")) {
         Gson gson = new Gson();
@@ -514,7 +514,7 @@ public class Users {
     if (getGroupID(groupname, false) > 0) {
       try {
         Statement stmt = (Statement) conn.createStatement();
-        String insert = "UPDATE " + PermTools.getDatabase() + ".groups SET status = " + status + " WHERE name = '" + groupname + "'";
+        String insert = "UPDATE " + PermTools.getDatabase() + ".agroups SET status = " + status + " WHERE name = '" + groupname + "'";
         int result = stmt.executeUpdate(insert);
 
         if (result > 0) {
@@ -554,7 +554,7 @@ public class Users {
     try {
       Statement stmt = (Statement) conn.createStatement();
 
-      String select = "SELECT * from " + PermTools.getDatabase() + ".groups WHERE name='" + groupname + "'";
+      String select = "SELECT * from " + PermTools.getDatabase() + ".agroups WHERE name='" + groupname + "'";
       ResultSet rs = stmt.executeQuery(select);
 
       if (rs.next()) {

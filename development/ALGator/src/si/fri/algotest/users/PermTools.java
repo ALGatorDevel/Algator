@@ -1,15 +1,12 @@
 package si.fri.algotest.users;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
-import java.util.Properties;
 import si.fri.algotest.entities.EAlgatorConfig;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ATLog;
@@ -25,14 +22,14 @@ public class PermTools {
   private static   String CONN_STRING  = "";
   private static   String DATABASE     = "";
   
-  private   static String OPTIONS      = "?autoReconnect=true&useSSL=false";
+  private   static String OPTIONS      = "?serverTimezone=UTC";
 
   
   // This method return true if a file "$ALGATOR_ROOT/mysql-stop"  exists.
   // If this file exists, ALGator will not try to connect to MySQL server.
   // This file is used only in the docker container (to prevent connections
   // to mysql, because docker can not reach the server running on the host;
-  //  any attemp to connect to the server causes huge delays).
+  // any attemp to connect to the server causes huge delays).
   public static boolean preventConnection() {
     try {
       File f = new File(ATGlobal.getALGatorRoot(), "mysql-stop");
@@ -56,7 +53,6 @@ public class PermTools {
         ATLog.log("Settings for database connection missing or incorrect.", 1);
         return conn;
       }
-
       conn = DriverManager.getConnection(CONN_STRING + "/" + DATABASE + OPTIONS, USERNAME, PASSWORD);
     } catch (SQLException e) {
       ATLog.log(e.toString(), 1);
@@ -73,7 +69,7 @@ public class PermTools {
     HashMap<String, Object> databaseInfo = algatorConfig.getDatabaseServerInfo();
 
     CONN_STRING = (String) databaseInfo.get("Connection");
-    DATABASE    = (String) databaseInfo.get("Database");    
+    DATABASE    = (String) databaseInfo.get("Database");
     USERNAME    = (String) databaseInfo.get("Username");
     PASSWORD    = (String) databaseInfo.get("Password");
   }
@@ -112,7 +108,7 @@ public class PermTools {
           id_project = rs.getInt(1);
         }
 
-        id_group      = getID("SELECT * from " + DATABASE + ".groups WHERE name='Everyone'");
+        id_group      = getID("SELECT * from " + DATABASE + ".agroups WHERE name='Everyone'");
         id_permission = getID("SELECT * from " + DATABASE + ".permissions WHERE permission_code='can_read'");
         
         String insert = "INSERT INTO " + DATABASE + ".permissions_group(id_group,id_entity,id_permission) VALUES (" + id_group + "," + id_project + "," + id_permission + ")";
@@ -171,7 +167,7 @@ public class PermTools {
           id_algorithm = rs.getInt(1);
         }
 
-        select = "SELECT * from " + DATABASE + ".groups WHERE name='Everyone'";
+        select = "SELECT * from " + DATABASE + ".agroups WHERE name='Everyone'";
         rs = stmt.executeQuery(select);
         if (rs.next()) {
           id_group = rs.getInt(1);
