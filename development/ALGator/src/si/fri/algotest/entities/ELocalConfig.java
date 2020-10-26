@@ -25,12 +25,15 @@ public class ELocalConfig extends Entity {
   public  static final String ID_VMEPClasspath     = "VMEPClasspath";    // String
   public  static final String ID_TaskServerName    = "TaskServerName";   // String
   public  static final String ID_TaskServerPort    = "TaskServerPort";   // String
+  
+  public  static final String ID_Username          = "Username";   // String
+  public  static final String ID_Password          = "Password";   // String
 
   
   
   public ELocalConfig() {
    super(ID_Query, 
-	 new String [] {ID_FAMILYID, ID_COMPID, ID_VMEP, ID_VMEPClasspath, ID_TaskServerName, ID_TaskServerPort});
+	 new String [] {ID_FAMILYID, ID_COMPID, ID_VMEP, ID_VMEPClasspath, ID_TaskServerName, ID_TaskServerPort, ID_Username, ID_Password});
    setRepresentatives(ID_FAMILYID, ID_COMPID);
   }
   

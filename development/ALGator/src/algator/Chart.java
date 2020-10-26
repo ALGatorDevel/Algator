@@ -99,7 +99,7 @@ public class Chart {
     options.addOption("h", "help", false,
             "print this message");
 
-    options.addOption("u", "usage", false,
+    options.addOption("use", "usage", false,
             "print usage guide");
 
     return options;
@@ -138,7 +138,7 @@ public class Chart {
         printMsg(options);
       }
 
-      if (line.hasOption("u")) {
+      if (line.hasOption("use")) {
         printUsage();
       }
 

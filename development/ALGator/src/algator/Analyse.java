@@ -3,7 +3,6 @@ package algator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.Scanner;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -135,7 +134,7 @@ public class Analyse {
     
     options.addOption("h", "help", false,
 	    "print this message");        
-    options.addOption("u", "usage", false, "print usage guide");
+    options.addOption("use", "usage", false, "print usage guide");
     
     return options;
   }
@@ -174,7 +173,7 @@ public class Analyse {
 	printMsg(options);
       }
 
-      if (line.hasOption("u")) {
+      if (line.hasOption("use")) {
         printUsage();
       }
 

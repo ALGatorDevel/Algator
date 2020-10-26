@@ -1,16 +1,10 @@
 package si.fri.adeserver;
 
 import java.io.File;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import si.fri.algotest.global.ATGlobal;
 

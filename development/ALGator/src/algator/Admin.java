@@ -1,6 +1,7 @@
 package algator;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Console;
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -23,7 +24,9 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FilenameUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import si.fri.algotest.database.Database;
 import si.fri.algotest.entities.EAlgorithm;
+import si.fri.algotest.entities.ELocalConfig;
 import si.fri.algotest.entities.EProject;
 import si.fri.algotest.entities.EResult;
 import si.fri.algotest.entities.ETestCase;
@@ -33,7 +36,10 @@ import si.fri.algotest.entities.MeasurementType;
 import si.fri.algotest.entities.Project;
 import si.fri.algotest.users.DBEntity;
 import si.fri.algotest.global.ATGlobal;
-import si.fri.algotest.users.PermTools;
+import si.fri.algotest.global.ATLog;
+import si.fri.algotest.users.DBUser;
+import si.fri.algotest.users.UsersDatabase;
+import si.fri.algotest.users.UsersTools;
 
 /**
  *
@@ -77,13 +83,32 @@ public class Admin {
             .withDescription("presenter type (0=MainProject, 1=Project (default), 2=MainAlg, 3=Alg); applicable for create_presenter")
             .create("pt");
     
+    Option username = OptionBuilder.withArgName("username")	    
+	    .hasArg(true)
+	    .withDescription("the name of the current user")
+	    .create("u");
+
+    Option password = OptionBuilder.withArgName("password")	    
+	    .hasArg(true)
+	    .withDescription("the password of the current user")
+	    .create("p");  
     
+    Option init = OptionBuilder
+	    .hasArg(false)
+	    .withDescription("initialize the system")
+	    .create("init");         
     
     options.addOption(data_root);
     options.addOption(algator_root);    
     options.addOption(algorithm);
     options.addOption(verbose);
     options.addOption(presenterType);
+    
+    options.addOption(username);
+    options.addOption(password);
+    
+    options.addOption(init);
+
     
     options.addOption("h", "help", false,
 	    "print this message");
@@ -100,7 +125,7 @@ public class Admin {
 	    "remove a presenter for a project");
 
     
-    options.addOption("u", "usage", false, "print usage guide");
+    options.addOption("use", "usage", false, "print usage guide");
     options.addOption("i", "info", false, "print info about entity");
     
     return options;
@@ -130,6 +155,48 @@ public class Admin {
     return baos.toString();
   }
   
+  private static String[] getUsernameAndPassword() {
+    Console console = System.console();
+    if (console == null) return null;
+    
+    String up[] = new String[2];
+    up[0]=console.readLine("Username: ");
+    
+    do {
+      up[1]=new String(console.readPassword("Password: "));
+      String control = new String(console.readPassword("Password (check): "));
+      if (!up[1].equals(control)) {
+        System.out.println("Passwords do not match. Please try again.");      
+        up[1]="";
+      }
+    } while (up[1].isEmpty());
+    
+    return up;
+  }
+  public static void initAlgatorSystem(String username, String password) {
+    ATGlobal.verboseLevel=Math.max(2, ATGlobal.verboseLevel);
+    ATLog.log("Initializing the system ...",0);
+      
+    // create a database and its tables
+    boolean databaseInit = Database.init();
+    if (databaseInit) {      
+      ATLog.log("Creating a new user ...", 0);
+      if (username==null || username.isEmpty()|| password==null || password.isEmpty()) {
+        String up[] = getUsernameAndPassword();
+        if (up==null) {
+          ATLog.log("Empty username or pasword are not alowed.", 0);
+          System.exit(0);
+        }
+        username=up[0];password=up[1];
+      }      
+      UsersDatabase.addNewUser(username, password);      
+      
+      ATLog.log("Done.",0);
+    }
+    
+    
+  }
+  
   /**
    * Used to run the system. Parameters are given through the arguments
    *
@@ -148,7 +215,7 @@ public class Admin {
 	printMsg(options);
       }
 
-      if (line.hasOption("u")) {
+      if (line.hasOption("use")) {
         printUsage();
         System.exit(0);
       }
@@ -169,13 +236,27 @@ public class Admin {
       ATGlobal.setALGatorDataRoot(dataRoot);
 
       ATGlobal.verboseLevel = 0;
-      if (line.hasOption("verbose")) {
-        if (line.getOptionValue("verbose").equals("1"))
-          ATGlobal.verboseLevel = 1;
-        if (line.getOptionValue("verbose").equals("2"))
-          ATGlobal.verboseLevel = 2;
+      if (line.hasOption("verbose")) {        
+        ATGlobal.verboseLevel = Integer.parseInt(line.getOptionValue("verbose"));
       }
-            
+      
+      ELocalConfig localConfig = ELocalConfig.getConfig();
+      
+      String username=localConfig.getField(ELocalConfig.ID_Username);
+      if (line.hasOption("u")) {
+	username = line.getOptionValue("u");
+      }      
+      String password=localConfig.getField(ELocalConfig.ID_Password);
+      if (line.hasOption("p")) {
+	password = line.getOptionValue("p");
+      }            
+      
+     if (line.hasOption("init")) {
+        initAlgatorSystem(username, password);
+        System.exit(0);
+      }          
+           
+      
       if (line.hasOption("info")) {
         String project   = (curArgs.length != 0) ? curArgs[0] : "";
         String algorithm = line.hasOption("algorithm") ? line.getOptionValue("algorithm") : "";
@@ -184,14 +265,17 @@ public class Admin {
         System.out.println(info);
         
         return;
-      }
+      }        
+      
+            
+      Database.checkDatabaseAccessAndExitOnError(username, password);
       
       if (line.hasOption("create_project")) {
 	if (curArgs.length != 1) {
           System.out.println("Invalid project name");
           printMsg(options); 
         } else {
-          createProject(curArgs[0]);
+          createProject(username, curArgs[0]);
           return;
         }
       }
@@ -201,7 +285,7 @@ public class Admin {
           System.out.println("Invalid project or algorithm name");
           printMsg(options); 
         } else {
-          createAlgorithm(curArgs[0], curArgs[1]);
+          createAlgorithm(username, curArgs[0], curArgs[1]);
           return;
         }
       }
@@ -211,7 +295,7 @@ public class Admin {
           System.out.println("Invalid project or test set name");
           printMsg(options); 
         } else {
-          createTestset(curArgs[0], curArgs[1]);
+          createTestset(username, curArgs[0], curArgs[1]);
           return;
         }
       }
@@ -229,7 +313,7 @@ public class Admin {
           if (line.hasOption("pType"))
             try{type=Integer.parseInt(line.getOptionValue("pType"));} catch (Exception e) {}
           
-          String result = createPresenter(curArgs[0], presenterName, type);
+          String result = createPresenter(username, curArgs[0], presenterName, type);
           if (result!=null) System.out.println(result);
           return;
         }
@@ -248,7 +332,7 @@ public class Admin {
           if (line.hasOption("pType"))
             try{type=Integer.parseInt(line.getOptionValue("pType"));} catch (Exception e) {}
           
-          String result = createPresenter(curArgs[0], presenterName, type);
+          String result = createPresenter(username, curArgs[0], presenterName, type);
           if (result!=null) System.out.println(result);
           return;
         }
@@ -271,9 +355,7 @@ public class Admin {
     }
   }
   
-  
-  
-  private static boolean createProject(String proj_name) {
+  private static boolean createProject(String username, String proj_name) {
     String dataroot = ATGlobal.getALGatorDataRoot();         
     String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(dataroot, proj_name));
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
@@ -314,7 +396,7 @@ public class Admin {
       copyFile("templates/P_AAA.html",         projDocFolder,   "algorithm.html",                 substitutions);
       copyFile("templates/P_REF.html",         projDocFolder,   "references.html",                substitutions);
       
-      PermTools.setProjectPermissions(proj_name);
+      UsersTools.setProjectPermissions(username, proj_name);
     } catch (Exception e) {
       System.out.println("Can not create project: " + e.toString());
       return false;
@@ -322,7 +404,7 @@ public class Admin {
     return true;
   }
 
-  private static boolean createAlgorithm(String proj_name, String alg_name) {        
+  private static boolean createAlgorithm(String username, String proj_name, String alg_name) {        
     String dataroot = ATGlobal.getALGatorDataRoot();         
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
     String algRoot = ATGlobal.getALGORITHMroot(projRoot, alg_name);
@@ -335,7 +417,7 @@ public class Admin {
     // first create project if it does not exist
     File projFolderFile = new File(projRoot);
     if (!projFolderFile.exists()) {
-      if (!createProject(proj_name))
+      if (!createProject(username, proj_name))
         return false;
     }    
     
@@ -354,14 +436,13 @@ public class Admin {
       copyFile("templates/AAA.html",           algDocFolder,    "algorithm.html",                 substitutions);
       copyFile("templates/A_REF.html",         algDocFolder,    "references.html",                substitutions);
       
-      
       EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
       ArrayList a = new ArrayList<String>(Arrays.asList(eProject.getStringArray(EProject.ID_Algorithms)));
         a.add(alg_name);
       eProject.set(EProject.ID_Algorithms, a.toArray());
       eProject.saveEntity();
 
-      PermTools.setAlgorithmPermissions(proj_name, alg_name);
+      UsersTools.setEntityPermissions(username, proj_name, alg_name, 2);
     } catch (Exception e) {
       System.out.println("Can not create algorithm: " + e.toString());
       return false;
@@ -370,7 +451,7 @@ public class Admin {
   }
 
 
-  private static boolean createTestset(String proj_name, String testset_name) {        
+  private static boolean createTestset(String username, String proj_name, String testset_name) {        
     String dataroot = ATGlobal.getALGatorDataRoot();         
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
     String testsRoot = ATGlobal.getTESTSroot(dataroot, proj_name);
@@ -383,7 +464,7 @@ public class Admin {
     // first create project if it does not exist
     File projFolderFile = new File(projRoot);
     if (!projFolderFile.exists()) {
-      if (!createProject(proj_name))
+      if (!createProject(username, proj_name))
         return true;
     }    
     
@@ -414,6 +495,7 @@ public class Admin {
       eProject.set(EProject.ID_TestSets, ts.toArray());
       eProject.saveEntity();
 
+      UsersTools.setEntityPermissions(username, proj_name, testset_name, 3);
     } catch (Exception e) {
       System.out.println("Can not create test set: " + e.toString());
       return false;
@@ -422,7 +504,7 @@ public class Admin {
   }
 
 
-  private static String createPresenter(String proj_name, String presenter_name, int type) {
+  private static String createPresenter(String username, String proj_name, String presenter_name, int type) {
     if (presenter_name==null || presenter_name.isEmpty())
       presenter_name = getNextAvailablePresenterName(proj_name, type);
     
@@ -437,7 +519,7 @@ public class Admin {
     // first create project if it does not exist
     File projFolderFile = new File(projRoot);
     if (!projFolderFile.exists()) {
-      if (!createProject(proj_name))
+      if (!createProject(username, proj_name))
         return null;
     }    
     
@@ -553,7 +635,7 @@ public class Admin {
       JSONObject projInfo = new JSONObject();
 
       
-      ArrayList<DBEntity> projects = Users.listProjects();   
+      ArrayList<DBEntity> projects = UsersTools.listProjects();   
       JSONArray ja = new JSONArray();
       for (DBEntity project : projects) {
         ja.put(project.toString());

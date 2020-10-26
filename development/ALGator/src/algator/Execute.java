@@ -11,6 +11,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import si.fri.algotest.database.Database;
 import si.fri.algotest.entities.EAlgorithm;
 import si.fri.algotest.entities.ELocalConfig;
 import si.fri.algotest.entities.EResult;
@@ -25,6 +26,8 @@ import si.fri.algotest.tools.ATTools;
 import si.fri.algotest.global.ErrorStatus;
 import static si.fri.algotest.tools.ATTools.getTaskResultFileName;
 import si.fri.algotest.tools.RSync;
+import si.fri.algotest.users.UsersDatabase;
+import si.fri.algotest.users.UsersTools;
 
 /**
  *
@@ -91,6 +94,15 @@ public class Execute {
             .withDescription("where to print results (1 = stdout, 2 = file (default), 3 = both (default)")
             .create("w");
     
+    Option username = OptionBuilder.withArgName("username")	    
+	    .hasArg(true)
+	    .withDescription("the name of the current user")
+	    .create("u");
+
+    Option password = OptionBuilder.withArgName("password")	    
+	    .hasArg(true)
+	    .withDescription("the password of the current user")
+	    .create("p");    
     
     options.addOption(algorithm);
     options.addOption(testset);
@@ -98,6 +110,9 @@ public class Execute {
     options.addOption(data_local);    
     options.addOption(algator_root);
     options.addOption(measurement);
+    
+    options.addOption(username);
+    options.addOption(password);
         
     options.addOption(verbose);
     options.addOption(logTarget);
@@ -112,7 +127,7 @@ public class Execute {
     options.addOption("l", "list_jobs", false,
 	    "list the jobs (i.e. the pairs (algorithm, testset)) that are to be executed");
         
-    options.addOption("u", "usage", false, "print usage guide");
+    options.addOption("use", "usage", false, "print usage guide");
     
     return options;
   }
@@ -150,10 +165,10 @@ public class Execute {
 	printMsg(options);
       }
 
-      if (line.hasOption("u")) {
+      if (line.hasOption("use")) {
         printUsage();
       }
-
+      
       String[] curArgs = line.getArgs();
       if (curArgs.length != 1) {
 	printMsg(options);
@@ -168,6 +183,17 @@ public class Execute {
       boolean alwaysRunTests = false;
 
       boolean listOnly = false;
+      
+      ELocalConfig localConfig = ELocalConfig.getConfig();
+      
+      String username=localConfig.getField(ELocalConfig.ID_Username);
+      if (line.hasOption("u")) {
+	username = line.getOptionValue("u");
+      }      
+      String password=localConfig.getField(ELocalConfig.ID_Password);
+      if (line.hasOption("p")) {
+	password = line.getOptionValue("p");
+      }            
             
       String algatorRoot = ATGlobal.getALGatorRoot();
       if (line.hasOption("algator_root")) {
@@ -231,15 +257,16 @@ public class Execute {
           ATGlobal.logTarget = ATLog.TARGET_FILE + ATLog.TARGET_STDOUT;
       }     
       ATLog.setLogTarget(ATGlobal.logTarget);
-           
+                      
       int whereToPrint = 3; // both, stdout and file
       if (line.hasOption("where_results")) try {
         whereToPrint = Integer.parseInt(line.getOptionValue("where_results"));
       } catch (Exception e) {}            
 
+      Database.checkDatabaseAccessAndExitOnError(username, password);
       
       runAlgorithms(dataRoot, projectName, algorithmName, testsetName, mType, alwaysCompile, alwaysRunTests, listOnly, whereToPrint);
-
+ 
     } catch (ParseException ex) {
       printMsg(options);
     }

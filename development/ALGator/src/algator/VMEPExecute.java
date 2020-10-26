@@ -95,7 +95,7 @@ public class VMEPExecute {
     options.addOption(verbose);
     options.addOption(logTarget);
     
-    options.addOption("u", "usage",    false, "print usage guide");
+    options.addOption("use", "usage",    false, "print usage guide");
     options.addOption("h", "help", false,
 	    "print this message");    
 
@@ -357,7 +357,7 @@ public class VMEPExecute {
 	printMsg(options);
       }
 
-      if (line.hasOption("u")) {
+      if (line.hasOption("use")) {
         printUsage();
       }
 
