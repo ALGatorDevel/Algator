@@ -2,7 +2,6 @@ package si.fri.algotest.users;
 
 import com.google.gson.Gson;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

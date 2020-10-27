@@ -57,6 +57,7 @@ public class Database {
         ATLog.log("Settings for database connection missing or incorrect.", 1);
         return conn;
       }
+      System.out.printf("Connection: %s (%s, %s)\n", CONN_STRING + "/" + DATABASE + OPTIONS, USERNAME, PASSWORD);
       conn = DriverManager.getConnection(CONN_STRING + "/" + DATABASE + OPTIONS, USERNAME, PASSWORD);
     } catch (SQLException e) {
       ATLog.log(e.toString(), 1);
