@@ -173,7 +173,7 @@ public class Admin {
     
     return up;
   }
-  public static void initAlgatorSystem(String username, String password) {
+  public static int initAlgatorSystem(String username, String password) {
     ATGlobal.verboseLevel=Math.max(2, ATGlobal.verboseLevel);
     ATLog.log("Initializing the system ...",0);
       
@@ -185,16 +185,15 @@ public class Admin {
         String up[] = getUsernameAndPassword();
         if (up==null) {
           ATLog.log("Empty username or pasword are not alowed.", 0);
-          System.exit(0);
+          return -1;
         }
         username=up[0];password=up[1];
       }      
       UsersDatabase.addNewUser(username, password);      
       
-      ATLog.log("Done.",0);
+      ATLog.log("Done.",0);      
     }
-    
-    
+    return 0;    
   }
   
   /**
@@ -217,7 +216,7 @@ public class Admin {
 
       if (line.hasOption("use")) {
         printUsage();
-        System.exit(0);
+        return;
       }
       
       
@@ -253,7 +252,7 @@ public class Admin {
       
      if (line.hasOption("init")) {
         initAlgatorSystem(username, password);
-        System.exit(0);
+        return;
       }          
            
       
