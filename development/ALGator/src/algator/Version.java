@@ -1,6 +1,12 @@
 package algator;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import si.fri.algotest.database.Database;
 import si.fri.algotest.global.ATGlobal;
+import si.fri.algotest.global.ATLog;
+import si.fri.algotest.users.UsersDatabase;
 
 /**
  *
@@ -26,12 +32,41 @@ public class Version {
     }
   }
   
+  public static void printUsers() {
+    Connection conn = Database.getConnectionToDatabase();
+    if (conn==null) {
+      System.out.println("Error: Can't connect to database.");
+      return;
+    }
+    
+    try {
+      Statement stmt = (Statement) conn.createStatement();    
+      ResultSet rs = stmt.executeQuery("SELECT * FROM u_users");
+      System.out.print("Users in database: ");
+      while (rs.next()) {
+          System.out.print(rs.getString("name") + " ");
+      }
+      System.out.println("");
+    } catch (Exception e) {
+      System.out.println("Error: " + e.toString());
+    }
+  }
+  
   public static void printVersion() {
     System.out.printf("ALGator, %s, build %s\n", getVersion(), ATGlobal.getBuildNumber());
     System.out.println();
     System.out.println("ALGATOR_ROOT:       " + ATGlobal.getALGatorRoot());
     System.out.println("ALGATOR_DATA_ROOT:  " + ATGlobal.getALGatorDataRoot());
     System.out.println("ALGATOR_DATA_LOCAL: " + ATGlobal.getALGatorDataLocal());
+        
+    Connection conn  = Database.getConnectionToDatabase();
+    
+    if (conn== null || !UsersDatabase.databaseAndTablesExist()) {
+      ATLog.log("The database is not initialized. Use 'java algator.Admin -init' before the first usage of ALGator.",0  );
+      return;
+    }  
+    printUsers();
+    
   }
   
   public static void main(String[] args) {
