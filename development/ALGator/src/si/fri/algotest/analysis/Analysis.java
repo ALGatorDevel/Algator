@@ -52,9 +52,11 @@ public class Analysis {
       if (!Executor.algorithmMakeCompile(data_root, project.getName(), algName, MeasurementType.EM, false).equals(ErrorStatus.STATUS_OK))
         continue;
             
-      results.add(
-        runOne(data_root, project, algName, defaultParams, timeLimit, timesToExecute, mType, instanceID, whereToPrint)
-      );
+      Variables result = runOne(data_root, project, algName, defaultParams, timeLimit, timesToExecute, mType, instanceID, whereToPrint);
+      if (result == null)
+        break;
+      else
+        results.add(result);
     }    
     return results;
   }
@@ -65,7 +67,7 @@ public class Analysis {
       ATGlobal.verboseLevel = 1;
       ATLog.log(String.format("Algorithm '%s' does not exist.", algName), 1);
 
-      System.exit(0);
+      return null;
     }
 
     EResult emResultDesc = project.getResultDescriptions().get(mType);

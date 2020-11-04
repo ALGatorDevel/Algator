@@ -729,19 +729,5 @@ public class ATTools {
     }
     return list;
   }
-
   
-  public static void main(String[] args) {
-    String sql = getResourceFile("sql/project_permissions.sql");
-    System.out.println(sql);
-    System.exit(0);
-
-    Project project = new Project("/Users/Tomaz/Dropbox/FRI/ALGOSystem/ALGATOR_ROOT/data_root", "Sorting");
-
-    HashSet<String> files = getFilesForProjectAlgorithmTestSetMType(project, "Cormen", "TestSet1", "JVM");
-    for (String string : files) {
-      File f = new File(string);
-      System.out.println(f.exists() + " " + string);
-    }
-  }
 }

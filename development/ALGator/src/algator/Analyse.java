@@ -143,16 +143,12 @@ public class Analyse {
     HelpFormatter formatter = new HelpFormatter();
     String header = "functions: FindLimit | FindLimits | RunOne | TimeComplexity \n";
     formatter.printHelp("algator.Analyse [options] function project_name", header,  options, "");
-
-    System.exit(0);
   }
 
   private static void printUsage() {
     Scanner sc = new Scanner((new Chart()).getClass().getResourceAsStream("/data/AnalyseUsage.txt")); 
     while (sc.hasNextLine())
-      System.out.println(sc.nextLine());
-    
-    System.exit(0);
+      System.out.println(sc.nextLine());    
   }
   
   /**
@@ -171,15 +167,18 @@ public class Analyse {
 
       if (line.hasOption("h")) {
 	printMsg(options);
+        return;
       }
 
       if (line.hasOption("use")) {
         printUsage();
+        return;
       }
 
       String[] curArgs = line.getArgs();
       if (curArgs.length != 2) {
 	printMsg(options);
+        return;
       }
 
       String function    = curArgs[0]; 
@@ -273,7 +272,7 @@ public class Analyse {
         ATGlobal.verboseLevel=1;
         ATLog.log("Project configuration file does not exist for " + projectName, 1);
 
-        System.exit(0);      
+        return;      
       }
       
       Execute.syncTests(projectName);
@@ -305,7 +304,7 @@ public class Analyse {
             ATGlobal.verboseLevel=1;
             ATLog.log("Missing parameter (option -p).", 1);
 
-           System.exit(0);       
+            return;
           }
           ArrayList<Variables> results = 
             Analysis.getParameterLimit(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator);
@@ -316,7 +315,7 @@ public class Analyse {
             ATGlobal.verboseLevel=1;
             ATLog.log("Missing parameter (option -p).", 1);
 
-           System.exit(0);       
+            return;     
           }
           
           Analysis.getParameterLimits(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator);
@@ -498,10 +497,11 @@ public class Analyse {
         default:
           ATGlobal.verboseLevel=1;
           ATLog.log("Invalid function '" + projectName + "'.", 1);
-          System.exit(0);                
+          return;
       }           
     } catch (ParseException ex) {
       printMsg(options);
+      return;
     }
   }
   

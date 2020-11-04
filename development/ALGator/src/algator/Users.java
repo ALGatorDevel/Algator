@@ -388,7 +388,7 @@ public class Users {
 
       while ((line = reader.readLine()) != null) {
         if (line.equalsIgnoreCase("quit") || line.equalsIgnoreCase("exit")) {
-          System.exit(0);
+          return;
         }
         if (line.equalsIgnoreCase("cls")) {
           reader.clearScreen();
@@ -492,7 +492,7 @@ public class Users {
       
       ATGlobal.verboseLevel = 3; // verbose  all messages in the shell
       
-      Database.checkDatabaseAccessAndExitOnError(username, password);
+      if (!Database.databaseAccessGranted(username, password)) return;
 
       Connection conn  = Database.getConnectionToDatabase();
       if (conn == null) {

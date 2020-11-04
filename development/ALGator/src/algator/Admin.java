@@ -267,7 +267,7 @@ public class Admin {
       }        
       
             
-      Database.checkDatabaseAccessAndExitOnError(username, password);
+      if (!Database.databaseAccessGranted(username, password)) return;
       
       if (line.hasOption("create_project")) {
 	if (curArgs.length != 1) {

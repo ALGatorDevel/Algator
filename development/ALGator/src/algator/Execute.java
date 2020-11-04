@@ -135,16 +135,13 @@ public class Execute {
   private static void printMsg(Options options) {    
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp("algator.Execute [options] project_name", options);
-
-    System.exit(0);
   }
 
   private static void printUsage() {
     Scanner sc = new Scanner((new Chart()).getClass().getResourceAsStream("/data/ExecutorUsage.txt")); 
     while (sc.hasNextLine())
-      System.out.println(sc.nextLine());
-    
-    System.exit(0);
+      System.out.println(sc.nextLine());   
+    sc.close();
   }
   
   /**
@@ -163,15 +160,18 @@ public class Execute {
 
       if (line.hasOption("h")) {
 	printMsg(options);
+        return;
       }
 
       if (line.hasOption("use")) {
         printUsage();
+        return;
       }
       
       String[] curArgs = line.getArgs();
       if (curArgs.length != 1) {
 	printMsg(options);
+        return;
       }
 
       String projectName = curArgs[0];
@@ -263,12 +263,13 @@ public class Execute {
         whereToPrint = Integer.parseInt(line.getOptionValue("where_results"));
       } catch (Exception e) {}            
 
-      Database.checkDatabaseAccessAndExitOnError(username, password);
+      if (!Database.databaseAccessGranted(username, password)) return;
       
       runAlgorithms(dataRoot, projectName, algorithmName, testsetName, mType, alwaysCompile, alwaysRunTests, listOnly, whereToPrint);
  
     } catch (ParseException ex) {
       printMsg(options);
+      return;
     }
   }
 
@@ -293,7 +294,7 @@ public class Execute {
       ATGlobal.verboseLevel=1;
       ATLog.log("Project configuration file does not exist for " + projName, 1);
 
-      System.exit(0);      
+      return;      
     }
     
     // before executing algorithms we sync test folder from data_root to data_local
@@ -306,7 +307,7 @@ public class Execute {
       ATGlobal.verboseLevel=1;
       ATLog.log("Invalid project: " + projekt.getErrors().get(0).toString(), 1);
 
-      System.exit(0);
+      return;
     }
             
     // Test algorithms
@@ -316,7 +317,7 @@ public class Execute {
       if (alg == null) {
         ATGlobal.verboseLevel=1;
 	ATLog.log("Invalid algorithm - " + algName, 1);
-	System.exit(0);
+	return;
       }
       eAlgs = new ArrayList(); 
       eAlgs.add(alg);
@@ -331,7 +332,7 @@ public class Execute {
       if (test == null) {
         ATGlobal.verboseLevel=1;
 	ATLog.log("Invalid testset - " + testsetName, 1);
-	System.exit(0);
+	return;
       }
       eTests = new ArrayList<>(); 
       eTests.add(test);
@@ -344,7 +345,7 @@ public class Execute {
     if (rDesc == null) {
       ATGlobal.verboseLevel=1;
       ATLog.log(String.format("Result description file for '%s' does not exist.\n", mType.getExtension()), 1);
-      System.exit(0);
+      return;
     }
     if (mType.equals(MeasurementType.JVM)) {
       String vmep = ELocalConfig.getConfig().getField(ELocalConfig.ID_VMEP);
@@ -353,7 +354,7 @@ public class Execute {
       if (vmep == null || vmep.isEmpty() /*|| !vmepFile.exists()  || !vmepFile.canExecute()*/) {
         ATGlobal.verboseLevel=1;
         ATLog.log(String.format("Invelid vmep executable: '%s'.\n", vmep), 1);
-        System.exit(0);    
+        return;
       }
     }
         
@@ -382,16 +383,10 @@ public class Execute {
           ATLog.setPateFilename(ATGlobal.getTaskHistoryFilename(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType.getExtension()));
           Notificator notificator = Notificator.getNotificator(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType);
 	  error = Executor.algorithmRun(projekt, eAlgs.get(i).getName(), 
-		  eTests.get(j).getName(),  mType, notificator, alwaysCompile, alwaysRun, whereToPrint); 
-          
-          // when execution failes, all batch is canceled
-          // Is this a good idea?  Probably not!
-          // if (!error.equals(ErrorStatus.STATUS_OK)) {
-          //  System.exit(error.ordinal());
-          //}
+		  eTests.get(j).getName(),  mType, notificator, alwaysCompile, alwaysRun, whereToPrint);           
 	}        
       }
-      System.exit(ErrorStatus.STATUS_OK.ordinal()); // 0
+      return;
     }
   }
 }

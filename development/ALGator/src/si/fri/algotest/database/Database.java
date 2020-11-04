@@ -95,21 +95,23 @@ public class Database {
    * Preveri obstoj baze in tabel ter pravilnost uporabniškega imena in gesla; če je vse OK, nadaljuje, sicer
    * izpiše obvestilo o napaki in konča izvajanje programa.
    */
-  public static void checkDatabaseAccessAndExitOnError(String username, String password) {
+  public static boolean databaseAccessGranted(String username, String password) {
     if (Database.isDatabaseMode()) {
       // preverim obstoj tabel -> ce ne obstajajo, jih skusam ustvariti -> ce ne gre, koncam!
       if (!UsersDatabase.databaseAndTablesExist()) {
         if (ATGlobal.verboseLevel > 0) 
           ATLog.log("The database is not initialized. Use 'java algator.Admin -init' before the first usage of ALGator.",0  );
-        System.exit(0);        
+        return false;        
       }        
       if (!UsersTools.checkUser(username, password)) {
         if (ATGlobal.verboseLevel > 0) 
           ATLog.log(String.format("Invalid username or password.", username),0  );
-        System.exit(0);           
+        return false;           
       }            
     } else if (ATGlobal.verboseLevel > 0) 
        ATLog.log("ALGator is running in the non-database mode.", 0);
+    
+    return true;
   } 
   
   // inicializacija vseh tabel (u_*, p_*, s_*)

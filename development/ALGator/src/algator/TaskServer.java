@@ -57,8 +57,6 @@ public class TaskServer {
 
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp("algator.TaskServer [options]", options);
-
-    System.exit(0);
   }
 
   public static void main(String args[]) {
@@ -70,6 +68,7 @@ public class TaskServer {
 
       if (line.hasOption("h")) {
 	printMsg(options);
+        return;
       }
             
       String algatorRoot = ATGlobal.getALGatorRoot();
@@ -111,6 +110,7 @@ public class TaskServer {
       }
     } catch (ParseException ex) {
       printMsg(options);
+      return;
     }
   }
   

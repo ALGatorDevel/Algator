@@ -72,7 +72,7 @@ public class ExecuteOne {
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp("algator.ExecuteOne [options] project_name algorithm_name testset_name m_type test_id", options);
 
-    System.exit(0);
+    return;
   }
 
 
@@ -91,11 +91,13 @@ public class ExecuteOne {
 
       if (line.hasOption("h")) {
 	printMsg(options);
+        return;
       }            
       
       String[] curArgs = line.getArgs();
       if (curArgs.length != 5) {
         printMsg(options);
+        return;
       } 
       
       projName  = curArgs[0];
@@ -136,34 +138,35 @@ public class ExecuteOne {
       Project project = new Project(dataRoot, projName);
       if (project == null || !project.getErrors().get(0).isOK()) {
         System.out.println("Invalid project.");
-        System.exit(0);
+        return;
       }
       
       // Create and test the testset
       EAlgorithm eAlgorithm = project.getAlgorithms().get(algName);
       if (eAlgorithm == null) {
         System.out.println("Invalid algorithm.");
-        System.exit(0);
+        return;
       }
       
       // Create and test the testset
       ETestSet eTestSet = project.getTestSets().get(tstName);
       if (eTestSet == null) {
         System.out.println("Invalid testset.");
-        System.exit(0);
+        return;
       }
 
       // Test the testID
       int noInst = eTestSet.getFieldAsInt(ETestSet.ID_N, 0);            
       if (testID >= noInst) {
         System.out.println("Invalid testID (test does not exist).");
-        System.exit(0);
+        return;
       }
       
       runAlgorithm(project, algName, eTestSet, mType, testID, verboseLevel);    
       
     } catch (ParseException ex) {
       printMsg(options);
+      return;
     }
   }
   

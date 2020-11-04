@@ -109,8 +109,6 @@ public class VMEPExecute {
     
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp("algator.VMEPExecute [options] project_name algorithm_name testset_name test_number comm_folder", options);
-
-    System.exit(0);
   }
 
   private static void printUsage() {
@@ -355,15 +353,18 @@ public class VMEPExecute {
 
       if (line.hasOption("h")) {
 	printMsg(options);
+        return;
       }
 
       if (line.hasOption("use")) {
         printUsage();
+        return;
       }
 
       String[] curArgs = line.getArgs();
       if (curArgs.length != 5) {
 	printMsg(options);
+        return;
       }
 
       String projectName   = curArgs[0];
@@ -422,6 +423,7 @@ public class VMEPExecute {
 
     } catch (ParseException ex) {
       printMsg(options);
+      return;
     }
   }
 

@@ -41,9 +41,7 @@ public class ExternalExecute {
     System.out.println(introMsg + "\n");
     
     HelpFormatter formatter = new HelpFormatter();
-    formatter.printHelp("algator.ExternalExecut <path>", options);
-
-    System.exit(0);
+    formatter.printHelp("algator.ExternalExecut <path>", options);    
   }
   
   
@@ -166,11 +164,13 @@ public class ExternalExecute {
       String[] curArgs = line.getArgs();
       if (curArgs.length != 1) {
 	printMsg(options);
+        return;
       }
       path = curArgs[0];
       
     } catch (Exception ex) {
       printMsg(options);
+      return;
     }
 
     run(path);

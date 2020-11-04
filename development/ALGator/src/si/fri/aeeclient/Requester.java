@@ -75,8 +75,6 @@ public class Requester {
 
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp("algator." + programName + " [options]", options);
-
-    System.exit(0);
   }
   
   
@@ -112,6 +110,7 @@ public class Requester {
 
       if (line.hasOption("h")) {
 	printMsg(options);
+        return;
       }
             
       String algatorRoot = ATGlobal.getALGatorRoot();
@@ -157,12 +156,13 @@ public class Requester {
         
 
         System.out.println(askTaskServer(serverName, request));
-        System.exit(0);
+        return;
       }
             
       
     } catch (ParseException ex) {
       printMsg(options);
+      return;
     }
   }
   

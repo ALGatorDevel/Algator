@@ -106,11 +106,9 @@ public class Chart {
   }
 
   private static void printMsg(Options options) {
-
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp("algator.Chart [options] project_name", options);
 
-    System.exit(0);
   }
 
   private static void printUsage() {
@@ -118,8 +116,6 @@ public class Chart {
     while (sc.hasNextLine()) {
       System.out.println(sc.nextLine());
     }
-
-    System.exit(0);
   }
 
   /**
@@ -136,15 +132,18 @@ public class Chart {
 
       if (line.hasOption("h")) {
         printMsg(options);
+        return;
       }
 
       if (line.hasOption("use")) {
         printUsage();
+        return;
       }
 
       String[] curArgs = line.getArgs();
       if (curArgs.length != 1) {
         printMsg(options);
+        return;
       }
 
       boolean printTable = false;
@@ -182,7 +181,7 @@ public class Chart {
       Project projekt = new Project(dataRoot, projectName);
       if (!projekt.getErrors().get(0).equals(ErrorStatus.STATUS_OK)) {
         System.out.println(projekt.getErrors().get(0));
-        System.exit(0);
+        return;
       }
 
       String cid = ATGlobal.getThisComputerID();
@@ -218,6 +217,7 @@ public class Chart {
 
     } catch (ParseException ex) {
       printMsg(options);
+      return;
     }
   }
 
