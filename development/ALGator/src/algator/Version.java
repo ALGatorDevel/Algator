@@ -58,10 +58,8 @@ public class Version {
     System.out.println("ALGATOR_ROOT:       " + ATGlobal.getALGatorRoot());
     System.out.println("ALGATOR_DATA_ROOT:  " + ATGlobal.getALGatorDataRoot());
     System.out.println("ALGATOR_DATA_LOCAL: " + ATGlobal.getALGatorDataLocal());
-        
-    Connection conn  = Database.getConnectionToDatabase();
-    
-    if (conn== null || !UsersDatabase.databaseAndTablesExist()) {
+            
+    if (!UsersDatabase.databaseAndTablesExist()) {
       ATLog.log("The database is not initialized. Use 'java algator.Admin -init' before the first usage of ALGator.",0  );
       return;
     }  

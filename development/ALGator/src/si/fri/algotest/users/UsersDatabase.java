@@ -25,7 +25,7 @@ public class UsersDatabase {
     
     try {
       Statement stmt = (Statement) Database.getConnectionToDatabase().createStatement();
-      ResultSet rs = Database.getConnectionToDatabase().getMetaData().getTables(null, null, "U_%", new String[]{"TABLE"});
+      ResultSet rs = Database.getConnectionToDatabase().getMetaData().getTables(null, null, "u_%", new String[]{"TABLE"});
       while (rs.next()){
         tabele.remove(rs.getString("TABLE_NAME"));
       }
