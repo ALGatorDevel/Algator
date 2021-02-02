@@ -133,6 +133,7 @@ public class ExternalExecute {
         classPath += File.pathSeparator +  "dist/lib/commons-cli-1.2.jar";
       }
       String path = System.getenv("JAVA_HOME");
+      if (path != null) path=path.trim(); else path = "";
       
       String jvmCommand = (path.isEmpty() ? "" : path + "/bin/") + "java";
       if (mType.equals(MeasurementType.JVM)) {
