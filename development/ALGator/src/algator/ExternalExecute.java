@@ -10,6 +10,8 @@ import org.apache.commons.cli.Options;
 import si.fri.algotest.timer.Timer;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import si.fri.algotest.entities.ELocalConfig;
 import si.fri.algotest.entities.MeasurementType;
 import si.fri.algotest.global.ATGlobal;
@@ -147,7 +149,9 @@ public class ExternalExecute {
     
       return probuilder.start();      
     } catch (Exception e) {
-      return e.toString();
+      StringWriter errors = new StringWriter();
+      e.printStackTrace(new PrintWriter(errors));      
+      return errors.toString();
     }
   }
   

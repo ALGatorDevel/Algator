@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -321,7 +322,7 @@ public class ExternalExecutor {
 
     // during the process creation, an error occured
     if (result instanceof String) {
-      return ErrorStatus.setLastErrorMessage(ErrorStatus.PROCESS_CANT_BE_CREATED, (String) result);
+      return ErrorStatus.setLastErrorMessage(ErrorStatus.PROCESS_CANT_BE_CREATED, "Err a:" + (String) result);
     }
 
     if (!(result instanceof Process)) {
@@ -374,13 +375,15 @@ public class ExternalExecutor {
       }
 
       if (sb.length() != 0) {
-        return ErrorStatus.setLastErrorMessage(ErrorStatus.PROCESS_CANT_BE_CREATED, sb.toString());
+        return ErrorStatus.setLastErrorMessage(ErrorStatus.PROCESS_CANT_BE_CREATED, "Err b:" + sb.toString());
       } else {
         return ErrorStatus.STATUS_OK;
       }
 
     } catch (Exception e) {
-      return ErrorStatus.setLastErrorMessage(ErrorStatus.PROCESS_CANT_BE_CREATED, e.toString());
+      StringWriter errors = new StringWriter();
+      e.printStackTrace(new PrintWriter(errors));
+      return ErrorStatus.setLastErrorMessage(ErrorStatus.PROCESS_CANT_BE_CREATED, "Err c:" + errors.toString());
     }
   }
 
