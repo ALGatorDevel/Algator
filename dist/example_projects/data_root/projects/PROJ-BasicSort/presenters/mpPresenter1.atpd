@@ -1,0 +1,26 @@
+{
+  "Presenter": {
+    "Name": "mpPresenter1",
+    "Title":        "t_mpPresenter1",
+    "ShortTitle":   "st_mpPresenter1",
+    "Description":  "d_mpPresenter1",
+    "Query"   :     {}, 
+
+    "HasTable":     true, 
+    "Columns" :     [], 
+
+    "HasGraph":       true, 
+    "categoryLabels": false, 
+    "graphType":      "line", 
+    "gridX":          true, 
+    "gridY":          true, 
+    "logScale":       false, 
+    "manData":        {},  
+    "zoom":           true,
+    "subchart":       false, 
+    "xAxis":          "", 
+    "yAxes":          [], 
+    "xAxisTitle":     "x_mpPresenter1", 
+    "yAxisTitle":     "y_mpPresenter1"    
+  }
+}

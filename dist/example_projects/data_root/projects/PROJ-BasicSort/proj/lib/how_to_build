@@ -1,0 +1,7 @@
+1) Build Tools.class in build folder
+  
+  javac -d build basicsort/Tools.java
+
+2) Pack Tools.class into a basicsort.jar
+
+  jar cf basicsort.jar -C build basicsort/Tools.class

@@ -1,0 +1,19 @@
+{
+  "Algorithm" : {	
+
+   "Name"           : "Winograd",
+   "ShortName"      : "WMM",             
+   "Description"    : "Winograd's algorithm",
+   "Author"         : "Luka Pirc",
+   "Date"           : "11, 2019",
+
+
+   "Language"       : "Java",
+  
+   "Presenters"     : [],
+
+   "AlgorithmDescHTML" : "algorithm.html",
+   "AlgorithmRefHTML"  : "references.html"
+
+  }
+} 

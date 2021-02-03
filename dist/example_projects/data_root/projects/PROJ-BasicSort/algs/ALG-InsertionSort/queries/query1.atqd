@@ -1,0 +1,27 @@
+{"Query": {
+  "Algorithms": [
+    "InsertionSort"
+  ],
+  "TestSets": [
+    "TestSet1"
+  ],
+  "Parameters": [
+    "N"
+  ],
+  "Indicators": [
+    "CMP",
+    "SWAP",
+    "Tmin*830 AS X"
+  ],
+  "Filter": [
+    ""
+  ],
+  "GroupBy": [
+    "N"
+  ],
+  "SortBy": [
+    ""
+  ],
+  "ComputerID": "",
+  "Count": "0"
+}}

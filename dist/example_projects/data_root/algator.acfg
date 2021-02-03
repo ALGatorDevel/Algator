@@ -1,0 +1,33 @@
+{
+  "Config" : {
+    "TaskServerName"   : "localhost",
+
+    "DatabaseServer"   : {
+      "Connection"     : "jdbc:mysql://127.0.0.1:3306",
+      "Database"       : "algator",
+      "Username"       : "algator",
+      "Password"       : "algator"
+    },
+
+    "ComputerFamilies"  : [
+      {
+      "FamilyID"    : "F0",
+      "Name"        : "TestComputer",
+      "Description" : "Computer used to run algorithms",
+      "Platform"    : "",
+      "Hardware"    : "",
+      "SystemType"  : "",
+      "Computers"   : [
+          {
+          "ComputerID"   : "C0",
+          "FamilyID"     : "F0",
+          "Name"         : "mycomp",
+          "Description"  : "My computer",
+          "IP"           : "",
+          "Capabilities" : []
+          }         
+        ]
+      }
+    ]
+  }
+}

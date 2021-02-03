@@ -1,0 +1,51 @@
+{
+  "Presenter": {
+    "Columns": [], 
+    "HasGraph": true, 
+    "HasTable": true, 
+    "Query": {
+      "Algorithms": [
+        "$0"
+      ], 
+      "ComputerID": "", 
+      "Count": "0", 
+      "Filter": [
+        ""
+      ], 
+      "GroupBy": [
+        ""
+      ], 
+      "Indicators": [
+        "*EM"
+      ], 
+      "Parameters": [
+        "N"
+      ], 
+      "SortBy": [
+        ""
+      ], 
+      "TestSets": [
+        "TestSet2"
+      ]
+    }, 
+    "ShortTitle": "st_maPresenter1", 
+    "Title": "Tmin on TestSet2", 
+    "categoryLabels": false, 
+    "graphType": "line", 
+    "gridX": true, 
+    "gridY": true, 
+    "hasGraph": true, 
+    "hasTable": true, 
+    "logScale": false, 
+    "manData": {}, 
+    "name": "maPresenter1", 
+    "subchart": false, 
+    "xAxis": "N", 
+    "xAxisTitle": "N", 
+    "yAxes": [
+      "*.Tmin"
+    ], 
+    "yAxisTitle": "Time [ms]", 
+    "zoom": true
+  }
+}

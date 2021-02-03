@@ -1,0 +1,54 @@
+{
+  "Presenter": {
+    "Columns": [
+      "N", 
+      "*.Tmin"
+    ], 
+    "HasGraph": "true", 
+    "HasTable": "true", 
+    "Query": {
+      "Algorithms": [
+        "*"
+      ], 
+      "ComputerID": "", 
+      "Count": "0", 
+      "Filter": [
+        "N>=200"
+      ], 
+      "GroupBy": [
+        "N"
+      ], 
+      "Indicators": [
+        "*EM"
+      ], 
+      "Parameters": [
+        "N"
+      ], 
+      "SortBy": [
+        ""
+      ], 
+      "TestSets": [
+        "TestSet1"
+      ]
+    }, 
+    "ShortTitle": "Tmin on TestSet1", 
+    "Title": "Minimum time of execution for all the algorithms on TestSet1", 
+    "categoryLabels": false, 
+    "graphType": "line", 
+    "gridX": true, 
+    "gridY": true, 
+    "hasGraph": "true", 
+    "hasTable": "true", 
+    "logScale": false, 
+    "manData": [], 
+    "name": "ppresenter", 
+    "subchart": false, 
+    "xAxis": "N", 
+    "xAxisTitle": "[Number of numbers to sort (n)]", 
+    "yAxes": [
+      "*.Tmin"
+    ], 
+    "yAxisTitle": "[Time used to sort numbers - T(n)]", 
+    "zoom": true
+  }
+}

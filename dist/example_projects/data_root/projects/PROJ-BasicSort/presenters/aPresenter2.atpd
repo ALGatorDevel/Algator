@@ -1,0 +1,51 @@
+{
+  "Presenter": {
+    "Columns": [], 
+    "HasGraph": true, 
+    "HasTable": true, 
+    "Query": {
+      "Algorithms": [
+        "BubbleSort"
+      ], 
+      "ComputerID": "", 
+      "Count": "0", 
+      "Filter": [
+        ""
+      ], 
+      "GroupBy": [
+        ""
+      ], 
+      "Indicators": [
+        "*CNT"
+      ], 
+      "Parameters": [
+        "N"
+      ], 
+      "SortBy": [
+        ""
+      ], 
+      "TestSets": [
+        "TestSet1"
+      ]
+    }, 
+    "ShortTitle": "st_aPresenter2", 
+    "Title": "t_aPresenter2", 
+    "categoryLabels": false, 
+    "graphType": "line", 
+    "gridX": true, 
+    "gridY": true, 
+    "hasGraph": true, 
+    "hasTable": true, 
+    "logScale": false, 
+    "manData": {}, 
+    "name": "aPresenter2", 
+    "subchart": false, 
+    "xAxis": "N", 
+    "xAxisTitle": "x_aPresenter2", 
+    "yAxes": [
+      "*.CMP"
+    ], 
+    "yAxisTitle": "y_aPresenter2", 
+    "zoom": true
+  }
+}

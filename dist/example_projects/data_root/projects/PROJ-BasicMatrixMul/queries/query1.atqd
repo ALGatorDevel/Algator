@@ -1,0 +1,26 @@
+{"Query": {
+  "Algorithms": [
+    $0
+  ],
+  "TestSets": [
+    "TestSet2",
+    "TestSet3"
+  ],
+  "Parameters": [
+    "N"
+  ],
+  "Indicators": [
+    "*EM"
+  ],
+  "Filter": [
+    "N<800"
+  ],
+  "GroupBy": [
+    "N"
+  ],
+  "SortBy": [
+    ""
+  ],
+  "ComputerID": "",
+  "Count": "0"
+}}

@@ -1,0 +1,32 @@
+{
+  "Result":
+  { 
+    "IndicatorsOrder" : ["Tmin", "TFirst", "TAll", "Check"],
+    "Indicators":   [     
+      {
+       "Name"        : "Tmin",             
+       "Description" : "Algorithm MIN time",             
+       "Type"        : "timer",          
+       "Meta"        : {"ID" : 0, "STAT": "MIN"}        
+      },
+      {
+       "Name"        : "TFirst",             
+       "Description" : "Algorithm First time",             
+       "Type"        : "timer",          
+       "Meta"        : {"ID" : 0, "STAT": "FIRST"}        
+      },      
+      {
+       "Name"        : "TAll",             
+       "Description" : "All execution times",             
+       "Type"        : "timer",          
+       "Meta"        : {"ID" : 0, "STAT": "ALL"}        
+      },      
+      {
+       "Name"        : "Check",             
+       "Description" : "The correctness of the algorithm (OK if result is correct, PROB if result is probably correct (with probability at least 1-2^(-20)) or NOK if result is not correct)", 
+       "Type"        : "string"       
+      }
+    ]
+  }
+}
+ 

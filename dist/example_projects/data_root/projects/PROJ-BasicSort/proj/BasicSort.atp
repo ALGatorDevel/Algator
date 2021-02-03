@@ -1,0 +1,26 @@
+{"Project": {
+  "Name": "BasicSort",
+  "Description": "Basic sorting algorithms",
+  "Author": "tomaz",
+  "Date": "01, 2018",
+  "Algorithms": [
+    "BubbleSort",
+    "InsertionSort",
+    "JavaSort",
+    "QuickSort"
+  ],
+  "TestSets": [
+    "TestSet1",
+    "TestSet2",
+    "TestSet3",
+    "TestSet0"
+  ],
+  "ProjectJARs": ["basicsort.jar"],
+  "ProjPresenters": [
+    "presenter2",
+    "presenter3"
+  ],
+  "AlgPresenters": ["aPresenter2"],
+  "MainProjPresenters": ["mpPresenter2"],
+  "MainAlgPresenters": ["maPresenter1"]
+}}

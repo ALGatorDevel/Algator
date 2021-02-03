@@ -1,0 +1,51 @@
+{
+  "Presenter": {
+    "Columns": [], 
+    "HasGraph": true, 
+    "HasTable": true, 
+    "Query": {
+      "Algorithms": [
+        "*"
+      ], 
+      "ComputerID": "", 
+      "Count": "0", 
+      "Filter": [
+        "N<=1000"
+      ], 
+      "GroupBy": [
+        "N"
+      ], 
+      "Indicators": [
+        "*EM"
+      ], 
+      "Parameters": [
+        "N"
+      ], 
+      "SortBy": [
+        ""
+      ], 
+      "TestSets": [
+        "TestSet1"
+      ]
+    }, 
+    "ShortTitle": "TS1-Min", 
+    "Title": "Minimal time on TestSet1", 
+    "categoryLabels": false, 
+    "graphType": "line", 
+    "gridX": true, 
+    "gridY": true, 
+    "hasGraph": true, 
+    "hasTable": true, 
+    "logScale": false, 
+    "manData": {}, 
+    "name": "mpPresenter2", 
+    "subchart": false, 
+    "xAxis": "N", 
+    "xAxisTitle": "Problem size (N)", 
+    "yAxes": [
+      "*.Tmin"
+    ], 
+    "yAxisTitle": "Execution time (ms)", 
+    "zoom": true
+  }
+}

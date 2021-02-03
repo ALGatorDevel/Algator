@@ -1,0 +1,56 @@
+{
+  "Presenter": {
+    "Columns": [
+      "N", 
+      "*.Tmin"
+    ], 
+    "HasGraph": "true", 
+    "HasTable": "true", 
+    "Query": {
+      "Algorithms": [
+        "InsertionSort", 
+        "JavaSort", 
+        "QuickSort"
+      ], 
+      "ComputerID": "", 
+      "Count": "0", 
+      "Filter": [
+        ""
+      ], 
+      "GroupBy": [
+        "N"
+      ], 
+      "Indicators": [
+        "*EM"
+      ], 
+      "Parameters": [
+        "N"
+      ], 
+      "SortBy": [
+        ""
+      ], 
+      "TestSets": [
+        "TestSet3"
+      ]
+    }, 
+    "ShortTitle": "Tmin - sorted", 
+    "Title": "Sorting sorted arrays", 
+    "categoryLabels": false, 
+    "graphType": "", 
+    "gridX": true, 
+    "gridY": true, 
+    "hasGraph": "true", 
+    "hasTable": "true", 
+    "logScale": false, 
+    "manData": [], 
+    "name": "presenter3", 
+    "subchart": false, 
+    "xAxis": "N", 
+    "xAxisTitle": "", 
+    "yAxes": [
+      "*.Tmin"
+    ], 
+    "yAxisTitle": "", 
+    "zoom": true
+  }
+}

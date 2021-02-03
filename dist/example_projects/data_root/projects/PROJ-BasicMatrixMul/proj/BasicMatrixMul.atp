@@ -1,0 +1,27 @@
+{"Project": {
+  "Name": "BasicMatrixMul",
+  "Description": "Basic matrix multiplication algorithms",
+  "Author": "td",
+  "Date": "10, 2019",
+  "Algorithms": [
+    "BasicMUL",
+    "Strassen",
+    "Winograd"
+  ],
+  "TestSets": [
+    "TestSet0",
+    "TestSet1",
+    "TestSet2",
+    "TestSet3",
+    "TestSet10"
+  ],
+  "ProjectJARs": [],
+  "AlgorithmJARs": [],
+  "EMExecFamily": "",
+  "CNTExecFamily": "",
+  "JVMExecFamily": "",
+  "ProjPresenters": [],
+  "AlgPresenters": [],
+  "MainProjPresenters": ["mpPresenter2"],
+  "MainAlgPresenters": ["maPresenter2"]
+}}

@@ -1,0 +1,13 @@
+{
+  "Algorithm" : {	
+
+   "Name"           : "BubbleSort",
+
+   "Author"         : "tomaz",
+   "Date"           : "01, 2018",
+
+   "ShortName"      : "BBS",             
+   "Description"    : "Bubble sort algorithm. Time complexity: n^2",
+   "Language"       : "Java"
+  }
+} 

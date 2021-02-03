@@ -1,0 +1,51 @@
+{
+  "Presenter": {
+    "Columns": [], 
+    "HasGraph": true, 
+    "HasTable": true, 
+    "Query": {
+      "Algorithms": [
+        "*"
+      ], 
+      "ComputerID": "", 
+      "Count": "0", 
+      "Filter": [
+        ""
+      ], 
+      "GroupBy": [
+        ""
+      ], 
+      "Indicators": [
+        "*EM"
+      ], 
+      "Parameters": [
+        "N"
+      ], 
+      "SortBy": [
+        ""
+      ], 
+      "TestSets": [
+        "*"
+      ]
+    }, 
+    "ShortTitle": "Tmin", 
+    "Title": "Minimal time", 
+    "categoryLabels": false, 
+    "graphType": "line", 
+    "gridX": true, 
+    "gridY": true, 
+    "hasGraph": true, 
+    "hasTable": true, 
+    "logScale": false, 
+    "manData": {}, 
+    "name": "mpPresenter1", 
+    "subchart": false, 
+    "xAxis": "N", 
+    "xAxisTitle": "N", 
+    "yAxes": [
+      "*.Tmin"
+    ], 
+    "yAxisTitle": "TIme [ms]", 
+    "zoom": true
+  }
+}

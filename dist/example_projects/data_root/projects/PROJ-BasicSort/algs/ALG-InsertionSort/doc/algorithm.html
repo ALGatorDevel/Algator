@@ -1,0 +1,30 @@
+<html>
+
+<p>Insertion sort is a simple sorting algorithm that works the way we sort playing cards in our hands.</p>
+
+<br>
+Psevdocode to sort the array (arr[0], arr[1], ..., arr[n-1]: <br>
+
+<p>
+<code>
+insertionSort(arr, n):      </br>
+&nbsp;&nbsp;&nbsp;loop from i = 1 to n-1:    </br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pick element arr[i] and insert it into sorted sequence arr[0 ... i-1]
+</code>
+</p>
+
+
+<p>
+	<b>Time complexity: </b> an average time complexity of the algorithm \( \Theta(n^2) \). However, the algorithm performs 
+	better if the input data is at most "a little bit sorted". In the most extreme example (when the input data is already sorted), the algorithm needs only \( \Theta(n) \) time to complete. 
+</p>
+
+
+
+<center>
+  <img src="%static{insertion-sort.png}" />
+</center>
+
+Reference: <a href="https://www.geeksforgeeks.org/insertion-sort/">Geeks for geeks - Insertion sort</a>
+
+</html>

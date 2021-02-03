@@ -1,0 +1,16 @@
+{
+  "Algorithm" : {	
+
+   "Name"           : "InsertionSort",
+
+   "Author"         : "tomaz",
+   "Date"           : "01, 2018",
+
+   "ShortName"      : "InsSort",
+   "Description"    : "Simple algorithm that sorts by inserting elements on right place",
+
+   "Language"       : "Java", 
+
+   "Presenters"     : ["presenter1"]
+  }
+} 

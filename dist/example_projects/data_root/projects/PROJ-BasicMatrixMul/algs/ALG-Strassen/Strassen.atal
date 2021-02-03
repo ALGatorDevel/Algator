@@ -1,0 +1,19 @@
+{
+  "Algorithm" : {	
+
+   "Name"           : "Strassen",
+   "ShortName"      : "algorithm_short_name",             
+   "Description"    : "algorithm_dascription",
+   "Author"         : "author_name",
+   "Date"           : "10, 2019",
+
+
+   "Language"       : "Java",
+  
+   "Presenters"     : [],
+
+   "AlgorithmDescHTML" : "algorithm.html",
+   "AlgorithmRefHTML"  : "references.html"
+
+  }
+} 

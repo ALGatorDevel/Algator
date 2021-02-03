@@ -1,0 +1,37 @@
+<html>
+
+<style>
+tr.spaceUnder>td {
+  padding-bottom: 1em;
+}
+</style>
+
+<p>The matrix multiplication algorithm multiplies two given matrices. </p>
+
+<table>
+<tr class="spaceUnder"><td><b>Input:</b></td>
+    <td>Two square matrtices \( A, B \) of dimension <code>n</code></td>
+</tr>
+
+<tr class="spaceUnder"><td><b>Output:</b></td> 
+    <td>Square matrix \( C \)</td>
+</tr>
+
+<tr class="spaceUnder"><td><b>Test of correctness: &nbsp;&nbsp;&nbsp;</b></td> 
+    <td>The resulting matrix \( C \) is correct iff for each  element \( c_{ij} \)
+    the following equation holds:
+    
+    $$ c_{ij} = \sum_{k=1}^n a_{ik} b_{kj} $$
+</tr>
+
+
+<tr class="spaceUnder"><td valign=top><b>Implementation:</b></td>
+    <td>To implement a matrix multipliaction algorithm the author has to write 
+        a <code>java</code> class extending the 
+        <code>BasicMatrixMulAbsAlgorithm</code> class and implementing its
+        <code>execute(int [][] A, int [][] B, int [][] C)</code> method.
+ 
+</tr>
+</table>
+
+</html>

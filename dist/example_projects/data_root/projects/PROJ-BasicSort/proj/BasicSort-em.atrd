@@ -1,0 +1,46 @@
+{
+  "Result":
+  { 
+    "IndicatorsOrder"   : ["Tfirst", "Tmin", "Tavg", "Tall", "Tsum", "Check"],     
+  
+    "Indicators":   [ 
+      {
+       "Name"         : "Tfirst",             
+       "Description"  : "Sorting FIRST time",             
+       "Type"         : "timer",          
+       "Meta"         : {"ID" : 0, "STAT": "FIRST"}    
+      },
+    
+      {
+       "Name"         : "Tall",             
+       "Description"  : "Sorting times",             
+       "Type"         : "timer",          
+       "Meta"         : {"ID" : 0, "STAT": "ALL"}
+      },
+      {
+       "Name"        : "Tmin",             
+       "Description" : "Sorting MIN time",             
+       "Type"        : "timer",          
+       "Meta"        : {"ID" : 0, "STAT": "MIN"}        
+      },
+      {
+       "Name"         : "Tavg",             
+       "Description"  : "Sorting AVG time",             
+       "Type"         : "timer",          
+       "Meta"         : {"ID" : 0, "STAT": "AVG"}    
+      },
+      {
+       "Name"        : "Tsum",             
+       "Description" : "Sorting SUM  time",             
+       "Type"        : "timer",          
+       "Meta"        : {"ID" : 0, "STAT": "SUM"}    
+      },
+      {
+       "Name"        : "Check",             
+       "Description" : "The correctness of the algorithm (OK or NOK)", 
+       "Type"        : "string"       
+      }
+    ]
+  }
+}
+ 

@@ -1,0 +1,56 @@
+{
+  "Presenter": {
+    "Columns": [
+      "N", 
+      "*.Tmin"
+    ], 
+    "HasGraph": "true", 
+    "HasTable": "true", 
+    "Query": {
+      "Algorithms": [
+        "JavaSort", 
+        "QuickSort"
+      ], 
+      "ComputerID": "", 
+      "Count": "0", 
+      "Filter": [
+        "N<=30000"
+      ], 
+      "GroupBy": [
+        "N; MIN"
+      ], 
+      "Indicators": [
+        "*EM", 
+        "1000*(JavaSort.Tmin/QuickSort.Tmin) AS Q"
+      ], 
+      "Parameters": [
+        "N"
+      ], 
+      "SortBy": [
+        ""
+      ], 
+      "TestSets": [
+        "TestSet2"
+      ]
+    }, 
+    "ShortTitle": "Tmin - fast", 
+    "Title": "Minimum time of execution for the fast algorithms on TestSet2", 
+    "categoryLabels": false, 
+    "graphType": "", 
+    "gridX": true, 
+    "gridY": true, 
+    "hasGraph": "true", 
+    "hasTable": "true", 
+    "logScale": false, 
+    "manData": [], 
+    "name": "presenter2", 
+    "subchart": false, 
+    "xAxis": "N", 
+    "xAxisTitle": "Array size (n)", 
+    "yAxes": [
+      "*.Tmin"
+    ], 
+    "yAxisTitle": "Time T(n)", 
+    "zoom": true
+  }
+}

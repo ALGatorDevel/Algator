@@ -1,0 +1,40 @@
+{
+  "Result":
+  { 
+    "IndicatorsOrder" : ["CMP", "SWAP", "CALL", "W", "R", "CMPL"],     
+  
+    "Indicators":   [     
+      {
+       "Name":        "CMP",             
+       "Description": "Number of global COMPs", 
+       "Type":        "counter"   
+      },
+      {
+       "Name":        "SWAP",             
+       "Description": "Number of SWAPs", 
+       "Type":        "counter"       
+      },
+      {
+       "Name":        "CALL",             
+       "Description": "Number of CALLs", 
+       "Type":        "counter"       
+      },
+      {
+       "Name":        "R",             
+       "Description": "Number of memory reads", 
+       "Type":        "counter"       
+      },
+      {
+       "Name":        "W",             
+       "Description": "Number of memory writes", 
+       "Type":        "counter"       
+      },
+      {
+       "Name":        "CMPL",             
+       "Description": "Number of local COMPs", 
+       "Type":        "counter"   
+      }      
+    ]
+  }
+}
+
