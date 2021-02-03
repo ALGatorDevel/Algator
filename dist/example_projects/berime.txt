@@ -1,5 +1,0 @@
-Projekta v data_root (BasicSort in BasicMatrixMul) sta namenjena osnovni predstavitvi 
-delovanja ALGatorja.  Mapa data_root se distribuira skupaj s sistemom ALGator na 
-githubu (v datoteki ALGatorStartup.zip). 
-
-Vsebine data_root ne spreminjaj brez tehtnega razmisleka!
