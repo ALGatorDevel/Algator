@@ -13,7 +13,7 @@
    In Environment Variables (Start -> Edit the system environment variables) add the variable or type into command prompt:
    <br>
    ```
-    setx ALGATOR_ROOT "<algator_root>"
+    C:\> setx ALGATOR_ROOT "<algator_root>"
     ```
    <br>
 4. **Create data_root folder**
@@ -41,15 +41,13 @@
 
 6. **Test the correctness of the instalation**
     After the initialization, you can use the ALGator with the scripts that are located in `%ALGATOR_ROOT%\data_root\bin` folder. But first, add this folder to the PATH ...
-<br>
+    <br>
     ``` 
     C:\> setx PATH %PATH%;%ALGATOR_ROOT%\data_root\bin
     ```
-
     ... and check the version of the ALGator with 
-<br>
+    <br>
     ``` 
     C:\> ALGator_version.bat
     ```
-<br>
-
+    <br>
