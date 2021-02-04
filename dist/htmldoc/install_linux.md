@@ -43,16 +43,15 @@
 
 6. **Test the correctness of the instalation**
     After the initialization, you can use the ALGator with the scripts that are located in `$ALGATOR_ROOT/data_root/bin` folder. But first, add this folder to the PATH ...
-<br>
+    <br>
     ``` 
     $ export PATH=$PATH:$ALGATOR_ROOT/data_root/bin
     ```
-
     ... and check the version of the ALGator with 
-<br>
+    <br>
     ``` 
     $ algator_version
     ```
     <p align=right><a href="/dist/htmldoc/images/version.png">Screenshot</a>
-<br>
+    <br>
 
