@@ -17,6 +17,12 @@ and compares the quality of their results. Using the ALGator user can
 add additional quality criteria, draw graphs and perform evaluations and 
 comparisons of defined algorithms. 
 
+## Instalation 
+- [Installing ALGator on Linux and Mac](htmldoc/install_linux.md)
+- [Installing ALGator on Windows](htmldoc/install_windows.md)
+
+
+
 ## ALGator on GitHub
 
   https://github.com/ALGatorDevel/Algator

@@ -13,8 +13,8 @@ import si.fri.algotest.users.UsersDatabase;
  * @author tomaz
  */
 public class Version {
-  private static String version = "0.95";
-  private static String date    = "Oktober 2019";
+  private static String version = "0.98";
+  private static String date    = "Januar 2021";
   
   public static String getVersion() {
     return String.format("version %s (%s)", version, date);

@@ -1,0 +1,13 @@
+V tej mapi se nahajajo originalni (glavne verzije) folderjev
+
+  - example_projects
+  - bin
+  - htmldoc
+
+
+Zip datoteke se nastanejo z ukazom makeZIP in vsebujejo
+
+  - ALGator.zip ... ALGator.jar in lib folder
+  - ALGatorStartup.zip ... example_projects in bin folder
+
+Pred ukazom makeZIP je treba pognati Netbeans/Build.
