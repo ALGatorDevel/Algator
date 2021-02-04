@@ -1,4 +1,4 @@
-##Installing ALGator on Linux like systems
+## Installing ALGator on Linux like systems
 
 1. **Install Docker**
    ALGator runs in a Docker container, so you need to install Docker on your system. For details see: https://docs.docker.com/get-docker/

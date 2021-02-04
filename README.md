@@ -18,8 +18,8 @@ add additional quality criteria, draw graphs and perform evaluations and
 comparisons of defined algorithms. 
 
 ## Instalation 
-- [Installing ALGator on Linux and Mac](htmldoc/install_linux.md)
-- [Installing ALGator on Windows](htmldoc/install_windows.md)
+- [Installing ALGator on Linux and Mac](/dist/htmldoc/install_linux.md)
+- [Installing ALGator on Windows](/dist/htmldoc/install_windows.md)
 
 
 

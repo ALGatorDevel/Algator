@@ -1,4 +1,4 @@
-##Installing ALGator on Windows
+## Installing ALGator on Windows
 
 1. **Install Docker**
    ALGator runs in a Docker container, so you need to install Docker on your system. For details see: https://docs.docker.com/get-docker/
