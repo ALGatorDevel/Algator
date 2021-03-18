@@ -23,7 +23,7 @@ comparisons of defined algorithms.
 
 
 ## Usage instructions
-- [Basic concepts and usage instructions (in Slovene)](/doc/NavodilaZaUporabo.html)
+- [Basic concepts and usage instructions (in Slovene)](https://htmlpreview.github.io/?https://github.com/ALGatorDevel/Algator/blob/master/doc/NavodilaZaUporabo.html)
 
 
 ## ALGator on GitHub
