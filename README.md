@@ -22,6 +22,9 @@ comparisons of defined algorithms.
 - [Installing ALGator on Windows](/dist/htmldoc/install_windows.md)
 
 
+## Usage instructions
+- [Basic concepts and usage instructions (in Slovene)](/doc/NavodilaZaUporabo.html)
+
 
 ## ALGator on GitHub
 

@@ -27,7 +27,7 @@ public class BasicMatrixMulTestCase extends AbstractTestCase {
   public BasicMatrixMulTestCase randomTestCase(Variables inputParameters, int n, long seed, boolean includeC) { 
     int [][] A = null, B=null, C=null; 
     
-    String path  = inputParameters.getVariable("Path",    "")   .getStringValue();
+    String path  = inputParameters.getVariable(TESTS_PATH,    "")   .getStringValue();
     String rpath = BasicMatrixMulTools.createPathForRandomMatrices(path); // path for random matrices storage
     String matrixNameFormat = "r-%d-%d-%c"; // name of a random matrix in rPath
 
@@ -83,7 +83,7 @@ public class BasicMatrixMulTestCase extends AbstractTestCase {
    * @return randomTestCase with a given seed in which only A, B and C are set
    */
   public BasicMatrixMulTestCase testCaseGenerator1(Variables inputParameters) {
-    String path  = inputParameters.getVariable("Path",    "")   .getStringValue();    
+    String path  = inputParameters.getVariable(TESTS_PATH,    "")   .getStringValue();    
     int n        = inputParameters.getVariable("N").getIntValue();              
     int seed     = inputParameters.getVariable("Seed").getIntValue();            
 
@@ -96,7 +96,7 @@ public class BasicMatrixMulTestCase extends AbstractTestCase {
    * @return randomTestCase with a given seed in which only A and B are set; the calculation of C is ommited
    */
   public BasicMatrixMulTestCase testCaseGenerator2(Variables inputParameters) {
-    String path  = inputParameters.getVariable("Path",    "")   .getStringValue();    
+    String path  = inputParameters.getVariable(TESTS_PATH,    "")   .getStringValue();    
     int n        = inputParameters.getVariable("N").getIntValue();              
     int seed     = inputParameters.getVariable("Seed").getIntValue();            
 
@@ -110,7 +110,7 @@ public class BasicMatrixMulTestCase extends AbstractTestCase {
    * Method reads input matrices (A and B) and output matrix (C) from files. 
   **/  
   public BasicMatrixMulTestCase testCaseGenerator3(Variables inputParameters) {
-    String path      = inputParameters.getVariable("Path",    "")   .getStringValue();              
+    String path      = inputParameters.getVariable(TESTS_PATH,    "")   .getStringValue();              
     int N            = inputParameters.getVariable("N",        1000).getIntValue();              
 
     String filenameA = inputParameters.getVariable("FilenameA", "").getStringValue();              

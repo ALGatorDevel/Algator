@@ -19,6 +19,8 @@ public abstract class AbstractTestCase implements Serializable {
   // name of the properties field in a test case
   public static final String PROPS = ETestCase.TESTCASE_PROPS;
   
+  public static final String TESTS_PATH = "_tests_path_";
+  
   private AbstractInput  input;
   private AbstractOutput expectedOutput;
 
@@ -54,7 +56,7 @@ public abstract class AbstractTestCase implements Serializable {
         String [] genPar = gen.getGeneratingParameters();
                 
         Variables generatingParameters = new Variables();
-        generatingParameters.setVariable("Path", path);
+        generatingParameters.setVariable(TESTS_PATH, path);
         if (parts.length > 1) 
           generatingParameters.setVariable("Test", parts[1]);
         

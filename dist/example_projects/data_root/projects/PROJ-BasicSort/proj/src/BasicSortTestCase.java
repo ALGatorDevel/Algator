@@ -81,7 +81,7 @@ public class BasicSortTestCase extends AbstractTestCase {
   @Override
   // a generator that reads number from v given file (starting at the offest-th number). 
   public BasicSortTestCase testCaseGenerator1(Variables generatingParameters) {
-    String path     = generatingParameters.getVariable("Path", "").getStringValue();
+    String path     = generatingParameters.getVariable(TESTS_PATH, "").getStringValue();
     int    n        = generatingParameters.getVariable("N", 0).getIntValue();
     String filename = generatingParameters.getVariable("Filename", "").getStringValue();
     int offset      = generatingParameters.getVariable("Offset", 0).getIntValue();

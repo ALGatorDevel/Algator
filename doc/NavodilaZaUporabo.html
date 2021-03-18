@@ -1,0 +1,383 @@
+<html>
+<style>
+.code {
+  font-family: 'Courier New', monospace;
+  font-size: smaller;
+}
+
+p {
+  text-align: justify;
+}
+
+.primer {
+  margin: 15px;
+  border: 1px;
+  padding: 5px;
+  width: 90%;
+  border-style:solid;
+  background-color:lightgreen;
+}
+
+.algator {
+  font-family: 'Courier New', monospace;
+  font-variant: small-caps;
+}
+</style>
+
+<body style="margin:30px;padding:30px">
+
+<h1>Delovanje sistema <span class=algator>ALGator</span></h1>
+
+<p>
+Sistem <span class=algator>ALGator</span> je namenjen izvajanju algoritmov za reševanje različnih problemov.  <span class=algator>ALGator</span> požene izbrane algoritme na izbranih testnih podatkih in indikatorje izvajanja (čas izvajanja, kvaliteta rezultata, ...) zapiše v izhodne datoteke. S pomočjo dodatnih orodij sistema <span class=algator>ALGator</span> lahko uporabnik izpisane podatke analizira in pripravi poročila v obliki tabel in grafov.
+</p>
+
+<p>
+Za reševanje izbranega problema (npr. urejanje števil, množenje matrik, najkrajša pot v grafu, trgovski potnik, ...) uporabnik sistema <span class=algator>ALGator</span> ustvari projekt in s pomočjo tekstovnih konfiguracijskih datotek in javanskih razredov definira
+</p>
+<ul>
+<li>vhod algoritma, 
+<li>izhod algoritma,
+<li>generatorje testnih primerov,
+<li>vsaj eno testno množico,  
+<li>indikatorje izvajanja ter
+<li>vsaj en algoritem za reševanje nalog danega problema.
+</ul>
+
+<p>
+V tako pripravljen projekt lahko uporabnik kasneje doda nove testne množice in implementira nove algoritme, sistem <span class=algator>ALGator</span> pa bo poskrbel, da se bodo vsi implementirani algoritmi izvedli na vseh testnih množicah.
+</p>
+
+<p>
+V tej dokumentaciji bomo ime projekta označevali s <span class=code>&lt;P&gt;</span></span>, ime algoritma z <span class=code>&lt;A&gt;</span> in ime testne množice pa s <span class=code>&lt;T&gt;</span>.  Vsi podatki, ki jih sistem <span class=algator>ALGator</span> vodi o projektu <span class=code>&lt;P&gt;</span>, so shranjeni v mapi <span class=code>&lt;algator_root&gt;/data_root/projects/PROJ-&lt;P&gt;</span> (pri čemer z <span class=code>&lt;algator_root&gt;</span> označujemo osnovno mapo sistema <span class=algator>ALGator</span>, na katero kaže okoljska spremenljivka <span class=code>$ALGATOR_ROOT</span>). 
+</p>
+
+<a name="o1"></a>
+<h2>1. Naloge administratorja projekta - seznam opravil</h2>
+<p>
+V spodnjih navodilih je natančno opisan postopek izdelave projekta in vseh njegovih sestavnih delov. Kratek povzetek vseh opravil, povezanih z izdelavo projekta, pa je podan z naslednjim seznamom:
+</p>
+
+<ol style="list-style-type:lower-latin">
+<li> s programom <span class=code>algator.Admin</span> ustvari projekt in pripadajoče konfiguracijske datoteke;
+<li>v datoteki <span class=code>&lt;P&gt;.attc</span> opiši parametre testnega primera (tabela <span class=code>"Parameters"</span>) in njihov vrstni red (tabela <span class=code>"TestCaseParameters"</span>);
+<li>v razredu <span class=code>src/&lt;P&gt;Input.java</span> definiraj podatkovni del testnega primera in konstruktor;
+<li>v razredu <span class=code>src/&lt;P&gt;Output.java</span> definiraj podatkovni del izhoda in konstruktor;
+<li>v datoteki <span class=code>&lt;P&gt;.attc</span> opiši generatorje projekta (tabela <span class=code>"Generators"</span>);
+<li>v datoteki <span class=code>src/&lt;P&gt;TestCase.java</span> za vsak generator napiši pripadajočo  <span class=code>testCaseGenerator()</span> metodo;
+<li>za vsako testno množico uredi datoteki <span class=code>tests/&lt;T&gt;.atts</span> in <span class=code>tests/&lt;T&gt;.txt</span>;
+<li>v datoteki <span class=code>proj/&lt;P&gt;-em.atrd</span> opiši indikatorje;
+<li>v datoteki <span class=code>src/Output.java</span> v metodi <span class=code>getIndicatorValue()</span> napiše kodo za izračun vrednosti indikatorjev  in
+<li>v razredu <span class=code>algs/ALG-&lt;A&gt;/src/&lt;A&gt;Algorithm.java</span> implementiraj algoritem za reševanje problema.
+</ol>
+
+<a name="o2"></a>
+<h2>2. Ustvarjanje novega projekta</h2>
+<p>
+Osnovne konfiguracijske datoteke za projekt, algoritem in testno množico ustvarimo z ukazi 
+</p>
+<ul>
+<li><span class=code>java.Admin -cp  &lt;P&gt;</span>
+<li><span class=code>java .Admin -ca &lt;P&gt; &lt;A&gt;</span>
+<li><span class=code>java .Admin -ct &lt;P&gt; &lt;T&gt;</span>
+</ul>
+<p>
+Vse ustvarjene datoteke je treba nato urediti z urejevalnikom besedil, kot je predstavljeno v nadaljevanju.
+</p>
+
+<a name="o2a"></a>
+<h3>2.a) Definicija vhoda</h3>
+
+<p>Vhod algoritma je podan z množico parametrov in s podatkovnim delom. 
+  </p>
+
+<a name="o2ai"></a>
+<h4>2.a.i Parametri vhoda</h4>
+<p>Parametri določajo naravo vhoda (na primer velikost tabele, gostota grafa, število bitov vhoda, ...) in se uporabljajo v fazi avtomatskega izvajanja algoritmov (na primer za iskanje meje za velikost vhoda,  ki ga algoritem lahko obdela v 1 sekundi) in pri analizi rezultatov (na primer, ko rišemo graf zahtevnosti v odvisnosti od velikosti testnega primera). Uporabnik določi parametre v datoteki <span class=code>proj/&lt;P&gt;.attc</span>: v tabeli <span class=code>"TestCaseParameters"</span> našteje imena parametrov, v tabeli <span class=code>"Parameters"</span> pa parametre natančno opiše (za vsak parameter poda njegov tip in obseg - min, max ter default vrednost). Vrstni red v tabeli <span class=code>"TestCaseParameters"</span> je pomemben, saj se bodo parametri v tem vrstnem redu izpisovali v izhodno datoteko.
+</p>
+
+<div class=primer>
+<b>Primer:</b>  v projektu <span class=code>BasicSort</span> je v <span class=code>attc</span> datoteki (poleg ostalih) opisan parameter, ki določa velikost vhodne tabele takole:
+<span class=code>
+  <pre>
+{
+  "Name":        "N",             
+  "Description": "The size of the test (number of elements to be sorted)", 
+  "Type":        "int",
+  "Meta":        {"Min":1000, "Max": 1000000000000, "Step":1000, "Default": 5000}      
+}
+</pre>
+</span>
+</div>
+
+<a name="o2aii"></a>
+<h4>2.a.ii Podatkovni del testnega primera</h4>
+<p>
+Podatkovni del vhoda se definira v razredu <span class=code>proj/src/&lt;P&gt;Input.java</span> v obliki atributa, ki je nosilec podatkov vhoda. Tip atributa je odvisen od tipa vhodnih podatkov (če je vhod tabela, bo atribut tipa <span class=code>int[]</span>, če je vhod matrika, bo atribut tipa <span class=code>int[][]</span>, ...). Za lažje upravljanje z vhodom je priporočljivo, da se v razred <span class=code>&lt;P&gt;Input.java</span> doda tudi primeren konstruktor.
+</p>
+<div class=primer>
+<b>Primer:</b>  v projektu <span class=code>BasicSort</span> sta v razredu <span class=code>BasicSortInput.java</span>  nosilec podatkov in konstruktor definirana takole:
+<span class=code> 
+<pre>
+ public int [] arrayToSort;
+
+ public BasicSortInput(int [] data) {    
+    this.arrayToSort = data;
+  }
+</pre>
+</span>
+</div>
+
+<a name="o2b"></a>
+<h3>2.b) Definicija izhoda</h3>
+
+Izhod algoritma je predstavljen z razredom <span class=code>src/&lt;P&gt;Output.java</span>.  Podatkovni del izhoda je običanjo shranjen v enem atributu. Tip tega atributa je odvisen od tipa izhoda, ki ga ustvari algoritem (če je izhod celo število, bo atribut tipa <span class=code>int</span>, če je izhod niz, bo atribut tipa <span class=code>String</span>, ...). Za lažje upravljanje z izhodom je priporočljivo, da se v razred <span class=code>&lt;P&gt;Output.java</span> doda tudi primeren konstruktor.
+
+<div class=primer>
+<b>Primer:</b>  v projektu <span class=code>BasicSort</span> sta v razredu <span class=code>BasicSortOutput.java</span>  nosilec podatkov izhoda in konstruktor definirana takole:
+
+<p class=code>
+<pre>
+  public int [] sortedArray;
+  
+  public BasicSortOutput(int [] data) {
+    sortedArray = data;
+  }
+</pre>
+</p>
+</div>
+
+
+<a name="o2c"></a>
+<h3>2.c) Generiranje testnih primerov</h3>
+
+<p>
+Testni primer v sistemu <span class=algator>ALGator</span> je sestavjen iz vhoda, ki je objekt tipa <span class=code>&lt;P&gt;Input</span> in (opcijsko) pričakovanega izhoda, ki je objekt tipa <span class=code>&lt;P&gt;Output</span>. 
+V času izvajanja algoritmov se testni primeri ustvarijo s pomočjo generatorjev - to so metode,  ki prejmejo množico generirajočih parametrov in vrnejo testni primer (objekt razreda <span class=code>&lt;P&gt;TestCase</span>), ki ustreza tem parametrom. 
+<br>
+Projekt ima lahko več generatorjev. Osnovni generator (ki mora biti obvezno prisoten) je generator tipa 0 (<span class=code>Type0</span> generator). To je generator, ki kot generirajoče parametre prejme vse parametre testnega primera. Tak generator je definiran v razredu <span class=code>proj/src/&lt;P&gt;TestCase.java</span> z metodo <span class=code>testCaseGenerator(Variables generatingParameters)</span>.
+</p>
+<div class=primer>
+<b>Primer:</b>  v projektu <span class=code>BasicSort</span> imamo dva parametra testnega primera: <span class=code>N</span> (ki določa velikost vhoda) in <span class=code>DIST</span> (ki opisuje, kako "zmetani" so podatki v tabeli). Naloga metode <span class=code>testCaseGenerator()</span> je torej, da na podlagi vrednosti parametrov <span class=code><span class=code>DIST</span></span> in <span class=code>DIST</span> ustvari testni primer velikosti <span class=code>N</span> z distribucijo <span class=code>DIST</span>.
+</div>
+
+<p>
+Projekt poleg osnovnega generatorja (torej generatorja tipa 0) lahko vsebuje tudi druge generatorje (torej generatorje tipa 1, 2, 3, ...), ki prejmejo drugačen nabor generirajočih parametrov. Njihova naloga je, da na podlagi vrednosti teh parametrov ustvarijo testni primer, to je, da določijo vrednosti parametrov testnega primera in "napolnijo" podatkovni del.
+</p>
+
+<div class=primer>
+<b>Primer:</b>  testni primer v projektu <span class=code>BasicSort</span> lahko ustvarimo tudi tako, da podatke, ki jih bomo urejali, preberemo iz datoteke. Generator v tem primeru potrebuje le en generirajoči parameter - ime datoteke. Ko bo generator prebral podatke iz datoteke, bo ustvaril podatkovni del (prebrani podatki), hkrati pa bo lahko nastavil tudi vrednosti parametrov testnega primera: <span class=code>N</span>=število prebranih podatkov, <span class=code>DIST=RND</span> (podatki v datoteki se naključno razmetani).
+</div>
+
+<p>
+Tudi generatorji tipa 1, 2, 3, ... so definirani v datoteki <span class=code>proj/src/&lt;P&gt;TestCase.java</span> in sicer kot metode <span class=code>testCaseGenerator1(Variables generatingParameters)</span>, <span class=code>testCaseGenerator2(Variables generatingParameters)</span>, ...
+<br>
+Kot smo že omenili, je zelo pomembno, da generator poleg podatkovnega dela nastavi tudi parametre testnega primera. V primeru privzetega generatorja (generator tipa 0) so vrednosti teh parametrov podane med generirajočimi parametri, testnemu primeru jih pripnemo z naslednjimi ukazi:
+
+<span class=code> 
+<pre>
+    Variables testcaseParameters = new Variables(generatingParameters);        
+    <span class=code>&lt;p&gt;</span>TestCase.getInput().setParameters(testcaseParameters);
+</pre>
+</span>
+
+Pri generatorjih tipa 1, 2, 3, ... pa mora za pravilno vrednost parametrov testnega primera poskrbeti uporabnik. 
+</p>
+
+<div class=primer>
+<b>Primer:</b>  v projektu <span class=code>BasicSort</span>generator tipa 1 podatke prebere iz datoteke, parametre testnega primera pa nastavi z ukazi:
+
+<span class=code> 
+<pre>
+    Variables testcaseParameters = new Variables();
+    testcaseParameters.addVariable(new EVariable("N", n)); 
+    testcaseParameters.addVariable(new EVariable("DIST", "RND"));
+    basicSortTestCase.getInput().setParameters(testcaseParameters);
+</pre>
+</span>
+</div>
+
+<p>
+Generator lahko (na željo uporabnika) testni primer opremi z dodatnimi lastnostmi (properties), ki se bodo uporabljale za filtriranje podatkov pri analizi. Na primer,  lastnost testnega primera je tip generatorja, ki ga je ustvaril, ali pa ime datoteke, iz katere so bili podatki prebrani. Lastnosti se v testni primer zapišejo z metodo <span class=code>addProperty()</span>.
+</p>
+
+<div class=primer>
+<b>Primer:</b>  v projektu <span class=code>BasicSort</span>generator tipa 1 doda lastnosti <span class=code>Type</span> in <span class=code>Filename</span> takole:
+
+<span class=code> 
+<pre>
+    testcaseParameters.addProperty(PROPS, "Type", "Type1");        
+    testcaseParameters.addProperty(PROPS, "Filename", filename);
+  </pre>
+</span>
+</div>
+
+<p>
+Podatki o definiranih generatorjih (kateri tipi generatorjev obstajajo in katere generirajoče parametre potrebujejo) so zapisani v datoteki <span class=code>.attc</span> v tabeli <span class=code>"Generators"</span>.
+</p>
+
+<a name="o2d"></a>
+<h3>2.d) Testne množice</h3>
+<p>
+Testni primeri so v sistemu <span class=algator>ALGator</span> združeni v t.i. testne množice (TestSet), ki so osnovne enote izvajanja algoritmov (običajno algoritem poženemo na vseh primerih ene testne množice). Testna množica je definirana z dvema datotekama: <span class=code>tests/&lt;T&gt;.atts</span> in <span class=code>tests/&lt;T&gt;.txt</span>. V prvi datoteki so poleg administrativnih podatkov (ime množice, kratko ime, opis) zapisani tudi naslednji podatki:
+
+<ul>
+  <li><span class=code>"N"</span> ... število testnih primerov te testne množice, 
+  <li><span class=code>"TestRepeat"</span> ... število ponavljanj posameznega testnega primera in 
+  <li><span class=code>"TimeLimit"</span> ... največji dovoljeni čas izvajanja za en testni primer (če je čas prekoračen, sistem ustavi izvajanje).
+  </ul>
+</p>
+
+<p>
+  V datoteki <span class=code>tests/&lt;T&gt;.txt</span> pa so zapisani posamezni testni primeri - vsaka vrstica opisuje en testni primer. Število pravih vrstic (torej ne-komentarjev) v tej datoteki se mora ujemati z vrednostjo <span class=code>"N"</span> iz <span class=code>atts</span> datoteke).  Testni primer je podan z eno tekstovno vrstico (test_description_line), ki vsebuje naslednje podatke:
+</p>
+<p>
+<span class=code>type:test_name:generating_parameters</span>
+</p>
+
+pri čemer so:
+<ul>
+<li><span class=code>type</span>: tip generatorja, ki bo ustvaril testni primer (default: <span class=code>Type0</span>),
+<li><span class=code>test_name</span>: ime testa (default: "") in 
+<li><span class=code>generating_parameters</span>: parametri, ki se bodo posredovali generatorju, ki bo ustvaril testni primer; vrstni red generirajočih parametrov in njihov pomen so podan v <span class=code>attc</span> datoteki pri opisu generatorja.
+</ul>
+<div class=primer>
+<b>Primer:</b>  v projektu <span class=code>BasicSort</span> sta v datoteki <span class=code>TestSet1.txt</span>  dva testna primera opisana z naslednjima vrsticama
+<p class=code>  
+<pre>
+  Type0:test1:10:SOR
+  Type1:test3:numbers.rnd
+</pre>
+Prvi testni primer bo ustvaril privzet generator (vrednost parametrov: <span class=code>N=10, DIST=SOR</span>), drugi testni primer pa bo ustvaril generator tipa 1 (vrednost parametrov: <span class=code>filename="numbers.rnd"</span>).
+</p>
+</div>
+
+
+Dodatne datoteke, ki se uporabljajo za generiranje testov (na primer datoteka <span class=code>numbers.rnd</span> iz zgornjega primera), se nahajajo v mapi <span class=code>tests</span> in v njenih podmapah. Na njih se sklicujemo relativno glede na mapo <span class=code>tests</span>. V metodi generatorja polno ime datoteke dobimo z uporabo generirajočega parametra <span class=code>TESTS_PATH</span>.
+
+<div class=primer>
+<b>Primer:</b>  če je generatorju relativno ime datoteke podano v parametru  <span class=code>"Filename"</span>, celotno ime datoteke dobimo takole: 
+
+<p clas=code>
+<pre>
+    String path     = generatingParameters.getVariable(TESTS_PATH, "").getStringValue();
+    String filename = generatingParameters.getVariable("Filename", "").getStringValue();
+    String testFile = path + File.separator + filename;
+</pre>
+</p>
+</div>
+
+
+<a name="o2e"></a>
+<h3>2.e) Pričakovan izhod programa</h3>
+<p>
+Kadar je pri preverjanju pravilnosti rezultata, ki ga vrne nek algoritem, potrebno poznavanje pravilnega rezultata (expected output), lahko uporabnik poskrbi, da se le ta ustvari z generatorjem in shrani kot del testnega primera. Pri preverjanju pravilnosti rezultata bosta na razpolaga oba: izhod algoritma in pričakovan izhod algoritma in lahko se bo opravilo preverjanje na podlagi primerjave. 
+<br>
+Na primer, v projektu množenja matrik za preverjanje pravilnosti rezultata potrebujemo matriko <span class=code>C</span> (da jo bomo lahko primerjali z izhodom algoritma). Ker bi bilo časovno potratno, da bi matriko <span class=code>C</span> računali vsakič, ko bi želeli preveriti pravilnost nekega algoritma, lahko matriko <span class=code>C</span> ustvarimo (enkrat za vselej) in jo shranimo v datoteko, ki jo sistemu predstavimo kot del testnega primera. Datoteko preberemo z ustreznim generatorjem testnih primerov in jo shranimo v <span class=code>expectedOutput</span> (objekt razreda <span class=code>&lt;P&gt;Output</span>). Pri preverjanju pravilnosti izhoda nekega algoritma bomo matriko, ki jo je ta algoritem generiral, primerjali z matriko, ki jo imamo shranjeno v <span class=code>expectedOutput</span>. 
+</p>
+<div class=primer>
+<b>Primer:</b>  v projektu <span class=code>BasicMatrixMul</span> je generator tipa 1 definiran z naslednjimi generirajočimi parametri:
+
+<p class=code>
+  "GeneratingParameters":   ["N", "FilenameA", "FilenameB", "FilenameC"]
+</p>
+
+Opis testnega primera (vrstica v <span class=code>&lt;T&gt;.txt</span> datoteki) poleg velikosti matrik poda tudi imena treh datotek (v prvih dveh sta zapisani matriki, ki ju množimo, v tretji pa rezultat), takole: 
+
+<p class=code>
+  Type1:test1:100:ts1/rnd-100-2-A:ts1/rnd-100-2-B:ts1/rnd-100-2-C
+</p>
+
+Generator tipa 1 (metoda <span class=code>testCaseGenerator1()</span>) prebere vse tri matrike 
+
+<p class=code>
+<pre>
+    int [][] A = BasicMatrixMulTools.readMatrixS(path, filenameA);
+    int [][] B = BasicMatrixMulTools.readMatrixS(path, filenameB);
+    int [][] C = BasicMatrixMulTools.readMatrixS(path, filenameC);
+</pre>
+</p>
+
+in nastavi vhod (<span class=code>setInput()</span>) in pričakovan izhod (<span class=code>setExpectedOutput()</span>):    
+
+<p class=code>
+<pre>
+    BasicMatrixMulTestCase basicMatrixMulTestCase = new BasicMatrixMulTestCase();                
+    basicMatrixMulTestCase.setInput(new BasicMatrixMulInput(A, B));    
+    basicMatrixMulTestCase.getInput().setParameters(inputParameters);    
+    basicMatrixMulTestCase.setExpectedOutput(new BasicMatrixMulOutput(C));
+</pre>
+</p>
+</div>
+
+
+<a name="o2f"></a>
+<h3>2.f) Indikatorji izvajanja</h3>
+<p>
+Kakovost posameznega algoritma merimo s pomočjo indikatorjev izvajanja (na primer: čas, porabljen prostor, število korakov, ...). Za vrednost osnovnega indikatorja (čas izvajanja) priskrbi <span class=algator>ALGator</span> samodejno, ostale indikatorje pa mora definirati in izračunati uporabnik sam. 
+<br>
+Pri indikatorju časa uporabnik pove le, kateri časi ga zanimajo. Namreč, <span class=algator>ALGator</span> nad danim testnim primerom vsak algoritem požene večkrat, zato na koncu vseh izvajanj pozna veliko različnih časov (čas prvega izvajanja (<span class=code>FIRST</span>), povprečni čas izvajanja (<span class=code>AVG</span>), čas najdaljšega izvajanja (<span class=code>MAX</span>) ...) Uporabnik mora z nastavitvami v <span class=code>&lt;P&gt;-em.atrd</span> datoteki povedati, kateri od teh časov naj se izpišejo kot rezultat izvajanja. 
+<br>
+Pri ostalih indikatorjih mora uporabnik poleg definicij v omenjeni <span class=code>atrd</span> datoteki podati tudi programsko kodo, ki izračuna vrednost indikatorja. Kodo zapiše v metodo <span class=code>getIndicatorValue()</span> razreda <span class=code>&lt;P&gt;Output</span>. Za določitev vrednosti indikatorja se lahko uporabijo podatki o vhodu, pričakovanem izhodu in dejanskem izhodu algoritma. 
+</p>
+<div class=primer>
+<b>Primer:</b>  v projektu <span class=code>BasicSort</span> je indikator pravilnosti rezultata (<span class=code>Check</span>) v atrd datoteki podan takole:
+
+<p class=code>
+<pre>
+{
+   "Name"        : "Check",             
+   "Description" : "The correctness of the algorithm (OK or NOK)", 
+   "Type"        : "string"       
+}
+</pre>
+</p>
+
+V datoteki <span class=code>BasicSortOuput.java</span> v metodi <span class=code>getIndicatorValue()</span> pa se njegova vrednost določi takole:
+
+<span class=code>
+<pre>
+  switch (indicatorName) {
+    case "Check" :
+      boolean checkOK = 
+         Arrays.equals(basicSortAlgorithmOutput.sortedArray, 
+                       basicSortTestCase.getExpectedOutput().sortedArray);
+      return checkOK ? "OK" : "NOK";
+  }
+</pre>
+</span>
+</div>
+
+<a name="o2g"></a>
+<h3>2.g) Algoritem za reševanje danega problema</h3>
+
+<p>
+Algoritem sistema <span class=algator>ALGator</span> je metoda, ki kot vhod prejme objekt razreda <span class=code>&lt;P&gt;Input</span> in vrne objekt razreda <span class=code>&lt;P&gt;Output</span>. Algoritem je definiran v datoteki <span class=code>algs/ALG-&lt;A&gt;/src/&lt;A&gt;Algorithm.java</span> v metodi 
+</p>
+<pre>
+    <span class=code>&lt;P&gt;Output execute(&lt;P&gt;Input testCase) {...}</span>
+</pre>
+Naloga te metode je, da na podlagi prejetega vhoda ustvari in vrne izhod. Čas izvajanja te metode se šteje kot čas izvajanja algoritma. 
+</p>
+<div class=primer>
+  <b>Primer:</b>  v projektu <span class=code>BasicSort</span> je algoritem JavaSort (urejanje s pomočjo vgrajene javanske metode <span class=code>sort()</span>) implementiran takole:
+
+<p class=code>
+<pre>
+  BasicSortOutput execute(BasicSortInput testCase) {    
+    javaSort(testCase.arrayToSort);        
+    return new BasicSortOutput(testCase.arrayToSort);
+  }
+  
+  private void javaSort(int[] data) {
+    java.util.Arrays.sort(data);
+  }
+</pre>
+</p>
+
+  Prava implementacija algoritma se torej skriva v metodi <span class=code>javaSort()</span>, ki kot vhod prejme tabelo in jo uredi. Metoda <span class=code>execute()</span> pa služi kot most med sistemom <span class=algator>ALGator</span> in implementacijo algoritma. 
+
+  </div>
+</body>
+</html>
+
