@@ -18,7 +18,7 @@ public class ETestCase extends Entity {
   public static final String ID_TestCase       ="TestCase";
   
   //Fields
-  private static final String ID_testcaseParameters  = "TestCaseParameters";	// String []
+  private static final String ID_inputParameters    = "InputParameters";	// String []
   public static final String ID_parameters          = "Parameters";             // EVariable []
   public static final String ID_generators          = "Generators";             // EGenerator []
   
@@ -35,7 +35,7 @@ public class ETestCase extends Entity {
    
   public ETestCase() {
      super(ID_TestCase, 
-	 new String [] {ID_testcaseParameters, ID_parameters, ID_generators});
+	 new String [] {ID_inputParameters, ID_parameters, ID_generators});
          set(ID_parameters, new JSONArray());
   }
   
@@ -50,8 +50,8 @@ public class ETestCase extends Entity {
   }
     
   
-  public String[] getTestCaseParameters() {
-    return ArrayUtils.add(getStringArray(ID_testcaseParameters), TESTCASE_PROPS);
+  public String[] getInputParameters() {
+    return ArrayUtils.add(getStringArray(ID_inputParameters), TESTCASE_PROPS);
   }
   
   public Variables getParameters() {  
@@ -72,7 +72,7 @@ public class ETestCase extends Entity {
       result.addVariable(new EVariable(TESTCASE_PROPS,VariableType.STRING, ""));
             
       // Add all undefined parameters - default type for undefined parameter is INT
-      String [] parameters = getStringArray(ID_testcaseParameters);
+      String [] parameters = getStringArray(ID_inputParameters);
       for (String indicatorName : parameters) {
         if (result.getVariable(indicatorName) == null)
           result.addVariable(new EVariable(indicatorName, indicatorName, VariableType.INT, 0), true);
@@ -109,7 +109,7 @@ public class ETestCase extends Entity {
       if (!generators.containsKey(defaultGeneratorType)) {
         EGenerator gen = new EGenerator();
         gen.set(EGenerator.ID_Type, defaultGeneratorType);
-        gen.set(EGenerator.ID_GPars, get(ID_testcaseParameters));
+        gen.set(EGenerator.ID_GPars, get(ID_inputParameters));
         generators.put(defaultGeneratorType, gen);
       }
     } catch (Exception e) {

@@ -117,7 +117,7 @@ public class DataAnalyser {
     Variables resultPS = Variables.join(project.getTestCaseDescription().getParameters(), eResultDesc.getVariables());
 
     // test parameters are only defined in EM file
-    String[] testOrder = project.getTestCaseDescription().getTestCaseParameters();
+    String[] testOrder = project.getTestCaseDescription().getInputParameters();
     if (testOrder == null) {
       testOrder = new String[0];
     }

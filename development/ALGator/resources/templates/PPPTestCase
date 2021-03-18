@@ -43,12 +43,12 @@ public class <PPP>TestCase extends AbstractTestCase {
     // ... the input                
     <pPP>TestCase.setInput(new <PPP>Input(/* TODO: add parameters for constructor */));    
 
-    // ... the testcase parameters (for the type0 generator the set of TestCaseParameters equals to the set of GeneratingParameters)
-    Variables testcaseParameters = new Variables(generatingParameters);
-    <pPP>TestCase.getInput().setParameters(testcaseParameters);
+    // ... the testcase parameters (for the type0 generator the set of InputParameters equals to the set of GeneratingParameters)
+    Variables inputParameters = new Variables(generatingParameters);
+    <pPP>TestCase.getInput().setParameters(inputParameters);
 
     // ... some test case properties (optionally)
-    //testcaseParameters.addProperty(PROPS, "prop_name", prop_value);
+    //inputParameters.addProperty(PROPS, "prop_name", prop_value);
 
     
     // ... and the expected output
@@ -77,12 +77,12 @@ public class <PPP>TestCase extends AbstractTestCase {
 //    <pPP>TestCase.setInput(new <PPP>Input(/* TODO: add parameters for constructor */));
 //
 //    // ... the test case parameters
-//    Variables testcaseParameters = new Variables(); 
-//    // TODO: for each testcase parameter, set its value in testcaseParameters   
-//    testcaseParameters.addVariable(new EVariable("tc_parameter_name", tc_parameter_value));
+//    Variables inputParameters = new Variables(); 
+//    // TODO: for each testcase parameter, set its value in inputParameters   
+//    inputParameters.addVariable(new EVariable("tc_parameter_name", tc_parameter_value));
 //    // TODO: add test case properties (optionally)
-//    //testcaseParameters.addProperty(PROPS, "prop_name", prop_value);
-//    <pPP>TestCase.getInput().setParameters(testcaseParameters);    
+//    //inputParameters.addProperty(PROPS, "prop_name", prop_value);
+//    <pPP>TestCase.getInput().setParameters(inputParameters);    
 
 //    // ... and the expected output
 //    <pPP>TestCase.setExpectedOutput(new <PPP>Output(/* TODO: add parameters for constructor */));

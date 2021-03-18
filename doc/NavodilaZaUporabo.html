@@ -45,7 +45,7 @@ Za reševanje izbranega problema (npr. urejanje števil, množenje matrik, najkr
 </ul>
 
 <p>
-V tako pripravljen projekt lahko uporabnik kasneje doda nove testne množice in implementira nove algoritme, sistem <span class=algator>ALGator</span> pa bo poskrbel, da se bodo vsi implementirani algoritmi izvedli na vseh testnih množicah.
+V tako pripravljen projekt lahko uporabnik kasneje doda nove testne množice in implementira nove algoritme, sistem <span class=algator>ALGator</span> pa bo poskrbel, da se bodo vsi implementirani algoritmi izvedli na vseh vhodih, ki so definirani v testnih množicah.
 </p>
 
 <p>
@@ -60,8 +60,8 @@ V spodnjih navodilih je natančno opisan postopek izdelave projekta in vseh njeg
 
 <ol style="list-style-type:lower-latin">
 <li> s programom <span class=code>algator.Admin</span> ustvari projekt in pripadajoče konfiguracijske datoteke;
-<li>v datoteki <span class=code>&lt;P&gt;.attc</span> opiši parametre testnega primera (tabela <span class=code>"Parameters"</span>) in njihov vrstni red (tabela <span class=code>"TestCaseParameters"</span>);
-<li>v razredu <span class=code>src/&lt;P&gt;Input.java</span> definiraj podatkovni del testnega primera in konstruktor;
+<li>v datoteki <span class=code>&lt;P&gt;.attc</span> opiši parametre vhoda (tabela <span class=code>"Parameters"</span>) in njihov vrstni red (tabela <span class=code>"InputParameters"</span>);
+<li>v razredu <span class=code>src/&lt;P&gt;Input.java</span> definiraj podatkovni del vhoda in konstruktor;
 <li>v razredu <span class=code>src/&lt;P&gt;Output.java</span> definiraj podatkovni del izhoda in konstruktor;
 <li>v datoteki <span class=code>&lt;P&gt;.attc</span> opiši generatorje projekta (tabela <span class=code>"Generators"</span>);
 <li>v datoteki <span class=code>src/&lt;P&gt;TestCase.java</span> za vsak generator napiši pripadajočo  <span class=code>testCaseGenerator()</span> metodo;
@@ -93,7 +93,7 @@ Vse ustvarjene datoteke je treba nato urediti z urejevalnikom besedil, kot je pr
 
 <a name="o2ai"></a>
 <h4>2.a.i Parametri vhoda</h4>
-<p>Parametri določajo naravo vhoda (na primer velikost tabele, gostota grafa, število bitov vhoda, ...) in se uporabljajo v fazi avtomatskega izvajanja algoritmov (na primer za iskanje meje za velikost vhoda,  ki ga algoritem lahko obdela v 1 sekundi) in pri analizi rezultatov (na primer, ko rišemo graf zahtevnosti v odvisnosti od velikosti testnega primera). Uporabnik določi parametre v datoteki <span class=code>proj/&lt;P&gt;.attc</span>: v tabeli <span class=code>"TestCaseParameters"</span> našteje imena parametrov, v tabeli <span class=code>"Parameters"</span> pa parametre natančno opiše (za vsak parameter poda njegov tip in obseg - min, max ter default vrednost). Vrstni red v tabeli <span class=code>"TestCaseParameters"</span> je pomemben, saj se bodo parametri v tem vrstnem redu izpisovali v izhodno datoteko.
+<p>Parametri določajo naravo vhoda (na primer velikost tabele, gostota grafa, število bitov vhoda, ...) in se uporabljajo v fazi avtomatskega izvajanja algoritmov (na primer za iskanje meje za velikost vhoda,  ki ga algoritem lahko obdela v 1 sekundi) in pri analizi rezultatov (na primer, ko rišemo graf zahtevnosti v odvisnosti od velikosti vhoda). Uporabnik določi parametre v datoteki <span class=code>proj/&lt;P&gt;.attc</span>: v tabeli <span class=code>"InputParameters"</span> našteje imena parametrov, v tabeli <span class=code>"Parameters"</span> pa parametre natančno opiše (za vsak parameter poda njegov tip in obseg - min, max ter default vrednost). Vrstni red v tabeli <span class=code>"InputParameters"</span> je pomemben, saj se bodo parametri v tem vrstnem redu izpisovali v izhodno datoteko.
 </p>
 
 <div class=primer>
@@ -111,7 +111,7 @@ Vse ustvarjene datoteke je treba nato urediti z urejevalnikom besedil, kot je pr
 </div>
 
 <a name="o2aii"></a>
-<h4>2.a.ii Podatkovni del testnega primera</h4>
+<h4>2.a.ii Podatkovni del vhoda</h4>
 <p>
 Podatkovni del vhoda se definira v razredu <span class=code>proj/src/&lt;P&gt;Input.java</span> v obliki atributa, ki je nosilec podatkov vhoda. Tip atributa je odvisen od tipa vhodnih podatkov (če je vhod tabela, bo atribut tipa <span class=code>int[]</span>, če je vhod matrika, bo atribut tipa <span class=code>int[][]</span>, ...). Za lažje upravljanje z vhodom je priporočljivo, da se v razred <span class=code>&lt;P&gt;Input.java</span> doda tudi primeren konstruktor.
 </p>
@@ -155,50 +155,50 @@ Izhod algoritma je predstavljen z razredom <span class=code>src/&lt;P&gt;Output.
 Testni primer v sistemu <span class=algator>ALGator</span> je sestavjen iz vhoda, ki je objekt tipa <span class=code>&lt;P&gt;Input</span> in (opcijsko) pričakovanega izhoda, ki je objekt tipa <span class=code>&lt;P&gt;Output</span>. 
 V času izvajanja algoritmov se testni primeri ustvarijo s pomočjo generatorjev - to so metode,  ki prejmejo množico generirajočih parametrov in vrnejo testni primer (objekt razreda <span class=code>&lt;P&gt;TestCase</span>), ki ustreza tem parametrom. 
 <br>
-Projekt ima lahko več generatorjev. Osnovni generator (ki mora biti obvezno prisoten) je generator tipa 0 (<span class=code>Type0</span> generator). To je generator, ki kot generirajoče parametre prejme vse parametre testnega primera. Tak generator je definiran v razredu <span class=code>proj/src/&lt;P&gt;TestCase.java</span> z metodo <span class=code>testCaseGenerator(Variables generatingParameters)</span>.
+Projekt ima lahko več generatorjev. Osnovni generator (ki mora biti obvezno prisoten) je generator tipa 0 (<span class=code>Type0</span> generator). To je generator, ki kot generirajoče parametre prejme vse parametre vhoda. Tak generator je definiran v razredu <span class=code>proj/src/&lt;P&gt;TestCase.java</span> z metodo <span class=code>testCaseGenerator(Variables generatingParameters)</span>.
 </p>
 <div class=primer>
-<b>Primer:</b>  v projektu <span class=code>BasicSort</span> imamo dva parametra testnega primera: <span class=code>N</span> (ki določa velikost vhoda) in <span class=code>DIST</span> (ki opisuje, kako "zmetani" so podatki v tabeli). Naloga metode <span class=code>testCaseGenerator()</span> je torej, da na podlagi vrednosti parametrov <span class=code><span class=code>DIST</span></span> in <span class=code>DIST</span> ustvari testni primer velikosti <span class=code>N</span> z distribucijo <span class=code>DIST</span>.
+<b>Primer:</b>  v projektu <span class=code>BasicSort</span> imamo dva parametra vhoda: <span class=code>N</span> (ki določa velikost vhoda) in <span class=code>DIST</span> (ki opisuje, kako "zmetani" so podatki v tabeli). Naloga metode <span class=code>testCaseGenerator()</span> je torej, da na podlagi vrednosti parametrov <span class=code><span class=code>DIST</span></span> in <span class=code>DIST</span> ustvari vhod velikosti <span class=code>N</span> z distribucijo <span class=code>DIST</span>.
 </div>
 
 <p>
-Projekt poleg osnovnega generatorja (torej generatorja tipa 0) lahko vsebuje tudi druge generatorje (torej generatorje tipa 1, 2, 3, ...), ki prejmejo drugačen nabor generirajočih parametrov. Njihova naloga je, da na podlagi vrednosti teh parametrov ustvarijo testni primer, to je, da določijo vrednosti parametrov testnega primera in "napolnijo" podatkovni del.
+Projekt poleg osnovnega generatorja (torej generatorja tipa 0) lahko vsebuje tudi druge generatorje (torej generatorje tipa 1, 2, 3, ...), ki prejmejo drugačen nabor generirajočih parametrov. Njihova naloga je, da na podlagi vrednosti teh parametrov ustvarijo testni primer, to je, da določijo vrednosti parametrov vhoda in "napolnijo" njegov podatkovni del.
 </p>
 
 <div class=primer>
-<b>Primer:</b>  testni primer v projektu <span class=code>BasicSort</span> lahko ustvarimo tudi tako, da podatke, ki jih bomo urejali, preberemo iz datoteke. Generator v tem primeru potrebuje le en generirajoči parameter - ime datoteke. Ko bo generator prebral podatke iz datoteke, bo ustvaril podatkovni del (prebrani podatki), hkrati pa bo lahko nastavil tudi vrednosti parametrov testnega primera: <span class=code>N</span>=število prebranih podatkov, <span class=code>DIST=RND</span> (podatki v datoteki se naključno razmetani).
+<b>Primer:</b>  vhod v projektu <span class=code>BasicSort</span> lahko ustvarimo tudi tako, da podatke, ki jih bomo urejali, preberemo iz datoteke. Generator v tem primeru potrebuje le en generirajoči parameter - ime datoteke. Ko bo generator prebral podatke iz datoteke, bo ustvaril podatkovni del (prebrani podatki), hkrati pa bo lahko nastavil tudi vrednosti parametrov vhoda: <span class=code>N</span>=število prebranih podatkov, <span class=code>DIST=RND</span> (podatki v datoteki se naključno razmetani).
 </div>
 
 <p>
 Tudi generatorji tipa 1, 2, 3, ... so definirani v datoteki <span class=code>proj/src/&lt;P&gt;TestCase.java</span> in sicer kot metode <span class=code>testCaseGenerator1(Variables generatingParameters)</span>, <span class=code>testCaseGenerator2(Variables generatingParameters)</span>, ...
 <br>
-Kot smo že omenili, je zelo pomembno, da generator poleg podatkovnega dela nastavi tudi parametre testnega primera. V primeru privzetega generatorja (generator tipa 0) so vrednosti teh parametrov podane med generirajočimi parametri, testnemu primeru jih pripnemo z naslednjimi ukazi:
+Kot smo že omenili, je zelo pomembno, da generator poleg podatkovnega dela nastavi tudi parametre vhoda. V primeru privzetega generatorja (generator tipa 0) so vrednosti teh parametrov podane med generirajočimi parametri, vhodu jih pripnemo z naslednjimi ukazi:
 
 <span class=code> 
 <pre>
-    Variables testcaseParameters = new Variables(generatingParameters);        
-    <span class=code>&lt;p&gt;</span>TestCase.getInput().setParameters(testcaseParameters);
+    Variable inputParameters = new Variables(generatingParameters);        
+    <span class=code>&lt;p&gt;</span>TestCase.getInput().setParameters(inputParameters);
 </pre>
 </span>
 
-Pri generatorjih tipa 1, 2, 3, ... pa mora za pravilno vrednost parametrov testnega primera poskrbeti uporabnik. 
+Pri generatorjih tipa 1, 2, 3, ... pa mora za pravilno vrednost parametrov vhoda poskrbeti uporabnik. 
 </p>
 
 <div class=primer>
-<b>Primer:</b>  v projektu <span class=code>BasicSort</span>generator tipa 1 podatke prebere iz datoteke, parametre testnega primera pa nastavi z ukazi:
+<b>Primer:</b>  v projektu <span class=code>BasicSort</span>generator tipa 1 podatke prebere iz datoteke, parametre vhoda pa nastavi z ukazi:
 
 <span class=code> 
 <pre>
-    Variables testcaseParameters = new Variables();
-    testcaseParameters.addVariable(new EVariable("N", n)); 
-    testcaseParameters.addVariable(new EVariable("DIST", "RND"));
-    basicSortTestCase.getInput().setParameters(testcaseParameters);
+    Variables inputParameters = new Variables();
+    inputParameters.addVariable(new EVariable("N", n)); 
+    inputParameters.addVariable(new EVariable("DIST", "RND"));
+    basicSortTestCase.getInput().setParameters(inputParameters);
 </pre>
 </span>
 </div>
 
 <p>
-Generator lahko (na željo uporabnika) testni primer opremi z dodatnimi lastnostmi (properties), ki se bodo uporabljale za filtriranje podatkov pri analizi. Na primer,  lastnost testnega primera je tip generatorja, ki ga je ustvaril, ali pa ime datoteke, iz katere so bili podatki prebrani. Lastnosti se v testni primer zapišejo z metodo <span class=code>addProperty()</span>.
+Generator lahko (na željo uporabnika) vhod opremi z dodatnimi lastnostmi (properties), ki se bodo uporabljale za filtriranje podatkov pri analizi. Na primer,  lastnost vhoda je tip generatorja, ki ga je ustvaril, ali pa ime datoteke, iz katere so bili podatki prebrani. Lastnosti se v vhod zapišejo z metodo <span class=code>addProperty()</span>.
 </p>
 
 <div class=primer>
@@ -206,8 +206,8 @@ Generator lahko (na željo uporabnika) testni primer opremi z dodatnimi lastnost
 
 <span class=code> 
 <pre>
-    testcaseParameters.addProperty(PROPS, "Type", "Type1");        
-    testcaseParameters.addProperty(PROPS, "Filename", filename);
+    inputParameters.addProperty(PROPS, "Type", "Type1");        
+    inputParameters.addProperty(PROPS, "Filename", filename);
   </pre>
 </span>
 </div>
@@ -219,17 +219,17 @@ Podatki o definiranih generatorjih (kateri tipi generatorjev obstajajo in katere
 <a name="o2d"></a>
 <h3>2.d) Testne množice</h3>
 <p>
-Testni primeri so v sistemu <span class=algator>ALGator</span> združeni v t.i. testne množice (TestSet), ki so osnovne enote izvajanja algoritmov (običajno algoritem poženemo na vseh primerih ene testne množice). Testna množica je definirana z dvema datotekama: <span class=code>tests/&lt;T&gt;.atts</span> in <span class=code>tests/&lt;T&gt;.txt</span>. V prvi datoteki so poleg administrativnih podatkov (ime množice, kratko ime, opis) zapisani tudi naslednji podatki:
+Testni primeri so v sistemu <span class=algator>ALGator</span> združeni v t.i. testne množice (TestSet), ki so osnovne enote izvajanja algoritmov (običajno algoritem poženemo na vseh vhodih ene testne množice). Testna množica je definirana z dvema datotekama: <span class=code>tests/&lt;T&gt;.atts</span> in <span class=code>tests/&lt;T&gt;.txt</span>. V prvi datoteki so poleg administrativnih podatkov (ime množice, kratko ime, opis) zapisani tudi naslednji podatki:
 
 <ul>
-  <li><span class=code>"N"</span> ... število testnih primerov te testne množice, 
-  <li><span class=code>"TestRepeat"</span> ... število ponavljanj posameznega testnega primera in 
-  <li><span class=code>"TimeLimit"</span> ... največji dovoljeni čas izvajanja za en testni primer (če je čas prekoračen, sistem ustavi izvajanje).
+  <li><span class=code>"N"</span> ... število vhodov te testne množice, 
+  <li><span class=code>"TestRepeat"</span> ... število ponavljanj posameznega vhoda in 
+  <li><span class=code>"TimeLimit"</span> ... največji dovoljeni čas izvajanja za en vhod (če je čas prekoračen, sistem ustavi izvajanje).
   </ul>
 </p>
 
 <p>
-  V datoteki <span class=code>tests/&lt;T&gt;.txt</span> pa so zapisani posamezni testni primeri - vsaka vrstica opisuje en testni primer. Število pravih vrstic (torej ne-komentarjev) v tej datoteki se mora ujemati z vrednostjo <span class=code>"N"</span> iz <span class=code>atts</span> datoteke).  Testni primer je podan z eno tekstovno vrstico (test_description_line), ki vsebuje naslednje podatke:
+  V datoteki <span class=code>tests/&lt;T&gt;.txt</span> pa so zapisani posamezni testni primeri - vsaka vrstica opisuje en testni primer. Število pravih vrstic (torej ne-komentarjev) v tej datoteki se mora ujemati z vrednostjo <span class=code>"N"</span> iz <span class=code>atts</span> datoteke).  Testni primer je podan z eno tekstovno vrstico (testcase_description_line), ki vsebuje naslednje podatke:
 </p>
 <p>
 <span class=code>type:test_name:generating_parameters</span>
@@ -355,7 +355,7 @@ V datoteki <span class=code>BasicSortOuput.java</span> v metodi <span class=code
 Algoritem sistema <span class=algator>ALGator</span> je metoda, ki kot vhod prejme objekt razreda <span class=code>&lt;P&gt;Input</span> in vrne objekt razreda <span class=code>&lt;P&gt;Output</span>. Algoritem je definiran v datoteki <span class=code>algs/ALG-&lt;A&gt;/src/&lt;A&gt;Algorithm.java</span> v metodi 
 </p>
 <pre>
-    <span class=code>&lt;P&gt;Output execute(&lt;P&gt;Input testCase) {...}</span>
+    <span class=code>&lt;P&gt;Output execute(&lt;P&gt;Input input) {...}</span>
 </pre>
 Naloga te metode je, da na podlagi prejetega vhoda ustvari in vrne izhod. Čas izvajanja te metode se šteje kot čas izvajanja algoritma. 
 </p>
@@ -364,9 +364,9 @@ Naloga te metode je, da na podlagi prejetega vhoda ustvari in vrne izhod. Čas i
 
 <p class=code>
 <pre>
-  BasicSortOutput execute(BasicSortInput testCase) {    
-    javaSort(testCase.arrayToSort);        
-    return new BasicSortOutput(testCase.arrayToSort);
+  BasicSortOutput execute(BasicSortInput input) {    
+    javaSort(input.arrayToSort);        
+    return new BasicSortOutput(input.arrayToSort);
   }
   
   private void javaSort(int[] data) {

@@ -169,7 +169,7 @@ public class EResult extends Entity {
    * test parameters (ID_ParOrder order) and  result indicators in ID_IndOrder order.
    */
   public static String [] getVariableOrder(ETestCase eTestCase, EResult eResult) {
-    String [] orderA = eTestCase.getTestCaseParameters();
+    String [] orderA = eTestCase.getInputParameters();
     String [] orderB = eResult.  getStringArray(EResult  .ID_IndOrder);
 
     String [] order = new String[orderA.length  + orderB.length + FIXNUM];

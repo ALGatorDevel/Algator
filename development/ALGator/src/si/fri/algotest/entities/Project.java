@@ -143,7 +143,7 @@ public class Project {
     if (eTestCase == null ) 
       return new String[0];
     else
-      return eTestCase.getTestCaseParameters();
+      return eTestCase.getInputParameters();
   }
   
   /**
