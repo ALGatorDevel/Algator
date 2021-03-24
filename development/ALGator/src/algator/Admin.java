@@ -127,6 +127,8 @@ public class Admin {
     
     options.addOption("use", "usage", false, "print usage guide");
     options.addOption("i", "info", false, "print info about entity");
+    options.addOption("ei", "extinfo", false, "print extended info about entity");
+    
     
     return options;
   }
@@ -256,11 +258,11 @@ public class Admin {
       }          
            
       
-      if (line.hasOption("info")) {
+      if (line.hasOption("info") || line.hasOption("extinfo")) {
         String project   = (curArgs.length != 0) ? curArgs[0] : "";
         String algorithm = line.hasOption("algorithm") ? line.getOptionValue("algorithm") : "";
         
-        String info = getInfo(project, algorithm);
+        String info = getInfo(project, algorithm, line.hasOption("extinfo"));
         System.out.println(info);
         
         return;
@@ -629,7 +631,7 @@ public class Admin {
    * @param algorithmName
    * @return 
    */
-  public static String getInfo(String projectName, String algorithmName) {
+  public static String getInfo(String projectName, String algorithmName, boolean extended) {
     if (projectName.isEmpty()) {             // list of projects
       JSONObject projInfo = new JSONObject();
 
@@ -664,41 +666,42 @@ public class Admin {
       }
       projInfo.put("TestSets", jaS);
       
-      
-      JSONArray mpp = new JSONArray();
-            
-      projInfo.put("MainProjPresenters", new JSONArray(project.getEProject().getStringArray(EProject.ID_MainProjPresenters)));
-      projInfo.put("ProjPresenters",     new JSONArray(project.getEProject().getStringArray(EProject.ID_ProjPresenters)));
-      projInfo.put("MainAlgPresenters",  new JSONArray(project.getEProject().getStringArray(EProject.ID_MainAlgPresenters)));      
-      projInfo.put("AlgPresenters",      new JSONArray(project.getEProject().getStringArray(EProject.ID_AlgPresenters)));      
-      
-      
-      ETestCase eTestCase = project.getTestCaseDescription();
-      
-      HashMap<MeasurementType,EResult> rDesc = project.getResultDescriptions();
-      JSONObject jrDesc = new JSONObject();
-      for(MeasurementType mType : rDesc.keySet()) {
-        if (mType.equals(MeasurementType.JVM)) continue;
+      if (extended) {
+        JSONArray mpp = new JSONArray();
+              
+        projInfo.put("MainProjPresenters", new JSONArray(project.getEProject().getStringArray(EProject.ID_MainProjPresenters)));
+        projInfo.put("ProjPresenters",     new JSONArray(project.getEProject().getStringArray(EProject.ID_ProjPresenters)));
+        projInfo.put("MainAlgPresenters",  new JSONArray(project.getEProject().getStringArray(EProject.ID_MainAlgPresenters)));      
+        projInfo.put("AlgPresenters",      new JSONArray(project.getEProject().getStringArray(EProject.ID_AlgPresenters)));      
         
-        EResult eRes = rDesc.get(mType);
-        JSONObject params     = new JSONObject();
-        JSONObject indicators = new JSONObject();
         
-        for (EVariable var : eTestCase.getParameters()) {
-          params.put(var.getName(), new JSONObject(var.toJSONString()));
-        }
+        ETestCase eTestCase = project.getTestCaseDescription();
         
-        for (EVariable var : eRes.getIndicators()) {
-          indicators.put(var.getName(), new JSONObject(var.toJSONString()));
-        }
-        
-        JSONObject curRD = new JSONObject();
-        curRD.put("Parameters", params);
-        curRD.put("Indicators", indicators);
-        curRD.put("VariableOrder", EResult.getVariableOrder(eTestCase, eRes));
-        jrDesc.put(mType.name(), curRD);
-      } 
-      projInfo.put("Result", jrDesc);
+        HashMap<MeasurementType,EResult> rDesc = project.getResultDescriptions();
+        JSONObject jrDesc = new JSONObject();
+        for(MeasurementType mType : rDesc.keySet()) {
+          if (mType.equals(MeasurementType.JVM)) continue;
+          
+          EResult eRes = rDesc.get(mType);
+          JSONObject params     = new JSONObject();
+          JSONObject indicators = new JSONObject();
+          
+          for (EVariable var : eTestCase.getParameters()) {
+            params.put(var.getName(), new JSONObject(var.toJSONString()));
+          }
+          
+          for (EVariable var : eRes.getIndicators()) {
+            indicators.put(var.getName(), new JSONObject(var.toJSONString()));
+          }
+          
+          JSONObject curRD = new JSONObject();
+          curRD.put("Parameters", params);
+          curRD.put("Indicators", indicators);
+          curRD.put("VariableOrder", EResult.getVariableOrder(eTestCase, eRes));
+          jrDesc.put(mType.name(), curRD);
+        } 
+        projInfo.put("Result", jrDesc);
+      }
       
       return projInfo.toString(2);
     } else {                                 // algorithm info
