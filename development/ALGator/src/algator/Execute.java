@@ -182,18 +182,7 @@ public class Execute {
       boolean alwaysCompile = false;
       boolean alwaysRunTests = false;
 
-      boolean listOnly = false;
-      
-      ELocalConfig localConfig = ELocalConfig.getConfig();
-      
-      String username=localConfig.getField(ELocalConfig.ID_Username);
-      if (line.hasOption("u")) {
-	username = line.getOptionValue("u");
-      }      
-      String password=localConfig.getField(ELocalConfig.ID_Password);
-      if (line.hasOption("p")) {
-	password = line.getOptionValue("p");
-      }            
+      boolean listOnly = false;       
             
       String algatorRoot = ATGlobal.getALGatorRoot();
       if (line.hasOption("algator_root")) {
@@ -261,9 +250,24 @@ public class Execute {
       int whereToPrint = 3; // both, stdout and file
       if (line.hasOption("where_results")) try {
         whereToPrint = Integer.parseInt(line.getOptionValue("where_results"));
-      } catch (Exception e) {}            
+      } catch (Exception e) {}         
+      
+      
+      
+      ELocalConfig localConfig = ELocalConfig.getConfig();
+      
+      String username=localConfig.getField(ELocalConfig.ID_Username);
+      if (line.hasOption("u")) {
+	username = line.getOptionValue("u");
+      }      
+      String password=localConfig.getField(ELocalConfig.ID_Password);
+      if (line.hasOption("p")) {
+	password = line.getOptionValue("p");
+      }           
 
       if (!Database.databaseAccessGranted(username, password)) return;
+      
+      
       
       runAlgorithms(dataRoot, projectName, algorithmName, testsetName, mType, alwaysCompile, alwaysRunTests, listOnly, whereToPrint);
  

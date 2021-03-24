@@ -1,30 +1,9 @@
 <html>
-<style>
-.code {
-  font-family: 'Courier New', monospace;
-  font-size: smaller;
-}
+<head>
+  <link rel="stylesheet" href="tutorial.css">
+</head>
 
-p {
-  text-align: justify;
-}
-
-.primer {
-  margin: 15px;
-  border: 1px;
-  padding: 5px;
-  width: 90%;
-  border-style:solid;
-  background-color:lightgreen;
-}
-
-.algator {
-  font-family: 'Courier New', monospace;
-  font-variant: small-caps;
-}
-</style>
-
-<body style="margin:30px;padding:30px">
+<body>
 
 <h1>Delovanje sistema <span class=algator>ALGator</span></h1>
 
@@ -33,7 +12,7 @@ Sistem <span class=algator>ALGator</span> je namenjen izvajanju algoritmov za re
 </p>
 
 <p>
-Za reševanje izbranega problema (npr. urejanje števil, množenje matrik, najkrajša pot v grafu, trgovski potnik, ...) uporabnik sistema <span class=algator>ALGator</span> ustvari projekt in s pomočjo tekstovnih konfiguracijskih datotek in javanskih razredov definira
+Za reševanje izbranega problema (npr. urejanje števil, množenje matrik, najkrajša pot v grafu, trgovski potnik, ...) uporabnik sistema <span class=algator>ALGator</span> ustvari projekt (in tako postane njegov administrator) in s pomočjo tekstovnih konfiguracijskih datotek in javanskih razredov definira
 </p>
 <ul>
 <li>vhod algoritma, 
@@ -78,8 +57,8 @@ Osnovne konfiguracijske datoteke za projekt, algoritem in testno množico ustvar
 </p>
 <ul>
 <li><span class=code>java.Admin -cp  &lt;P&gt;</span>
-<li><span class=code>java .Admin -ca &lt;P&gt; &lt;A&gt;</span>
-<li><span class=code>java .Admin -ct &lt;P&gt; &lt;T&gt;</span>
+<li><span class=code>java.Admin -ca &lt;P&gt; &lt;A&gt;</span>
+<li><span class=code>java.Admin -ct &lt;P&gt; &lt;T&gt;</span>
 </ul>
 <p>
 Vse ustvarjene datoteke je treba nato urediti z urejevalnikom besedil, kot je predstavljeno v nadaljevanju.
