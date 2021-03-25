@@ -1,4 +1,32 @@
-(setq markdown-css-paths '("tutorial.css"))
+<style>
+    .code {
+      font-family: 'Courier New', monospace;
+      font-size: smaller;
+    }
+    
+    body {
+      margin:30px;
+      padding:30px;
+    }
+    
+    p {
+      text-align: justify;
+    }
+    
+    .primer {
+      margin: 15px;
+      border: 1px;
+      padding: 5px;
+      width: 90%;
+      border-style:solid;
+      background-color:lightgreen;
+    }
+    
+    .algator {
+      font-family: 'Courier New', monospace;
+      font-variant: small-caps;
+    }
+  </style>
 
   <h1>Uporaba sistema <span class=algator>ALGator</span></h1>
   <hr>
