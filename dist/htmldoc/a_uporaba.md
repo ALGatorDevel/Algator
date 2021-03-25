@@ -56,7 +56,7 @@ Vse algoritme na vseh testnih množicah projekta ``BasicSort`` poženemo z ukazo
 ```
 $ algator_execute BasicSort
 ```
-<p style="float:rigth;"><a href="/dist/htmldoc/images/linux_install.png">Screenshot</a>
+<p style="float:rigth;"><a href="/dist/htmldoc/images/execute.png">Screenshot</a>
 </p>
 
 Če želimo na vseh testnih množicah izvesti le algoritem ``QuickSort`` poženemo
