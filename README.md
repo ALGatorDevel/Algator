@@ -4,26 +4,20 @@
 
 ## About the ALGator
 
-ALGator facilitates automatic algorithm evaluation process by executing 
-implementations of the algorithms on the given predefined sets of test cases
-and analyzing various indicators of the execution.  
-To use the ALGator, user defines a project including the definition of 
-the problem to be solved, sets of test cases, parameters 
-of the input and indicators of the output data  and the criteria for the 
-algorithm quality evaluation. When a project is defined, any number of 
-algorithm implementations can be added. When requested, system 
-executes all the implemented algorithms, checks for the correctness 
-and compares the quality of their results. Using the ALGator user can 
-add additional quality criteria, draw graphs and perform evaluations and 
-comparisons of defined algorithms. 
+ALGator facilitates automatic algorithm evaluation process by executing implementations of the algorithms on the given predefined sets of test cases and analyzing various indicators of the execution.  
+To use the ALGator, user defines a project including the definition of the problem to be solved, sets of test cases, parameters of the input and indicators of the output data  and the criteria for the algorithm quality evaluation. When a project is defined, any number of algorithm implementations can be added. When requested, system executes all the implemented algorithms, checks for the correctness and compares the quality of their results. Using the ALGator user can add additional quality criteria, draw graphs and perform evaluations and comparisons of defined algorithms. 
 
 ## Instalation 
 - [Installing ALGator on Linux and Mac](/dist/htmldoc/install_linux.md)
 - [Installing ALGator on Windows](/dist/htmldoc/install_windows.md)
 
 
-## Usage instructions
-- [Basic concepts and usage instructions (in Slovene)](https://htmlpreview.github.io/?https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/a_projekt.html)
+## User manuals (in Slovene)
+- [Basic concepts](https://htmlpreview.github.io/?https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/a_opis.html)
+
+- [Usage instructions](dist/htmldoc/a_uporaba.md)
+
+- [Project administration](https://htmlpreview.github.io/?https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/a_projekt.html)
 
 
 ## ALGator on GitHub

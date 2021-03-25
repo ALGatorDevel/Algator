@@ -26,8 +26,10 @@ import si.fri.algotest.tools.ATTools;
 import si.fri.algotest.global.ErrorStatus;
 import static si.fri.algotest.tools.ATTools.getTaskResultFileName;
 import si.fri.algotest.tools.RSync;
+import si.fri.algotest.users.DBEntities;
 import si.fri.algotest.users.UsersDatabase;
 import si.fri.algotest.users.UsersTools;
+import static si.fri.algotest.users.UsersTools.load_entites;
 
 /**
  *

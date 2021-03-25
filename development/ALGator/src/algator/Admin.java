@@ -635,7 +635,6 @@ public class Admin {
     if (projectName.isEmpty()) {             // list of projects
       JSONObject projInfo = new JSONObject();
 
-      
       ArrayList<DBEntity> projects = UsersTools.listProjects();   
       JSONArray ja = new JSONArray();
       for (DBEntity project : projects) {
