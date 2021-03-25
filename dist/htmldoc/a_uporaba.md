@@ -1,10 +1,4 @@
-<table width=100% style="  border: 0px solid white;">
-  <tr>
-  <td valign=bottom><h1 style="margin: 0px;">Uporaba&nbsp;sistema&nbsp;<span class=algator>ALGator</span></h1></td>
-  <td width=100%><img src="images/algator.png"  width=100 height=100 style="float:right">
-  </td>
-  </tr>
-  </table>
+  <h1>Uporaba sistema <span class=algator>ALGator</span></h1>
   <hr>
   <br>
   
