@@ -1,3 +1,5 @@
+(setq markdown-css-paths '("tutorial.css"))
+
   <h1>Uporaba sistema <span class=algator>ALGator</span></h1>
   <hr>
   <br>
