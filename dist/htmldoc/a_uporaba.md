@@ -1,38 +1,8 @@
-<style>
-    .code {
-      font-family: 'Courier New', monospace;
-      font-size: smaller;
-    }
-    
-    body {
-      margin:30px;
-      padding:30px;
-    }
-    
-    p {
-      text-align: justify;
-    }
-    
-    .primer {
-      margin: 15px;
-      border: 1px;
-      padding: 5px;
-      width: 90%;
-      border-style:solid;
-      background-color:lightgreen;
-    }
-    
-    .algator {
-      font-family: 'Courier New', monospace;
-      font-variant: small-caps;
-    }
-  </style>
-
   <h1>Uporaba sistema <span class=algator>ALGator</span></h1>
   <hr>
   <br>
   
-Sistem <span class=algator>ALGator</span> uporabljamo s pomočjo batch datotek, ki se ob namestitvi ([linux](/dist/htmldoc/install_linux.md) | [windows](/dist/htmldoc/install_windows.md)) samodejno prenesejo v folder <span class=code><algator_root>/data_root/bin</span>. Datoteke poganjamo "ročno" v lupini, v okolju Windows pa lahko tudi z dvoklikom na ikono skripte v Raziskovalcu. Uporaba skript v lupini se v okoljih Linux in Windows razlikuje le po končnici <span class=code>bat</span>, ki je dodana skriptam v Windows okolju. Tam torej, na primer,  namesto 
+Sistem <span class=algator>ALGator</span> uporabljamo s pomočjo batch datotek, ki se ob namestitvi ([linux](/dist/htmldoc/install_linux.md) | [windows](/dist/htmldoc/install_windows.md)) samodejno prenesejo v folder <span style="font-family:Courier new; font-size: smaller;" ><algator_root>/data_root/bin</span>. Datoteke poganjamo "ročno" v lupini, v okolju Windows pa lahko tudi z dvoklikom na ikono skripte v Raziskovalcu. Uporaba skript v lupini se v okoljih Linux in Windows razlikuje le po končnici <span style="font-family:Courier new; font-size: smaller;">bat</span>, ki je dodana skriptam v Windows okolju. Tam torej, na primer,  namesto 
 ```
 $ algator_start 
 ```
@@ -40,12 +10,12 @@ pišemo
 ```
 C:\> algator_start.bat
 ```
-Pred uporabo skript je treba poskrbeti, da je folder <span class=code><algator_root>/data_root/bin</span> dodan v okoljsko spremenljivko <span class=code>PATH</span>, oziroma, da se v lupini pred izvajanjem skript z ukazom <span class=code>cd</span> premaknemo v ta folder. 
+Pred uporabo skript je treba poskrbeti, da je folder <span style="font-family:Courier new; font-size: smaller;"><algator_root>/data_root/bin</span> dodan v okoljsko spremenljivko <span style="font-family:Courier new; font-size: smaller;">PATH</span>, oziroma, da se v lupini pred izvajanjem skript z ukazom <span style="font-family:Courier new; font-size: smaller;">cd</span> premaknemo v ta folder. 
 
 
-### Upravljanje s sliko <span class=code>docker</span> 
+### Upravljanje s sliko <span style="font-family:Courier new; font-size: smaller;">docker</span> 
 
-Pred uporabo ostalih skript je treba s programom <span class=code>docker</span> zagnati sliko sistema <span class=algator>ALGator</span>.
+Pred uporabo ostalih skript je treba s programom <span style="font-family:Courier new; font-size: smaller;">docker</span> zagnati sliko sistema <span class=algator>ALGator</span>.
 ```
 $ algator_start 
 ```
@@ -82,18 +52,18 @@ Pri izvajanju si pomagamo s stikali
 -c ... brezpogojno prevajanje kode
 -v ... količina izpisa (privzeto 0)
 ```
-Vse algoritme na vseh testnih množicah projekta <span class=code>BasicSort</span> poženemo z ukazom 
+Vse algoritme na vseh testnih množicah projekta <span style="font-family:Courier new; font-size: smaller;">BasicSort</span> poženemo z ukazom 
 ```
 $ algator_execute BasicSort
 ```
 <p style="float:rigth;"><a href="/dist/htmldoc/images/linux_install.png">Screenshot</a>
 </p>
 
-Če želimo na vseh testnih množicah izvesti le algoritem <span class=code>QuickSort</span> poženemo
+Če želimo na vseh testnih množicah izvesti le algoritem <span style="font-family:Courier new; font-size: smaller;">QuickSort</span> poženemo
 ```
 $ algator_execute BasicSort -a QuickSort
 ```
-Če želimo preverite delovanje le na testni množici <span class=code>TestSet1</span> pa poženemo
+Če želimo preverite delovanje le na testni množici <span style="font-family:Courier new; font-size: smaller;">TestSet1</span> pa poženemo
 ```
 $ algator_execute BasicSort -a QuickSort -t TestSet1
 ```
@@ -103,13 +73,13 @@ $ algator_execute BasicSort -a QuickSort -t TestSet1 -v 2
 ```
 
 ### Prikaz in analiza rezultatov
-Rezultate izvajanja (ki so se zapisali v datoteke v folderju <span class=code>PROJ-&lt;P&gt;/results</span>) lahko pregledujemo in analiziramo s pomočjo spletnega vmesnika. Tega poženemo z ukazom
+Rezultate izvajanja (ki so se zapisali v datoteke v folderju <span style="font-family:Courier new; font-size: smaller;">PROJ-&lt;P&gt;/results</span>) lahko pregledujemo in analiziramo s pomočjo spletnega vmesnika. Tega poženemo z ukazom
 ```
 $ algator_webpage
 ```
-Nato v zavihku <span class=code>Problems</span> izberemo projekt in opcijo <span class=code>Query editor</span>. V urejevalniki poizvedb izberemo algoritme, testne množice, parametre in indikatorje ter na podlagi podatkov, ki se izpišejo v tabeli, izrišemo graf.  
+Nato v zavihku <span style="font-family:Courier new; font-size: smaller;">Problems</span> izberemo projekt in opcijo <span style="font-family:Courier new; font-size: smaller;">Query editor</span>. V urejevalniki poizvedb izberemo algoritme, testne množice, parametre in indikatorje ter na podlagi podatkov, ki se izpišejo v tabeli, izrišemo graf.  
 
-Spodnja slika prikazuje primer: v poizvedbo smo vključili algoritma <span class=code>BubbleSort</span> in <span class=code>InsertionSort</span> ter testno množico <span class=code>TestSet1</span>, med parametre smo vključili velikost problema <span class=code>N</span>, med indikatorje pa najkrajši čas izvajanja <span class=code>Tmin</span>. 
+Spodnja slika prikazuje primer: v poizvedbo smo vključili algoritma <span style="font-family:Courier new; font-size: smaller;">BubbleSort</span> in <span style="font-family:Courier new; font-size: smaller;">InsertionSort</span> ter testno množico <span style="font-family:Courier new; font-size: smaller;">TestSet1</span>, med parametre smo vključili velikost problema <span style="font-family:Courier new; font-size: smaller;">N</span>, med indikatorje pa najkrajši čas izvajanja <span style="font-family:Courier new; font-size: smaller;">Tmin</span>. 
 
 <p style="text-align:center;">
 <img width=700 src="images/queryEditor.png" />
