@@ -63,7 +63,7 @@ $ algator_execute BasicSort
 ```
 $ algator_execute BasicSort -a QuickSort
 ```
-Če želimo preverite delovanje le na testni množici ``TestSet1`` pa poženemo
+Če želimo preverite delovanje le na testni množici ``TestSet1``, pa poženemo
 ```
 $ algator_execute BasicSort -a QuickSort -t TestSet1
 ```
@@ -73,7 +73,7 @@ $ algator_execute BasicSort -a QuickSort -t TestSet1 -v 2
 ```
 
 ### Prikaz in analiza rezultatov
-Rezultate izvajanja (ki so se zapisali v datoteke v folderju ``PROJ-&lt;P&gt;/results``) lahko pregledujemo in analiziramo s pomočjo spletnega vmesnika. Tega poženemo z ukazom
+Rezultate izvajanja (ki so se zapisali v datoteke v folderju ``PROJ-<P>/results``) lahko pregledujemo in analiziramo s pomočjo spletnega vmesnika. Tega poženemo z ukazom
 ```
 $ algator_webpage
 ```

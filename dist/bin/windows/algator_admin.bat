@@ -8,7 +8,7 @@ if "%~1"=="" (
 )
 
 IF NOT DEFINED tID (
-  echo ALGator docker container is not running. Run ALGator_Start before using other scripts.
+  echo ALGator docker container is not running. Run algator_start before using other scripts.
   pause
 ) ELSE (
   set pars="Enter params for java algator.Admin: "
