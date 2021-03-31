@@ -33,9 +33,9 @@
     Download the instalation script from GitHub ...
     <br>
     ```
-    $ curl -L -O https://raw.github.com/ALGatorDevel/Algator/master/dist/bin/linux/algator_start
+    $ curl -L -O https://raw.github.com/ALGatorDevel/Algator/master/dist/bin/_target_/algator_start
     ```   
-    ... and execute
+    ... (note: replace <b>_target_</b>b> with <b>linux</b> or <b>mac</b>) and execute
     <br>
     ```
     $ chmod +x algator_start
