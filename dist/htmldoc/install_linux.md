@@ -35,7 +35,7 @@
     ```
     $ curl -L -O https://raw.github.com/ALGatorDevel/Algator/master/dist/bin/_target_/algator_start
     ```   
-    ... (note: replace <b>_target_</b>b> with <b>linux</b> or <b>mac</b>) and execute
+    ... (note: replace <b>&lowbar;target&lowbar;</b>b> with <b>linux</b> or <b>mac</b>) and execute
     <br>
     ```
     $ chmod +x algator_start
