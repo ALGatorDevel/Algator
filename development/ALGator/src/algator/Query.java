@@ -2,6 +2,7 @@ package algator;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -11,9 +12,13 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import si.fri.algotest.analysis.Analysis;
+import si.fri.algotest.analysis.DataAnalyser;
+import si.fri.algotest.analysis.TableData;
 import si.fri.algotest.database.Database;
 import si.fri.algotest.entities.EAlgorithm;
 import si.fri.algotest.entities.ELocalConfig;
+import si.fri.algotest.entities.EQuery;
 import si.fri.algotest.entities.EResult;
 import si.fri.algotest.entities.ETestSet;
 import si.fri.algotest.entities.MeasurementType;
@@ -26,18 +31,14 @@ import si.fri.algotest.tools.ATTools;
 import si.fri.algotest.global.ErrorStatus;
 import static si.fri.algotest.tools.ATTools.getTaskResultFileName;
 import si.fri.algotest.tools.RSync;
-import si.fri.algotest.users.DBEntities;
-import si.fri.algotest.users.UsersDatabase;
-import si.fri.algotest.users.UsersTools;
-import static si.fri.algotest.users.UsersTools.load_entites;
 
 /**
  *
  * @author tomaz
  */
-public class Execute {
+public class Query {
 
-  private static String introMsg = "ALGator Execute, " + Version.getVersion();
+  private static String introMsg = "ALGator Query, " + Version.getVersion();
   
 
   private static Options getOptions() {
@@ -85,11 +86,12 @@ public class Execute {
             .hasArg(true)
             .withDescription("print additional information (0 = OFF (default), 1 = some, 2 = all")
             .create("v");
-
+    
     Option logTarget = OptionBuilder.withArgName("log_target")
             .hasArg(true)
             .withDescription("where to print information (1 = stdout (default), 2 = file, 3 = both")
             .create("log");
+    
 
     Option whereResults = OptionBuilder.withArgName("where_results")
             .hasArg(true)
@@ -122,12 +124,6 @@ public class Execute {
     
     options.addOption("h", "help", false,
 	    "print this message");
-    options.addOption("c", "compile", false,
-	    "compile all classes; if this option is omitted, only outdated classes will be compiled");
-    options.addOption("e", "exec", false,
-	    "execute test(s) without checking; if this option is omitted, only outdated tests will be executed");
-    options.addOption("l", "list_jobs", false,
-	    "list the jobs (i.e. the pairs (algorithm, testset)) that are to be executed");
         
     options.addOption("use", "usage", false, "print usage guide");
     
@@ -136,11 +132,11 @@ public class Execute {
 
   private static void printMsg(Options options) {    
     HelpFormatter formatter = new HelpFormatter();
-    formatter.printHelp("algator.Execute [options] project_name", options);
+    formatter.printHelp("algator.Query [options] project_name", options);
   }
 
   private static void printUsage() {
-    Scanner sc = new Scanner((new Chart()).getClass().getResourceAsStream("/data/ExecutorUsage.txt")); 
+    Scanner sc = new Scanner((new Chart()).getClass().getResourceAsStream("/data/QueryUsage.txt")); 
     while (sc.hasNextLine())
       System.out.println(sc.nextLine());   
     sc.close();
@@ -180,11 +176,6 @@ public class Execute {
 
       String algorithmName = "";
       String testsetName = "";
-
-      boolean alwaysCompile = false;
-      boolean alwaysRunTests = false;
-
-      boolean listOnly = false;       
             
       String algatorRoot = ATGlobal.getALGatorRoot();
       if (line.hasOption("algator_root")) {
@@ -209,18 +200,6 @@ public class Execute {
       }
       if (line.hasOption("testset")) {
 	testsetName = line.getOptionValue("testset");
-      }
-
-      if (line.hasOption("compile")) {
-	alwaysCompile = true;
-      }
-
-      if (line.hasOption("exec")) {
-	alwaysRunTests = true;
-      }
-
-      if (line.hasOption("list_jobs")) {
-	listOnly = true;
       }
       
       MeasurementType mType = MeasurementType.EM;
@@ -247,14 +226,12 @@ public class Execute {
         if (line.getOptionValue("log").equals("3"))
           ATGlobal.logTarget = ATLog.TARGET_FILE + ATLog.TARGET_STDOUT;
       }     
-      ATLog.setLogTarget(ATGlobal.logTarget);
-                      
+      ATLog.setLogTarget(ATGlobal.logTarget);      
+                            
       int whereToPrint = 3; // both, stdout and file
       if (line.hasOption("where_results")) try {
         whereToPrint = Integer.parseInt(line.getOptionValue("where_results"));
-      } catch (Exception e) {}         
-      
-      
+      } catch (Exception e) {}                     
       
       ELocalConfig localConfig = ELocalConfig.getConfig();
       
@@ -271,7 +248,7 @@ public class Execute {
       
       
       
-      runAlgorithms(dataRoot, projectName, algorithmName, testsetName, mType, alwaysCompile, alwaysRunTests, listOnly, whereToPrint);
+      runQuery(dataRoot, projectName, algorithmName, testsetName, mType, whereToPrint);
  
     } catch (ParseException ex) {
       printMsg(options);
@@ -279,22 +256,10 @@ public class Execute {
     }
   }
 
-  public static boolean syncTests(String projName) {
-    String dataRootTests  = ATGlobal.getTESTSroot(ATGlobal.getALGatorDataRoot(),  projName);
-    String dataLocalTests = ATGlobal.getTESTSroot(ATGlobal.getALGatorDataLocal(), projName);
-    ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing tests from %s to %s", dataRootTests, dataLocalTests));
-    int syncStatus = RSync.mirror(dataRootTests, dataLocalTests);    
-    if (syncStatus != 0) {      
-      ATLog.log("Syncing failed  (sync status: " + syncStatus +") " + ErrorStatus.getLastErrorMessage(), 1);      
-      return false;
-    }
-    ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing tests done"));    
-    return true;
-  }
+
   
-  private static void runAlgorithms(String dataRoot, String projName, String algName,
-	  String testsetName, MeasurementType mType, boolean alwaysCompile, 
-          boolean alwaysRun, boolean printOnly, int whereToPrint) {
+  private static void runQuery(String dataRoot, String projName, String algName,
+	  String testsetName, MeasurementType mType, int whereToPrint) {
     
     if (!ATGlobal.projectExists(dataRoot, projName)) {
       ATGlobal.verboseLevel=1;
@@ -303,9 +268,6 @@ public class Execute {
       return;      
     }
     
-    // before executing algorithms we sync test folder from data_root to data_local
-    if (!syncTests(projName)) 
-      return;
 
     // Test the project
     Project projekt = new Project(dataRoot, projName);
@@ -331,10 +293,13 @@ public class Execute {
        eAlgs = new ArrayList(projekt.getAlgorithms().values());
     }
     
+    ETestSet otherTst = new ETestSet();
+    otherTst.setName(Analysis.OtherTestsetName);
+    
     // Test testsets
     ArrayList<ETestSet> eTests;
     if (!testsetName.isEmpty()) {
-      ETestSet test = projekt.getTestSets().get(testsetName);
+      ETestSet test = (testsetName.equals(Analysis.OtherTestsetName)) ? otherTst : projekt.getTestSets().get(testsetName);
       if (test == null) {
         ATGlobal.verboseLevel=1;
 	ATLog.log("Invalid testset - " + testsetName, 1);
@@ -344,55 +309,30 @@ public class Execute {
       eTests.add(test);
     } else {
        eTests = new ArrayList(projekt.getTestSets().values());
+       eTests.add(otherTst);
     }
             
-    // Test mesurement type
-    EResult rDesc = projekt.getResultDescriptions().get(mType);  
-    if (rDesc == null) {
-      ATGlobal.verboseLevel=1;
-      ATLog.log(String.format("Result description file for '%s' does not exist.\n", mType.getExtension()), 1);
-      return;
-    }
-    if (mType.equals(MeasurementType.JVM)) {
-      String vmep = ELocalConfig.getConfig().getField(ELocalConfig.ID_VMEP);
-      File vmepFile = new File(vmep == null ? "":vmep);
+    String algs = "";
+    for (int i = 0; i < eAlgs.size(); i++) 
+      algs += (algs.isEmpty() ? "": ",") + String.format("\"%s\"", eAlgs.get(i).getName());
+    algs = "[" + algs + "]";
+    
+    String tsts = "";
+    for (int i = 0; i < eTests.size(); i++) 
+      tsts += (tsts.isEmpty() ? "": ",") + String.format("\"%s\"", eTests.get(i).getName());
+    tsts = "[" + tsts + "]";
 
-      if (vmep == null || vmep.isEmpty() /*|| !vmepFile.exists()  || !vmepFile.canExecute()*/) {
-        ATGlobal.verboseLevel=1;
-        ATLog.log(String.format("Invelid vmep executable: '%s'.\n", vmep), 1);
-        return;
-      }
-    }
+    
+    String params = "[\"*\"]";
+    String indicators = "[\"*" + mType.getExtension().toUpperCase() + "\"]";
+    
+    String query = String.format(
+      "{'Algorithms': %s, 'TestSets': %s, 'Parameters': %s, 'Indicators': %s, 'GroupBy': [], 'Filter': [], 'SortBy': [], 'ComputerID' : '','Count': '0'}",
+        algs, tsts, params, indicators);
+    
+    EQuery eq = new EQuery(query, null);
+    TableData td = DataAnalyser.runQuery(projekt.getEProject(), eq, "");
         
-    if (printOnly) {    
-      System.out.println("DataRoot       : " + dataRoot);
-      System.out.println("Project        : " + projName);
-      System.out.println("Tasks          :  Algorithm             TestSet        MType  UpToDate Complete");
-      for (EAlgorithm eAlg : eAlgs) {      
-        for (ETestSet eTestSet : eTests) {
-          for (String mtype : new String[] {"EM", "CNT", "JVM"}) {
-            String resultFileName = getTaskResultFileName(projekt, eAlg.getName(), eTestSet.getName(), mtype);
-            int expectedNumberOfInstances = eTestSet.getFieldAsInt(ETestSet.ID_N, 0);            
-            
-            boolean uptodate = ATTools.resultsAreUpToDate(projekt, eAlg.getName(), eTestSet.getName(), mtype, resultFileName);
-            boolean complete = ATTools.resultsAreComplete(resultFileName, expectedNumberOfInstances);
-	    
-            //System.out.printf("File: '%s'\n", resultFileName);
-	    System.out.printf("                 %-23s%-15s%-7s%-9s%-9s\n", eAlg.getName(), eTestSet.getName(), mtype, new Boolean(uptodate), new Boolean(complete));
-	  }
-        }
-      }
-    } else {
-      ErrorStatus error = ErrorStatus.STATUS_OK;
-      for (int i = 0; i < eAlgs.size(); i++) {
-	for (int j = 0; j < eTests.size(); j++) {
-          ATLog.setPateFilename(ATGlobal.getTaskHistoryFilename(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType.getExtension()));
-          Notificator notificator = Notificator.getNotificator(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType);
-	  error = Executor.algorithmRun(projekt, eAlgs.get(i).getName(), 
-		  eTests.get(j).getName(),  mType, notificator, alwaysCompile, alwaysRun, whereToPrint);           
-	}        
-      }
-      return;
-    }
+    System.out.println(td.toString());            
   }
 }

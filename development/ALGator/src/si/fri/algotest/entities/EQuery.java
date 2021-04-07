@@ -2,11 +2,6 @@ package si.fri.algotest.entities;
 
 import java.io.File;
 import org.json.JSONArray;
-import org.json.JSONObject;
-import si.fri.algotest.global.ATGlobal;
-import si.fri.algotest.global.ErrorStatus;
-
-
 
 /**
  *

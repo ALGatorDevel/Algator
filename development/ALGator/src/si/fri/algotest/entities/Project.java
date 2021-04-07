@@ -2,6 +2,7 @@ package si.fri.algotest.entities;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.TreeMap;
 import si.fri.algotest.global.ATGlobal;
@@ -69,7 +70,7 @@ public class Project {
 	errors.add(ErrorStatus.getLastErrorStatus()); 
     }
     
-    // read the testsets
+    // read the testsets 
     String [] tsNames = eProject.getStringArray(EProject.ID_TestSets);
     for(String tsName : tsNames) {   
       String tsFilename = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataLocal(), eProject.getName(), tsName);
@@ -78,7 +79,6 @@ public class Project {
 	testsets.put(tsName, eTestset);
       } else
 	errors.add(ErrorStatus.getLastErrorStatus()); 
-
     }
     
     // read the resultDescriptions
