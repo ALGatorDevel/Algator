@@ -2,7 +2,6 @@ package si.fri.algotest.tools;
 
 import java.security.MessageDigest;
 import java.util.Random;
-import javax.xml.bind.DatatypeConverter;
 
 /**
  *
@@ -12,12 +11,20 @@ public class UniqueIDGenerator {
   static String rndSeed = String.valueOf(new Random().nextInt());
   static int    counter = 0;
   
+  private static String printHexBinary(byte[] val) {
+    String result = "";
+    for (byte b : val) {
+      result += String.format("%02X", b);
+    }
+    return result;
+  }
+  
   public static String sha1(String input, int len) {
     String sha1 = null;
     try {
       MessageDigest msdDigest = MessageDigest.getInstance("SHA-1");
       msdDigest.update(input.getBytes("UTF-8"), 0, input.length());
-      sha1 = DatatypeConverter.printHexBinary(msdDigest.digest());
+      sha1 = printHexBinary(msdDigest.digest());
     } catch (Exception e) {}
     return sha1.substring(0, len);
   }

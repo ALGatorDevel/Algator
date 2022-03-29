@@ -505,7 +505,7 @@ public class Analyse {
     }
   }
   
-  private static Variables getParametersFromJSON(String paramsJSON) {
+  public static Variables getParametersFromJSON(String paramsJSON) {
     HashMap<String, Object> params = new HashMap<>();
     try {
       params = ATTools.jSONObjectToMap(new JSONObject(paramsJSON));

@@ -96,7 +96,7 @@ public class DataAnalyser {
     ResultPack resPack = new ResultPack();
 
     Variables paramsAndIndicators = resPack.resultDescription.getVariables();
-    
+
     // add the current resultdescription parameters to the resPack resultDescription parameterset
     paramsAndIndicators.addVariables(eTestCase.getParameters(), false);
     paramsAndIndicators.addVariables(eResultDesc.getVariables(), false);
@@ -143,7 +143,7 @@ public class DataAnalyser {
     String resFileName;
     // če imam eksplicitno podano ime racunalnika, vem, kjer moram iskati rezultate ...
     if (computerID != null && !computerID.isEmpty()) {
-        resFileName = ATGlobal.getRESULTfilename(project.getProjectRoot(), algorithm, testset, measurement, computerID);
+      resFileName = ATGlobal.getRESULTfilename(project.getProjectRoot(), algorithm, testset, measurement, computerID);
     } // ... sicer pa poiščem najbolj primerno datoteko
     else {
       resFileName = ATTools.getTaskResultFileName(project, algorithm, testset, measurement.getExtension());
@@ -190,8 +190,8 @@ public class DataAnalyser {
       String[] lineFields = line.split(delim);
 
       String curTestSet = lineFields[1];
-      String testName   = lineFields[2];
-      String pass       = lineFields[4];
+      String testName = lineFields[2];
+      String pass = lineFields[4];
 
       // sets the value of default parameters
       algPS.getVariable(EResult.algParName).set(EVariable.ID_Value, algorithm);
@@ -313,7 +313,7 @@ public class DataAnalyser {
 
     if (query.startsWith("{")) {
       EProject project = new EProject(new File(ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projectname)));
-        EQuery eQuery = new EQuery(query, params);
+      EQuery eQuery = new EQuery(query, params);
       return runQuery(project, eQuery, computerID).toString();
     } else {
       try {
@@ -322,7 +322,7 @@ public class DataAnalyser {
         //String qResultFileName = ATGlobal.getQUERYOutputFilename(projectRoot, queryname, params);
         //HashSet<String> queryDepFiles = ATTools.getFilesForQuery(projectname, queryname, params);
 
-/*        
+        /*        
         if (ATTools.resultsAreUpToDate(queryDepFiles, qResultFileName)) {
           File qResultFile = new File(qResultFileName);
           String content = "";
@@ -339,11 +339,10 @@ public class DataAnalyser {
         {
           TableData td = runQuery(projectname, queryname, params, computerID);
           String result = td.toString();
-          
+
           //PrintWriter pw = new PrintWriter(qResultFileName);
           //pw.print(result);
           //pw.close();
-
           return result;
         }
       } catch (Exception e) {
@@ -388,7 +387,7 @@ public class DataAnalyser {
 
   public static TableData runQuery(String projectname, String queryname, String[] params, String computerID) {
     EProject project = new EProject(new File(ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projectname)));
-    File qFIle = new File(ATGlobal.getQUERYfilename(project.getProjectRootDir(), queryname));    
+    File qFIle = new File(ATGlobal.getQUERYfilename(project.getProjectRootDir(), queryname));
     EQuery query = new EQuery(qFIle, params);
 
     return runQuery(project, query, computerID);
@@ -450,7 +449,7 @@ public class DataAnalyser {
   }
 
   public static TableData runQuery_NO_COUNT(EProject eProject, EQuery query, String computerID, Map<String, TableData> queryResults) {
-    TableData td = null; 
+    TableData td = null;
 
     if (td != null && (queryResults == null || queryResults.size() == 0)) {
       TableData tdCache = new TableData();
@@ -576,12 +575,12 @@ public class DataAnalyser {
       //}
       // ver 3.0: in new version some results file might contain tests that other don't. Therefore
       // we build keyOrder as a union of all test orders
-      ArrayList<String> keyOrder = new ArrayList<>();      
+      ArrayList<String> keyOrder = new ArrayList<>();
       for (NameAndAbrev alg : algs) {
         if (results.get(alg.getName()) != null && results.get(alg.getName()).keyOrder != null) {
           ArrayList<String> tmpKeyOrder = new ArrayList<>(results.get(alg.getName()).keyOrder);
           tmpKeyOrder.removeAll(keyOrder);
-          keyOrder.addAll(tmpKeyOrder);          
+          keyOrder.addAll(tmpKeyOrder);
         }
       }
 
@@ -598,7 +597,7 @@ public class DataAnalyser {
       td.numberOfInputParameters = inPars.length + 4;
 
       for (NameAndAbrev inPar : inPars) {
-          td.header.add(inPar.getAbrev());
+        td.header.add(inPar.getAbrev());
       }
       for (NameAndAbrev outPar : outPars) {
         String abrev = outPar.getAbrev();
@@ -628,14 +627,14 @@ public class DataAnalyser {
 
         // fina an algorithm that contains values for this key
         NameAndAbrev alg0 = null;
-        for (NameAndAbrev alg : algs) {          
+        for (NameAndAbrev alg : algs) {
           if (results.get(alg.getName()).getResult(key) != null) {
             alg0 = alg;
             break;
           }
         }
-        
-        if (alg0 != null) {          
+
+        if (alg0 != null) {
           Variables ps = results.get(alg0.getName()).getResult(key);
 
           // add values for 3 default test parameters
@@ -647,44 +646,54 @@ public class DataAnalyser {
           //line.add(testNUM);
           for (NameAndAbrev inPar : inPars) {
             Object value;
-            try {              
+            try {
               String pName = inPar.getName();
-              
+
               // if param is like tc_PROPS.Type, we have to split TP_PROPS and get only "Type" part of it ....
               if (pName.startsWith("TC_PROPS")) {
-                  value="?";
-                  String tcProps = (String) ps.getVariable("TC_PROPS").get(EVariable.ID_Value);
-                  if (pName.contains(".")) {
-                    String prop = pName.split("[.]")[1];
-                    String [] tcParts = tcProps.split(",");
-                    for (String tcPart : tcParts) {
-                      if (tcPart.trim().startsWith(prop+"=")) {
-                        value = tcPart.split("=")[1];
-                      }
+                value = "?";
+                String tcProps = (String) ps.getVariable("TC_PROPS").get(EVariable.ID_Value);
+                if (pName.contains(".")) {
+                  String prop = pName.split("[.]")[1];
+                  String[] tcParts = tcProps.split(",");
+                  for (String tcPart : tcParts) {
+                    if (tcPart.trim().startsWith(prop + "=")) {
+                      value = tcPart.split("=")[1];
                     }
-                    
-                    // check is parameter has a type defined
-                    String parType = inPar.getType();
-                    if (parType != null) {
-                      switch (parType) {
-                        case "int":
-                          try {value = Integer.parseInt(value.toString());} catch (Exception e) {}
-                          break;
-                        case "double":
-                          try {value = Double.parseDouble(value.toString());} catch (Exception e) {}
-                          break;
-                        case "long":
-                          try {value = Long.parseLong(value.toString());} catch (Exception e) {}
-                          break;
-                      }
+                  }
+
+                  // check is parameter has a type defined
+                  String parType = inPar.getType();
+                  if (parType != null) {
+                    switch (parType) {
+                      case "int":
+                        try {
+                          value = Integer.parseInt(value.toString());
+                        } catch (Exception e) {
+                        }
+                        break;
+                      case "double":
+                        try {
+                          value = Double.parseDouble(value.toString());
+                        } catch (Exception e) {
+                        }
+                        break;
+                      case "long":
+                        try {
+                          value = Long.parseLong(value.toString());
+                        } catch (Exception e) {
+                        }
+                        break;
                     }
-                  } else
-                    value = tcProps;
-                  
-              // ... else (for every other param)
+                  }
+                } else {
+                  value = tcProps;
+                }
+
+                // ... else (for every other param)
               } else {
                 EVariable parameter = ps.getVariable(pName);
-                value = parameter.getValue();                           
+                value = parameter.getValue();
               }
             } catch (Exception e) {
               value = "?";
@@ -711,7 +720,8 @@ public class DataAnalyser {
                   EVariable parameter = ps2.getVariable(name);
                   value = parameter.getValue();
                 }
-              } catch (Exception e) {}
+              } catch (Exception e) {
+              }
             }
             line.add(value);
           }
@@ -823,7 +833,7 @@ public class DataAnalyser {
     String[] groupby = query.getStringArray(EQuery.ID_GroupBy);
     for (int i = 0; i < groupby.length; i++) {
       td.groupBy(groupby[i]);
-    } 
+    }
 
     String[] sortby = query.getStringArray(EQuery.ID_SortBy);
     for (int i = 0; i < sortby.length; i++) {

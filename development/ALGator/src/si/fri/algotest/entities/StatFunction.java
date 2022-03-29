@@ -124,9 +124,9 @@ public enum StatFunction {
             valN /= values.size();
           }
           if (values.get(0) instanceof Integer) {
-            return new Double(valN).intValue();
+            return (int)valN;
           } else if (values.get(0) instanceof Long) {
-            return new Double(valN).longValue();
+            return (long)valN;
           } else {
             return valN;
           }
@@ -152,9 +152,9 @@ public enum StatFunction {
             }
           }
           if (values.get(0) instanceof Integer) {
-            return new Double(median).intValue();
+            return (int)median;
           } else if (values.get(0) instanceof Long) {
-            return new Double(median).longValue();
+            return (long)median;
           } else {
             return median;
           }

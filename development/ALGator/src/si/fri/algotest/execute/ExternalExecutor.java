@@ -6,9 +6,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
@@ -83,9 +85,9 @@ public class ExternalExecutor {
    * @param mType
    * @return
    */
-  public static void iterateTestSetAndRunAlgorithm(Project project, String algName, AbstractTestSetIterator it, 
+  public static void iterateTestSetAndRunAlgorithm(Project project, String algName, String currentJobID, AbstractTestSetIterator it,
           Notificator notificator, MeasurementType mType, File resultFile, int whereToPrint) {
-    
+
     String instanceID = "Test"; //UniqueIDGenerator.getNextID();
 
     ETestSet testSet = it.testSet;
@@ -115,42 +117,52 @@ public class ExternalExecutor {
       }
     }
 
-    EResult resultDesc = project.getResultDescriptions().get(mType); if (resultDesc == null) resultDesc = new EResult();
-    
+    EResult resultDesc = project.getResultDescriptions().get(mType);
+    if (resultDesc == null) {
+      resultDesc = new EResult();
+    }
+
     int testID = 0; // 
     try {
       while (it.hasNext()) {
         it.readNext();
         testID++;
 
-        if (ATGlobal.verboseLevel==2) {
-            System.out.print("\rGenerating testcase...");System.out.flush();
+        if (ATGlobal.verboseLevel == 2) {
+          System.out.print("\rGenerating testcase...");
+          System.out.flush();
         }
-          AbstractTestCase testCase = it.getCurrent();
+        AbstractTestCase testCase = it.getCurrent();
 
-        if (ATGlobal.verboseLevel==2) {          
-          System.out.print("\r                      ");System.out.flush();
+        if (ATGlobal.verboseLevel == 2) {
+          System.out.print("\r                      ");
+          System.out.flush();
         }
-        
+
         String testSetName = it.testSet.getName();
-        
+
         String testName = "";
-        try {testName = testCase.getInput().getParameters().getVariable("Test", "").getStringValue();} catch (Exception e){}
-        if (testName.isEmpty()) testName = instanceID+"-"+testID;
-
-
-        if (ATGlobal.verboseLevel==2) {
-          System.out.print("\rRunning algorithm...");System.out.flush();
+        try {
+          testName = testCase.getInput().getParameters().getVariable("Test", "").getStringValue();
+        } catch (Exception e) {
         }
-        
-        Variables resultVariables = runTestCase(project, algName, testCase, mType,
+        if (testName.isEmpty()) {
+          testName = instanceID + "-" + testID;
+        }
+
+        if (ATGlobal.verboseLevel == 2) {
+          System.out.print("\rRunning algorithm...");
+          System.out.flush();
+        }
+
+        Variables resultVariables = runTestCase(project, algName, testCase, currentJobID, mType,
                 testSetName, testID, timesToExecute, timeLimit, notificator, testName);
 
-        if (ATGlobal.verboseLevel==2) {          
-          System.out.print("\r                     \r");System.out.flush();
+        if (ATGlobal.verboseLevel == 2) {
+          System.out.print("\r                     \r");
+          System.out.flush();
         }
-        
-        
+
         printVariables(resultVariables, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), whereToPrint);
       }
       it.close();
@@ -162,19 +174,23 @@ public class ExternalExecutor {
   }
 
   public static Variables runTestCase(
-          Project project, String algName, AbstractTestCase testCase, MeasurementType mType,
+          Project project, String algName, AbstractTestCase testCase, String currentJobID, MeasurementType mType,
           String testSetName, int testID, int timesToExecute, int timeLimit,
           Notificator notificator, String instanceID) {
-    
-    if (instanceID == null || instanceID.isEmpty())
+
+    if (instanceID == null || instanceID.isEmpty()) {
       instanceID = UniqueIDGenerator.getNextID();
+    }
+    String algClassName = project.getAlgorithms().get(algName).getAlgorithmClassname();
+    AbstractAlgorithm algorithm = New.algorithmInstance(currentJobID, algClassName, mType);
+    AbstractInput input = testCase != null ? testCase.getInput() : null;
+    AbstractOutput expectedOutput = testCase != null ? testCase.getExpectedOutput() : null;
 
-    AbstractAlgorithm algorithm      = New.algorithmInstance(project, algName, mType);
-    AbstractInput     input          = testCase != null ? testCase.getInput() : null;
-    AbstractOutput    expectedOutput = testCase != null ? testCase.getExpectedOutput() : null;
+    EResult resultDesc = project.getResultDescriptions().get(mType);
+    if (resultDesc == null) {
+      resultDesc = new EResult();
+    }
 
-    EResult           resultDesc     = project.getResultDescriptions().get(mType); if (resultDesc == null) resultDesc = new EResult();
-    
     // V testcase dodam podatke o indikatorjih, da se ohrani informacija, ki je bila definirana
     // v atrd datoteki; recimo, če je tam definiram indikator tipa double, se prej podatki o tem indikatorju (recimo 
     // meta - število decimalk) ni prenesel in se je zato vedno uporabila default vrednost. Po tej spremembi se 
@@ -183,7 +199,7 @@ public class ExternalExecutor {
     if (expectedOutput != null) {
       for (EVariable evar : resultDesc.getVariables()) {
         expectedOutput.addIndicator(evar, false);
-      }      
+      }
     }
 
     // nastavim podatek o številu ponovitev
@@ -204,7 +220,7 @@ public class ExternalExecutor {
       ErrorStatus executionStatus = ErrorStatus.ERROR_CANT_PERFORM_TEST;
 
       if (executionOK) {
-        saveAlgToFile(New.getClassPathsForAlgorithm(project, algName), algorithm, cFolderName, SER_ALG_TYPE.TEST);
+        saveAlgToFile(New.getClassPathsForProjectAlgorithm(project, algName), algorithm, cFolderName, SER_ALG_TYPE.TEST);
 
         executionStatus = runWithLimitedTime(cFolderName, timesToExecute, timeLimit, mType, false);
       }
@@ -212,15 +228,21 @@ public class ExternalExecutor {
       EVariable executionStatusParameter;
       switch (executionStatus) {
         case STATUS_OK:
-          if (notificator != null) notificator.notify(testID, ExecutionStatus.DONE);
+          if (notificator != null) {
+            notificator.notify(testID, ExecutionStatus.DONE);
+          }
           executionStatusParameter = EResult.getExecutionStatusIndicator(ExecutionStatus.DONE);
           break;
         case PROCESS_KILLED:
-          if (notificator != null) notificator.notify(testID, ExecutionStatus.KILLED);
+          if (notificator != null) {
+            notificator.notify(testID, ExecutionStatus.KILLED);
+          }
           executionStatusParameter = EResult.getExecutionStatusIndicator(ExecutionStatus.KILLED);
           break;
         default:
-          if (notificator != null) notificator.notify(testID, ExecutionStatus.FAILED);
+          if (notificator != null) {
+            notificator.notify(testID, ExecutionStatus.FAILED);
+          }
           executionStatusParameter = failedErr;
       }
 
@@ -228,7 +250,9 @@ public class ExternalExecutor {
 
       // algorithm instance obtained from file as a result of execution
       if (executionStatus == ErrorStatus.STATUS_OK) { // the execution passed normaly (not killed)
-        AbstractAlgorithm resultAlg = getAlgorithmFromFile(cFolderName, SER_ALG_TYPE.RESULT);
+        // pridobim classLoader, ki je naložil "algorithm"; ker ta loader že obstaja, lahko URLje izpustim (dobil bom odgovor iz slovarja)
+        ClassLoader cl = New.getClassloader(currentJobID);
+        AbstractAlgorithm resultAlg = getAlgorithmFromFile(cFolderName, SER_ALG_TYPE.RESULT, cl);
 
         if (resultAlg != null) {
           algResultIndicators = resultAlg.done();
@@ -261,17 +285,22 @@ public class ExternalExecutor {
         }
       }
 
-      if (algorithm.getCurrentInput() != null) {
-        resultVariables.addVariables(algorithm.getCurrentInput().getParameters());
+      try { // !!! TU NE BI SMELO BITI NAPAKE! To se dogaja zaradi java 9, ker očitno uporabljam različne 
+        // classloaderje (tu dobim napako  "class BasicSortTestCase can not be cast to BasicSortTestCase") 
+        if (algorithm.getCurrentInput() != null) {
+          resultVariables.addVariables(algorithm.getCurrentInput().getParameters());
+        }
+      } catch (Exception e) {
+        //System.out.println(e.toString());
       }
-           
+
       resultVariables.addVariables(algResultIndicators, false);
       resultVariables.addVariable(EResult.getAlgorithmNameParameter(algName), true);
       resultVariables.addVariable(EResult.getTestsetNameParameter(testSetName), true);
       resultVariables.addVariable(EResult.getTimestampParameter(System.currentTimeMillis()), true);
       resultVariables.addVariable(EResult.getInstanceIDParameter(instanceID), true);
-            
-      resultVariables.addVariable(executionStatusParameter, true); 
+
+      resultVariables.addVariable(executionStatusParameter, true);
 
     } catch (Exception e) {
     } finally {
@@ -283,22 +312,24 @@ public class ExternalExecutor {
   }
 
   /**
-   * Prints varibles (parameters and indicators) in a given order to stdout and/or file.
-   * Parameter whereToPrint: 0 ... none, 1 ... stdout, 2 ... file (note: 3 = both, 1 and 2).
+   * Prints varibles (parameters and indicators) in a given order to stdout
+   * and/or file. Parameter whereToPrint: 0 ... none, 1 ... stdout, 2 ... file
+   * (note: 3 = both, 1 and 2).
    */
-  public static void printVariables(Variables resultVariables, File resultFile, String [] order, int whereToPrint) {
+  public static void printVariables(Variables resultVariables, File resultFile, String[] order, int whereToPrint) {
     if (resultVariables != null) {
       // print to stdout
-      if (((whereToPrint & ATLog.TARGET_STDOUT) == ATLog.TARGET_STDOUT))            
-        resultVariables.printToFile(new PrintWriter(System.out), order, true);      
-      
+      if (((whereToPrint & ATLog.TARGET_STDOUT) == ATLog.TARGET_STDOUT)) {
+        resultVariables.printToFile(new PrintWriter(System.out), order, true);
+      }
+
       // print to file
-      if (((whereToPrint & ATLog.TARGET_FILE) == ATLog.TARGET_FILE) && (resultFile != null))
-        resultVariables.printToFile(resultFile, order);          
-    }  
+      if (((whereToPrint & ATLog.TARGET_FILE) == ATLog.TARGET_FILE) && (resultFile != null)) {
+        resultVariables.printToFile(resultFile, order);
+      }
+    }
   }
-  
-  
+
   // has the process finished?
   private static boolean processIsTerminated(Process process) {
     try {
@@ -350,10 +381,9 @@ public class ExternalExecutor {
       long secondsPassed = (System.currentTimeMillis() - milis) / 1000;
 
       int expectedResults = (int) (secondsPassed / timeForOneExecution);
-      
+
       //!!
       //System.out.printf("seccondsPassed=%d, timeForOne=%d, ResultCount= %d, expectedResults=%d\n", secondsPassed, timeForOneExecution, resultsCount, expectedResults);
-      
       if (resultsCount < expectedResults) {
         externProcess.destroy();
         return ErrorStatus.setLastErrorMessage(ErrorStatus.PROCESS_KILLED,
@@ -407,8 +437,11 @@ public class ExternalExecutor {
             ArrayList<Long> list = new ArrayList<>(java.util.Arrays.asList(longObjects));
 
             Object time = StatFunction.getFunctionValue(fs, list);
-            VariableType vt = VariableType.TIMER; if (StatFunction.ALL.toString().equals(statDesc)) vt=VariableType.STRING;
-            EVariable timeP = new EVariable( (String) rdP.getName(), null, vt, time);
+            VariableType vt = VariableType.TIMER;
+            if (StatFunction.ALL.toString().equals(statDesc)) {
+              vt = VariableType.STRING;
+            }
+            EVariable timeP = new EVariable((String) rdP.getName(), null, vt, time);
             timeParameters.addVariable(timeP, true);
           } catch (Exception e) {
             ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "Meta parameter invalid (" + e.toString() + ")");
@@ -443,8 +476,7 @@ public class ExternalExecutor {
    */
   public static boolean saveAlgToFile(URL[] urls, AbstractAlgorithm curAlg,
           String folderName, SER_ALG_TYPE algType) {
-    try (FileOutputStream fis = new FileOutputStream(new File(folderName + File.separator + SERIALIZED_ALG_FILENAME + algType));
-            ObjectOutputStream dos = new ObjectOutputStream(fis);) {
+    try ( FileOutputStream fis = new FileOutputStream(new File(folderName + File.separator + SERIALIZED_ALG_FILENAME + algType));  ObjectOutputStream dos = new ObjectOutputStream(fis);) {
       dos.writeObject(urls);
       dos.writeObject(curAlg);
 
@@ -457,33 +489,43 @@ public class ExternalExecutor {
 
   // Java 9, Java 11, .... napaka: Base ClassLoader No Longer from URLClassLoader
   // prej je spodnja metoda lepo delala, sedaj ne
-  // glej https://community.oracle.com/thread/4011800 za več razlage
+  // glej https://community.oracle.com/thread/4011800 za več razlageh
   //
   // - spodnjo kodo bo treba popraviti, če želimo, da program dela tudi v Java 9 in naprej
   //
   // - poišči tudi ostale kode, kjer uporabljam URLClassLoader
   //
   //need to do add path to Classpath with reflection since the URLClassLoader.addURL(URL url) method is protected:
-  static void addPath(URL s) throws Exception {
-    URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-    Class<URLClassLoader> urlClass = URLClassLoader.class;
-    Method method = urlClass.getDeclaredMethod("addURL", new Class[]{URL.class});
-    method.setAccessible(true);
-    method.invoke(urlClassLoader, new Object[]{s});
+//  static void addPath(URL s) throws Exception {
+//    URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+//    Class<URLClassLoader> urlClass = URLClassLoader.class;
+//    Method method = urlClass.getDeclaredMethod("addURL", new Class[]{URL.class});
+//    method.setAccessible(true);
+//    method.invoke(urlClassLoader, new Object[]{s});
+//  }
+  
+  // kadar ClassLoader ni pomemben (t.j., lahko uporabim katerikoli loader, ki ima prav nastavljen
+  // classpath, bom uporabil to metodo; če pa je pomemben (ker hočem, da je algoritem naložen z istim 
+  // nalagalnikom kot nek drug algoritem), potem nalagalnik prinesem s seboj
+  public static AbstractAlgorithm getAlgorithmFromFile(String folderName, SER_ALG_TYPE algType) {
+    ClassLoader cl = new URLClassLoader(getURLsFromFile(folderName, algType));
+    return getAlgorithmFromFile(folderName, algType, cl);
   }
 
-  public static AbstractAlgorithm getAlgorithmFromFile(String folderName, SER_ALG_TYPE algType) {
-    try (FileInputStream fis = new FileInputStream(new File(folderName + File.separator + SERIALIZED_ALG_FILENAME + algType));
-            ObjectInputStream ois = new ObjectInputStream(fis);) {
-      // get the URLs that were used to load algorithm ...
-      Object o = ois.readObject();
-      URL[] urls = (URL[]) o;
-      // ... and add these URLS to URLClassLoader
-      if (urls != null) {
-        for (URL url : urls) {
-          addPath(url);
+  public static AbstractAlgorithm getAlgorithmFromFile(String folderName, SER_ALG_TYPE algType, ClassLoader cl) {
+    try ( FileInputStream fis = new FileInputStream(new File(folderName + File.separator + SERIALIZED_ALG_FILENAME + algType));  ObjectInputStream ois = new ObjectInputStream(fis) {
+      protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+        try {
+          return Class.forName(desc.getName(), true, cl);
+        } catch (Exception e) {
         }
+        // ob napaki uporabi defulat resolve
+        return super.resolveClass(desc);
       }
+    }) {
+
+      // skip the "used URLs" record
+      Object o = ois.readObject();
 
       // Try to instantiate the algorithm
       o = ois.readObject();
@@ -494,9 +536,34 @@ public class ExternalExecutor {
     }
   }
 
-  public static URL[] getURLsFromFile(String folderName, SER_ALG_TYPE algType) {
+  /*  
+  public static AbstractAlgorithm getAlgorithmFromFile(String folderName, SER_ALG_TYPE algType) {    
     try (FileInputStream fis = new FileInputStream(new File(folderName + File.separator + SERIALIZED_ALG_FILENAME + algType));
-            ObjectInputStream ois = new ObjectInputStream(fis);) {
+            ObjectInputStream ois = new ObjectInputStream(fis)) {
+      // get the URLs that were used to load algorithm ...
+      Object o = ois.readObject();
+      URL[] urls = (URL[]) o;
+      
+      // ker ne morem predpostaviti, da je ClassLoader tipa URLClassLoader, 
+      // te motode ne morem uporabiti ...
+      // ... and add these URLS to URLClassLoader
+      if (urls != null) {
+        for (URL url : urls) {
+          addPath(url);
+        }
+      }
+      
+      // Try to instantiate the algorithm
+      o = ois.readObject();
+      return (AbstractAlgorithm) o;
+    } catch (Exception e) {
+      ErrorStatus.setLastErrorMessage(ErrorStatus.CANT_READ_ALGORITHM_FROM_FILE, e.toString());
+      return null;
+    }
+  }
+   */
+  public static URL[] getURLsFromFile(String folderName, SER_ALG_TYPE algType) {
+    try ( FileInputStream fis = new FileInputStream(new File(folderName + File.separator + SERIALIZED_ALG_FILENAME + algType));  ObjectInputStream ois = new ObjectInputStream(fis);) {
       // get the URLs that were used to load algorithm ...
       Object o = ois.readObject();
       return (URL[]) o;
@@ -513,7 +580,7 @@ public class ExternalExecutor {
    */
   public static boolean initCommunicationFile(String folderName) {
     File f = new File(folderName + File.separator + COMMUNICATION_FILENAME);
-    try (FileWriter fw = new FileWriter(f)) {
+    try ( FileWriter fw = new FileWriter(f)) {
       return true;
     } catch (Exception e) {
       return false;
@@ -523,7 +590,7 @@ public class ExternalExecutor {
   public static void addToCommunicationFile(String folderName) {
     File f = new File(folderName + File.separator + COMMUNICATION_FILENAME);
 
-    try (FileWriter fw = new FileWriter(f, true)) {
+    try ( FileWriter fw = new FileWriter(f, true)) {
       fw.write((byte) 0);
     } catch (Exception e) {
     }
@@ -535,10 +602,13 @@ public class ExternalExecutor {
       return f.length();
     } catch (Exception e) {
       return 0;
-    }    
+    }
   }
-  
-  void a(Object a) {}
-  void a(String a) {}
+
+  void a(Object a) {
+  }
+
+  void a(String a) {
+  }
 
 }

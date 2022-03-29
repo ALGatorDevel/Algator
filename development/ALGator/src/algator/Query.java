@@ -1,6 +1,6 @@
 package algator;
 
-import java.io.File;
+import static algator.Execute.syncTests;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -12,6 +12,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.json.JSONArray;
 import si.fri.algotest.analysis.Analysis;
 import si.fri.algotest.analysis.DataAnalyser;
 import si.fri.algotest.analysis.TableData;
@@ -19,18 +20,16 @@ import si.fri.algotest.database.Database;
 import si.fri.algotest.entities.EAlgorithm;
 import si.fri.algotest.entities.ELocalConfig;
 import si.fri.algotest.entities.EQuery;
-import si.fri.algotest.entities.EResult;
 import si.fri.algotest.entities.ETestSet;
+import si.fri.algotest.entities.EVariable;
 import si.fri.algotest.entities.MeasurementType;
 import si.fri.algotest.entities.Project;
-import si.fri.algotest.execute.Executor;
-import si.fri.algotest.execute.Notificator;
+import si.fri.algotest.entities.Variables;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ATLog;
-import si.fri.algotest.tools.ATTools;
 import si.fri.algotest.global.ErrorStatus;
-import static si.fri.algotest.tools.ATTools.getTaskResultFileName;
-import si.fri.algotest.tools.RSync;
+import si.fri.timeComplexityAnalysis.Data;
+import si.fri.timeComplexityAnalysis.OutlierDetector;
 
 /**
  *
@@ -91,13 +90,7 @@ public class Query {
             .hasArg(true)
             .withDescription("where to print information (1 = stdout (default), 2 = file, 3 = both")
             .create("log");
-    
-
-    Option whereResults = OptionBuilder.withArgName("where_results")
-            .hasArg(true)
-            .withDescription("where to print results (1 = stdout, 2 = file (default), 3 = both (default)")
-            .create("w");
-    
+        
     Option username = OptionBuilder.withArgName("username")	    
 	    .hasArg(true)
 	    .withDescription("the name of the current user")
@@ -108,19 +101,53 @@ public class Query {
 	    .withDescription("the password of the current user")
 	    .create("p");    
     
+    Option par = OptionBuilder.withArgName("parameters")	    
+	    .hasArg(true)
+	    .withDescription("the list of parameters")
+	    .create("par");    
+    Option ind = OptionBuilder.withArgName("indicators")	    
+	    .hasArg(true)
+	    .withDescription("the list of indicators")
+	    .create("ind");    
+    Option group = OptionBuilder.withArgName("groupBy")	    
+	    .hasArg(true)
+	    .withDescription("the list of groupBy criteria")
+	    .create("group");    
+    Option filter = OptionBuilder.withArgName("filter")	    
+	    .hasArg(true)
+	    .withDescription("the list of filter criteria")
+	    .create("filter");    
+    Option sort = OptionBuilder.withArgName("sort")	    
+	    .hasArg(true)
+	    .withDescription("the list of sortBy criteria")
+	    .create("sort");    
+    
+    Option opt = OptionBuilder.withArgName("options")	    
+	    .hasArg(true)
+	    .withDescription("the list of options")
+	    .create("opt");    
+
+    
     options.addOption(algorithm);
     options.addOption(testset);
     options.addOption(data_root);
     options.addOption(data_local);    
     options.addOption(algator_root);
     options.addOption(measurement);
+    options.addOption(par);
+    options.addOption(ind);
+    options.addOption(group);
+    options.addOption(filter);
+    options.addOption(sort);
+    
+    options.addOption(opt);
+    
     
     options.addOption(username);
     options.addOption(password);
         
     options.addOption(verbose);
     options.addOption(logTarget);
-    options.addOption(whereResults);
     
     options.addOption("h", "help", false,
 	    "print this message");
@@ -142,13 +169,25 @@ public class Query {
     sc.close();
   }
   
+  private static String[] getStringArrayFromJSON(String paramsJSON) {
+    try {
+      JSONArray ja = new JSONArray(paramsJSON);
+      String[] result = new String[ja.length()];
+      for (int i = 0; i < ja.length(); i++) {
+        result[i] = ja.getString(i);
+      }
+      return result;
+    } catch (Exception e) {
+      return new String[0];
+    }
+  }
+  
   /**
    * Used to run the system. Parameters are given trought the arguments
    *
    * @param args
    */
   public static void main(String args[]) {  
-    System.out.println(introMsg + "\n");
     
     Options options = getOptions();
 
@@ -157,17 +196,20 @@ public class Query {
       CommandLine line = parser.parse(options, args);
 
       if (line.hasOption("h")) {
+        System.out.println(introMsg + "\n");
 	printMsg(options);
         return;
       }
 
       if (line.hasOption("use")) {
+        System.out.println(introMsg + "\n");
         printUsage();
         return;
       }
       
       String[] curArgs = line.getArgs();
       if (curArgs.length != 1) {
+        System.out.println(introMsg + "\n");
 	printMsg(options);
         return;
       }
@@ -208,6 +250,31 @@ public class Query {
           mType = MeasurementType.valueOf(line.getOptionValue("mtype").toUpperCase());
         } catch (Exception e) {}  
       }
+      
+      String[] par = new String[]{"*"};
+      if (line.hasOption("par")) {
+        par = getStringArrayFromJSON(line.getOptionValue("par"));
+      }
+      
+      String[] ind = new String[]{"*"+mType.getExtension().toUpperCase()};
+      if (line.hasOption("ind")) {
+        ind = getStringArrayFromJSON(line.getOptionValue("ind"));
+      }
+      
+      String[] group = new String[0];
+      if (line.hasOption("group")) {
+        group = getStringArrayFromJSON(line.getOptionValue("group"));
+      }
+      String[] filter = new String[0];
+      if (line.hasOption("filter")) {
+        filter = getStringArrayFromJSON(line.getOptionValue("filter"));
+      }
+      String[] sort = new String[0];
+      if (line.hasOption("sort")) {
+        sort = getStringArrayFromJSON(line.getOptionValue("sort"));
+      }
+      
+      
 
       ATGlobal.verboseLevel = 0;
       if (line.hasOption("verbose")) {
@@ -227,12 +294,7 @@ public class Query {
           ATGlobal.logTarget = ATLog.TARGET_FILE + ATLog.TARGET_STDOUT;
       }     
       ATLog.setLogTarget(ATGlobal.logTarget);      
-                            
-      int whereToPrint = 3; // both, stdout and file
-      if (line.hasOption("where_results")) try {
-        whereToPrint = Integer.parseInt(line.getOptionValue("where_results"));
-      } catch (Exception e) {}                     
-      
+                                  
       ELocalConfig localConfig = ELocalConfig.getConfig();
       
       String username=localConfig.getField(ELocalConfig.ID_Username);
@@ -246,26 +308,91 @@ public class Query {
 
       if (!Database.databaseAccessGranted(username, password)) return;
       
+      // before executing algorithms we sync test folder from data_root to data_local
+      if (!syncTests(projectName)) 
+        return;      
+      
+      TableData td = runQuery(dataRoot, projectName, algorithmName, testsetName, mType, par, ind, group, filter, sort);
+      
+      if (td == null) return;
       
       
-      runQuery(dataRoot, projectName, algorithmName, testsetName, mType, whereToPrint);
+      if (line.hasOption("opt")) {
+        Variables opts = Analyse.getParametersFromJSON(line.getOptionValue("opt", "{}"));
+        runOptions(td, opts);
+      } else {
+        System.out.println(td.toString());
+      }
+      
  
     } catch (ParseException ex) {
       printMsg(options);
       return;
     }
   }
-
-
   
-  private static void runQuery(String dataRoot, String projName, String algName,
-	  String testsetName, MeasurementType mType, int whereToPrint) {
+  /**
+   * Metoda vrne stolpec z indeksom column. Če je columen negativen, to pomeni 
+   * stolpce štete od zadnje strani (-1 zadnji, -2 predzadnji, ...). Vsebino stolpca 
+   * pretvori v double; če pri pretvorbi pride do napake, se v tabelo zapiše 0.
+   * 
+   */
+  private static double[] getColumn(TableData td, int column) {
+    double[] result = new double[td.data.size()];
+    if (column < 0)
+      column += td.data.get(0).size();
+    
+    for (int i = 0; i < td.data.size(); i++) {
+      double v = 0;
+      try {
+        try {
+          v = ((Number)td.data.get(i).get(column)).doubleValue();
+        } catch (Exception e){
+          v = Double.parseDouble((String)td.data.get(i).get(column));
+        }        
+      } catch (Exception e) {}
+      result[i] = v;
+    }
+    return result;
+  }
+
+  private static void runOptions(TableData td, Variables parameters) {
+    EVariable xPar = parameters.getVariable("x");
+    int xStolpec = (xPar==null) ? -2 : xPar.getIntValue(-2);
+    
+    EVariable yPar = parameters.getVariable("y");
+    int yStolpec = (yPar==null) ? -1 : yPar.getIntValue(-1);
+        
+    double [] xVal = getColumn(td, xStolpec);
+    double [] yVal = getColumn(td, yStolpec);
+    
+    EVariable vMode = parameters.getVariable("mode");
+    String mode = vMode==null ? "none" : vMode.getStringValue();    
+    switch (mode) {
+      case "outliers":
+        EVariable mPar = parameters.getVariable("M");
+        double m = (mPar == null) ? 2 : mPar.getDoubleValue();
+        
+        Data data = new Data("outlier", xVal, yVal);
+        OutlierDetector.OutlierDetection od = OutlierDetector.detectOutliers(data,m);
+        
+        System.out.println("X-values of detected outliers:");
+        for (Double ind : od.outlierXValues){
+          System.out.println(ind);
+        }
+        break;
+    }
+  }
+  
+  private static TableData runQuery(String dataRoot, String projName, String algName,
+	  String testsetName, MeasurementType mType, String[] par, String[] ind,
+          String[] groupBy, String[] filter, String[] sortBy) {
     
     if (!ATGlobal.projectExists(dataRoot, projName)) {
       ATGlobal.verboseLevel=1;
       ATLog.log("Project configuration file does not exist for " + projName, 1);
 
-      return;      
+      return null;      
     }
     
 
@@ -275,7 +402,7 @@ public class Query {
       ATGlobal.verboseLevel=1;
       ATLog.log("Invalid project: " + projekt.getErrors().get(0).toString(), 1);
 
-      return;
+      return null;
     }
             
     // Test algorithms
@@ -285,7 +412,7 @@ public class Query {
       if (alg == null) {
         ATGlobal.verboseLevel=1;
 	ATLog.log("Invalid algorithm - " + algName, 1);
-	return;
+	return null;
       }
       eAlgs = new ArrayList(); 
       eAlgs.add(alg);
@@ -303,7 +430,7 @@ public class Query {
       if (test == null) {
         ATGlobal.verboseLevel=1;
 	ATLog.log("Invalid testset - " + testsetName, 1);
-	return;
+	return null;
       }
       eTests = new ArrayList<>(); 
       eTests.add(test);
@@ -312,27 +439,11 @@ public class Query {
        eTests.add(otherTst);
     }
             
-    String algs = "";
-    for (int i = 0; i < eAlgs.size(); i++) 
-      algs += (algs.isEmpty() ? "": ",") + String.format("\"%s\"", eAlgs.get(i).getName());
-    algs = "[" + algs + "]";
-    
-    String tsts = "";
-    for (int i = 0; i < eTests.size(); i++) 
-      tsts += (tsts.isEmpty() ? "": ",") + String.format("\"%s\"", eTests.get(i).getName());
-    tsts = "[" + tsts + "]";
-
-    
-    String params = "[\"*\"]";
-    String indicators = "[\"*" + mType.getExtension().toUpperCase() + "\"]";
-    
-    String query = String.format(
-      "{'Algorithms': %s, 'TestSets': %s, 'Parameters': %s, 'Indicators': %s, 'GroupBy': [], 'Filter': [], 'SortBy': [], 'ComputerID' : '','Count': '0'}",
-        algs, tsts, params, indicators);
-    
-    EQuery eq = new EQuery(query, null);
-    TableData td = DataAnalyser.runQuery(projekt.getEProject(), eq, "");
+    int i=0; String [] sAlgs = new String[eAlgs.size()]; for (EAlgorithm eAlg : eAlgs ) {sAlgs[i++] = eAlg.getName();}
+        i=0; String [] sTsts = new String[eTests.size()];for (ETestSet   eTst : eTests) {sTsts[i++] = eTst.getName();}
         
-    System.out.println(td.toString());            
+    
+    EQuery eq = new EQuery(sAlgs, sTsts, par, ind, groupBy, filter, sortBy, "0", "");
+    return DataAnalyser.runQuery(projekt.getEProject(), eq, "");
   }
 }

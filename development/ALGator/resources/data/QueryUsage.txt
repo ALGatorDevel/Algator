@@ -1,3 +1,16 @@
 Usage examples
 
-java algator.Execute Sorting
+java algator.Query BasicMatrixMul -a Winograd
+
+java algator.Query BasicMatrixMul -v 2 -a Winograd -t TestSet2 -par "[N]" -ind "[TFirst, Tmin]"
+
+java algator.Query BasicSort -filter "[N>18000, N<20000]" -group "[N]"  -a BubbleSort
+
+java algator.Query BasicSort -a QuickSort -par "[N]" -ind "[Tmin]" -group "[N]" -sort "[N]"
+Prints a query result
+
+java algator.Query BasicSort -a QuickSort -par "[N]" -ind "[Tmin]" -group "[N]" -sort "[N]" -opt "{mode:outliers, "M":"2.0"}"
+Prints outliers for the last two columns of a query result
+
+java algator.Query BasicSort -par "[N]" -ind "[Tmin]" -group [N] -sort [N] -opt "{mode:outliers, "M":"2.4", x:4, y:-2}"
+Use the 4th (x) and the second-from-the-right (y) column of the query result and print outliers

@@ -31,8 +31,12 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
 
   AbstractTestCase  testCaseInstance;
   
-  public DefaultTestSetIterator(Project project, ETestSet testSet) {
+  String currentJobID; // ID of a current job (used to obtain the classloader for jobs classes)
+  
+  public DefaultTestSetIterator(Project project, ETestSet testSet, String currentJobID) {
     super(project, testSet);
+    
+    this.currentJobID = currentJobID;
   }
 
       
@@ -122,8 +126,10 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
   public AbstractTestCase getCurrent() {
     AbstractTestCase testCase = null;
     try {
+      String testCaseClassName = project.getEProject().getTestCaseClassname();
+      
       if (testCaseInstance == null)
-        testCaseInstance = New.testCaseInstance(project);
+        testCaseInstance = New.testCaseInstance(currentJobID, testCaseClassName);
       
       testCase = testCaseInstance.getTestCase(project, currentInputLine, filePath);
       if (testCase == null) {

@@ -37,7 +37,7 @@ public class VMEPExecutor {
    * getJVMRESULTfilename to regular result file for this algorithm-testset. If execution failes, a line with 
    * error message is appended to result file.
    */
-  public static void iterateTestSetAndRunAlgorithm(Project project, String algName, 
+  public static void iterateTestSetAndRunAlgorithm(Project project, String algName, String currentJobID, 
           String testSetName, EResult resultDesc, AbstractTestSetIterator it, 
           Notificator notificator, File resultFile) {
 

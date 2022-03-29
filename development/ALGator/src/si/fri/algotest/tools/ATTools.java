@@ -10,7 +10,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -132,10 +131,13 @@ public class ATTools {
 
     // build a classpath
     StringBuilder sb = new StringBuilder();
-    URLClassLoader urlClassLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
-    for (URL url : urlClassLoader.getURLs()) {
-      sb.append(url.getFile()).append(File.pathSeparator);
+    
+    String pathSeparator = System.getProperty("path.separator"); 
+    String[] classPathEntries = System.getProperty("java.class.path") .split(pathSeparator);  
+    for (String classPathEntry : classPathEntries) {
+      sb.append(classPathEntry).append(File.pathSeparator);
     }
+    
     for (String cp : classpaths) {
       sb.append(cp).append(File.pathSeparator);
     }

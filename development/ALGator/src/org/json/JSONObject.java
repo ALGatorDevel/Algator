@@ -1070,7 +1070,7 @@ public class JSONObject implements Serializable {
      *             If the key is null or if the number is invalid.
      */
     public JSONObject put(String key, double value) throws JSONException {
-        this.put(key, new Double(value));
+        this.put(key, value);
         return this;
     }
 
@@ -1086,7 +1086,7 @@ public class JSONObject implements Serializable {
      *             If the key is null.
      */
     public JSONObject put(String key, int value) throws JSONException {
-        this.put(key, new Integer(value));
+        this.put(key, value);
         return this;
     }
 
@@ -1102,7 +1102,7 @@ public class JSONObject implements Serializable {
      *             If the key is null.
      */
     public JSONObject put(String key, long value) throws JSONException {
-        this.put(key, new Long(value));
+        this.put(key, value);
         return this;
     }
 
@@ -1322,10 +1322,10 @@ public class JSONObject implements Serializable {
                         return d;
                     }
                 } else {
-                    Long myLong = new Long(string);
+                    Long myLong = Long.parseLong(string);
                     if (string.equals(myLong.toString())) {
                         if (myLong.longValue() == myLong.intValue()) {
-                            return new Integer(myLong.intValue());
+                            return myLong.intValue();
                         } else {
                             return myLong;
                         }

@@ -2,6 +2,7 @@ package si.fri.algotest.execute;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.Scanner;
 import org.apache.commons.io.FileUtils;
 import si.fri.adeserver.ADETask;
@@ -181,7 +182,7 @@ public class Executor {
     if (project == null) {
       return ErrorStatus.ERROR;
     }
-
+    
     String runningMsg = String.format("Running [%s, %s, %s]", mType.getExtension(), testSetName, algName);
     ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, "");
     ATLog.log(runningMsg, 3);
@@ -239,7 +240,10 @@ public class Executor {
         return ErrorStatus.getLastErrorStatus();
       }
 
-      AbstractTestSetIterator tsIt = new DefaultTestSetIterator(project, eTestSet);
+      URL[] urls = New.getClassPathsForProjectAlgorithm(project, algName);
+      String currentJobID = New.generateClassloaderAndJobID(urls);
+      
+      AbstractTestSetIterator tsIt = new DefaultTestSetIterator(project, eTestSet, currentJobID);
       tsIt.initIterator();
 
       notificator.setNumberOfInstances(numberOfInstances);
@@ -256,18 +260,21 @@ public class Executor {
         if (resFile.exists())
           resFile.delete();
       } catch (Exception e) {
+        New.removeClassLoader(currentJobID);
         return ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_RUN, e.toString());
       }
 
 
       try {
         if (mType.equals(MeasurementType.EM) || mType.equals(MeasurementType.CNT)) 
-          ExternalExecutor.iterateTestSetAndRunAlgorithm(project, algName, tsIt, notificator, mType, resFile, whereToPrint);
+          ExternalExecutor.iterateTestSetAndRunAlgorithm(project, algName, currentJobID, tsIt, notificator, mType, resFile, whereToPrint);
         else
-          VMEPExecutor.iterateTestSetAndRunAlgorithm(project, algName, testSetName, resDesc, tsIt, notificator, resFile);
+          VMEPExecutor.iterateTestSetAndRunAlgorithm(project, algName, currentJobID, testSetName, resDesc, tsIt, notificator, resFile);
       } catch (Exception e) {
         ADETools.writeTaskStatus(tmpTask,  TaskStatus.FAILED, ErrorStatus.ERROR_CANT_RUN.toString(), ATGlobal.getThisComputerID());
         return ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_RUN, e.toString());
+      } finally {
+        New.removeClassLoader(currentJobID);
       }
     } // end java execution
       
