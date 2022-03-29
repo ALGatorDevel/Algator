@@ -1,17 +1,16 @@
 package si.fri.algotest.execute;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
-import java.util.HashSet;
 import si.fri.algotest.entities.EProject;
 import si.fri.algotest.entities.MeasurementType;
 import si.fri.algotest.entities.Project;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ATLog;
 import si.fri.algotest.tools.ATTools;
+import si.fri.algotest.tools.UniqueIDGenerator;
 
 /**
  *
@@ -19,98 +18,90 @@ import si.fri.algotest.tools.ATTools;
  */
 public class New {
 
-  // For a given pair (project, algorithm) we always use the same loader 
-  private static final HashMap<String, URLClassLoader> classloaders = new HashMap<>();
+  // classPath that includes ALGator paths (ALGator.jar + *.jar) + 
+  // project paths (proj/bin/* + *.jar) + algorithm paths (ALG/bin/* + *.jar) 
+  public static URL[] getClassPathsForProjectAlgorithm(Project project, String algName) {
+    String projBin = ATGlobal.getPROJECTbin(project.getName());
 
-  public static URL[] getClassPathsForProject(Project project) {
-    return getClassPathsForAlgorithm(project, "");
-  }
-      
-  
-    public static URL[] getClassPathsForAlgorithm(Project project, String algName) {
-      String projBin = ATGlobal.getPROJECTbin(project.getName());
-      
-      String algBin  = algName.isEmpty() ? "" : ATGlobal.getALGORITHMbin(project.getName(), algName);
+    String algBin = algName.isEmpty() ? "" : ATGlobal.getALGORITHMbin(project.getName(), algName);
 
-      URL[] proJARs  = ATTools.getURLsFromJARs(project.getEProject().getStringArray(EProject.ID_ProjectJARs), ATGlobal.getPROJECTlib(project.getEProject().getProjectRootDir()));
-      URL[] algJARs  = ATTools.getURLsFromJARs(project.getEProject().getStringArray(EProject.ID_AlgorithmJARs), ATGlobal.getPROJECTlib(project.getEProject().getProjectRootDir()));
-      
-      URLClassLoader parentclassLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
-      URL[] parentURLs = parentclassLoader.getURLs();
+    URL[] proJARs = ATTools.getURLsFromJARs(project.getEProject().getStringArray(EProject.ID_ProjectJARs), ATGlobal.getPROJECTlib(project.getEProject().getProjectRootDir()));
+    URL[] algJARs = ATTools.getURLsFromJARs(project.getEProject().getStringArray(EProject.ID_AlgorithmJARs), ATGlobal.getPROJECTlib(project.getEProject().getProjectRootDir()));
 
-      URL[] urls = new URL[parentURLs.length + 1 + (algBin.isEmpty() ? 0 : 1) + proJARs.length + algJARs.length];
-      int stevec = 0;
-
-      for (int j = 0; j < parentURLs.length; j++) {
-          urls[stevec++] = parentURLs[j];
+    String pathSeparator = System.getProperty("path.separator");
+    String[] classPathEntries = System.getProperty("java.class.path").split(pathSeparator);
+    URL[] parentURLs = new URL[classPathEntries.length];
+    try {
+      for (int i = 0; i < classPathEntries.length; i++) {
+        parentURLs[i] = new URL("file", "", classPathEntries[i]);
       }
-      for (int j = 0; j < proJARs.length; j++) {
-          urls[stevec++] = proJARs[j];
-      }
-      for (int j = 0; j < algJARs.length; j++) {
-          urls[stevec++] = algJARs[j];
-      }
-      try {
-        urls[stevec++] = new File(projBin).toURI().toURL();
-        if (!algBin.isEmpty()) urls[stevec++] = new File(algBin).toURI().toURL();
-      } catch (Exception e) {
-      }
-      
-      return urls;
-  }
-
-  
-  
-  /*
-  Opomba: Prvotna verzija programa je uporabljala metodo getCLassLoader(projekt, algoritm),
-    ki je za vsak par projekt-algoritm ustvarila NOV classloader. To se ni obneslo, saj je 
-    vmep pri tem javljal napako: ClassCastException (kot da bi bila AbstractTestsetIterator
-    in npr. SortTestsetIterator naložena z drugim nalagalnikom). Javanska verzija programa 
-    (če se algator požene z običajno javo) je delala brez problemov. 
-    Da sem odpravil to težavo, ves čas uporabljam ISTI nalagalnik, le classpath mu po potrebi
-    dopolnjujem. V množici pathsAdded si zapomnim, katere poti sem že dodal in jih ob nadaljnjih 
-    izvajanjih ne dodajam ponovno (brez tega je program delal bistveno bolj počasi).
-  */
-  
-  private static HashSet<String> pathsAdded = new HashSet<String>();
-  public static ClassLoader getClassloader(URL [] urls) throws Exception {    
-    Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{URL.class});
-    method.setAccessible(true);
-    for (int i = 0; i < urls.length; i++) {
-      if (!pathsAdded.contains(urls[i].toString())) {
-        method.invoke(ClassLoader.getSystemClassLoader(), new Object[]{urls[i]});
-        pathsAdded.add(urls[i].toString());
-      }
+    } catch (Exception e) {
     }
-    return ClassLoader.getSystemClassLoader();
+
+    URL[] urls = new URL[parentURLs.length + 1 + (algBin.isEmpty() ? 0 : 1) + proJARs.length + algJARs.length];
+    int stevec = 0;
+
+    for (int j = 0; j < parentURLs.length; j++) {
+      urls[stevec++] = parentURLs[j];
+    }
+    for (int j = 0; j < proJARs.length; j++) {
+      urls[stevec++] = proJARs[j];
+    }
+    for (int j = 0; j < algJARs.length; j++) {
+      urls[stevec++] = algJARs[j];
+    }
+    try {
+      urls[stevec++] = new File(projBin).toURI().toURL();
+      if (!algBin.isEmpty()) {
+        urls[stevec++] = new File(algBin).toURI().toURL();
+      }
+    } catch (Exception e) {
+    }
+
+    return urls;
   }
-  
+
+  // Slovar vseh trenutno aktivnih classloaderjev. 
+  // Za vsako "job" (job = kakrsnokoli izvajanje algoritma - za en test, za več testov, za timelimit, ...)
+  // se ustvari nov classloader; dokler poteka ta job, classloader nalaga razrede, ki jih potrebujemo;
+  // ko se job zaključi, se uniči tudi classloader (na ta način poskrbim, da se ob daljši uporabi programa
+  // (recimo znotraj TaskServerja) število classloaderjev ne namnoži preveč); da ima vsak job svoj classloader
+  // pa zagotovi, da se bodo ob morebitni spremembi konfiguracije projekta razredi prav nalagali (če bi imel, na 
+  // primer, en class loader za par (algoritm, projekt), bi se ob spremembi algoritma  nov razred 
+  // ne osvežil, saj bi classloader rekel, da je razred že naložen); 
+  private static final HashMap<String, ClassLoader> classLoaders = new HashMap();
+
   /**
-   * Metoda se trenutno ne uporablja - glej komentar pri metodi getClassLoader(URL [] url)
+   * Ob začetku joba ustvarim classloader in unique ID, s katerim se kasneje sklicujem
+   * na ta class loader.
+   * 
+   * @param urls vsi URLji, ki jih potrebujem za izvajanje joba (urlja dobim z metodo getClassPathsForProjectAlgorithm())
+   * @return vrne ID, preko katerega pridobim classloader za nalaganje razredov tega joba
    */
-  private static URLClassLoader getClassloader(Project project, String algName) {
-    String key = project.getName() + "+" + algName;
-    URLClassLoader result = classloaders.get(key);
-
-    if (result == null) {
-      try {
-        URL[] urls = getClassPathsForAlgorithm(project, algName);
-        classloaders.put(key, (result = URLClassLoader.newInstance(urls)));
-      } catch (Exception e) {
-        ATLog.log("Error creating class loader: " + e.toString(), 2);
-      }
-    }
-    return result;
+  public static String generateClassloaderAndJobID(URL[] urls) {
+    String id = UniqueIDGenerator.getNextID();
+    try {
+      classLoaders.put(id, new URLClassLoader(urls));
+    } catch (Exception e) {}
+    return id;
   }
+  
+  public static ClassLoader getClassloader(String currentJobID) throws Exception {
+    if (classLoaders.get(currentJobID) == null) {
+      classLoaders.put(currentJobID, new URLClassLoader(new URL[]{}));
+    }
+    return classLoaders.get(currentJobID);
+  }
+  
+  public static void removeClassLoader(String currentJobID) {
+    classLoaders.remove(currentJobID);
+  }
+  
 
-  public static AbstractAlgorithm algorithmInstance(Project project, String algName, MeasurementType mType) {
+  public static AbstractAlgorithm algorithmInstance(String currentJobID, String algClassName, MeasurementType mType) {
     AbstractAlgorithm result = null;
     try {
-      // ... glej opombo zgoraj pri getClassLoader
-      // ClassLoader classLoader = getClassloader(project, algName);
-      ClassLoader classLoader = getClassloader(getClassPathsForAlgorithm(project, algName));
-      
-      String algClassName = project.getAlgorithms().get(algName).getAlgorithmClassname();
+      ClassLoader classLoader = getClassloader(currentJobID);
 
       if (mType.equals(MeasurementType.CNT)) {
         algClassName += ATGlobal.COUNTER_CLASS_EXTENSION;
@@ -118,29 +109,23 @@ public class New {
 
       Class algClass = Class.forName(algClassName, true, classLoader);
       result = (AbstractAlgorithm) algClass.newInstance();
-      
+
       result.setmType(mType);
     } catch (Exception e) {
-      ATLog.log("Can't make an instance of algorithm " + algName + ": " + e, 2);
+      ATLog.log("Can't make an instance of algorithm " + algClassName + ": " + e, 2);
     }
     return result;
   }
 
-  
-  public static AbstractTestCase testCaseInstance(Project project) {
+  public static AbstractTestCase testCaseInstance(String currentJobID, String testCaseClassName) {
     AbstractTestCase result = null;
     try {
-      ClassLoader classLoader = getClassloader(getClassPathsForProject(project));
-      
-      String testCaseClassName
-              = project.getEProject().getTestCaseClassname();
+      ClassLoader classLoader = getClassloader(currentJobID);     
       Class tcClass = Class.forName(testCaseClassName, true, classLoader);
       result = (AbstractTestCase) tcClass.newInstance();
     } catch (Exception e) {
-      ATLog.log("Can't make an instance of TestCase for project " + project.getName() + ": " + e, 2);
+      ATLog.log("Can't make an instance of TestCase " + testCaseClassName + ": " + e, 2);
     }
     return result;
   }
-  
-
 }

@@ -77,7 +77,7 @@ public class ATGlobal {
    * the current JVM.
    * By setting debugMode = true, the algorithm is executed in the same JVM and it can be debuged. 
    */
-  public static boolean debugMode = false;
+  public static boolean debugMode = true;
   
   
   

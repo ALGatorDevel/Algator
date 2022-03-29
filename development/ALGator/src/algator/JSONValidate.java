@@ -2,7 +2,6 @@ package algator;
 
 import java.io.File;
 import java.util.Scanner;
-import jdk.nashorn.internal.parser.JSONParser;
 import org.json.JSONObject;
 
 /**

@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.Scanner;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -161,8 +162,11 @@ public class VMEPExecute {
 
       System.exit(VMEPErrorStatus.INVALID_TESTSET.getValue()); // invalid testset
     }    
+    
+    URL[] urls = New.getClassPathsForProjectAlgorithm(projekt, algName);
+    String currentJobID = New.generateClassloaderAndJobID(urls);    
             
-    AbstractTestSetIterator testsetIterator = new DefaultTestSetIterator(projekt, testSet);
+    AbstractTestSetIterator testsetIterator = new DefaultTestSetIterator(projekt, testSet, currentJobID);
     testsetIterator.initIterator();
     
     EResult resultDescription = projekt.getResultDescriptions().get(MeasurementType.JVM);
@@ -183,7 +187,9 @@ public class VMEPExecute {
     
     String resFilename = ATGlobal.getJVMRESULTfilename(commFolder, algName, testsetName, testNumber);
     
-    runAlgorithmOnATest(projekt, algName, testsetName, testNumber, resultDescription, testsetIterator, resFilename);
+    runAlgorithmOnATest(projekt, algName, testsetName, currentJobID, testNumber, resultDescription, testsetIterator, resFilename);
+    
+    New.removeClassLoader(currentJobID);
   }
 
   
@@ -192,7 +198,7 @@ public class VMEPExecute {
    * 
    */
   public static void runAlgorithmOnATest(
-    Project project, String algName, String testsetName, int testNumber, EResult resultDesc,
+    Project project, String algName, String testsetName, String currentJobID, int testNumber, EResult resultDesc,
           AbstractTestSetIterator testsetIterator, String resFilename) {
                 
     // the order of parameters to be printed
@@ -215,8 +221,9 @@ public class VMEPExecute {
 
       if (testsetIterator.readTest(testNumber)) {        
         
-        AbstractTestCase testCase = testsetIterator.getCurrent();    
-        AbstractAlgorithm curAlg = New.algorithmInstance(project, algName, MeasurementType.JVM);
+        AbstractTestCase testCase = testsetIterator.getCurrent(); 
+        String algClassName = project.getAlgorithms().get(algName).getAlgorithmClassname();
+        AbstractAlgorithm curAlg = New.algorithmInstance(currentJobID, algClassName, MeasurementType.JVM);
         curAlg.init(testCase); 
         
         AbstractInput input = testCase.getInput();

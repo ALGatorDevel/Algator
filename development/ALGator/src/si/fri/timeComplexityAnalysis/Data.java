@@ -89,7 +89,7 @@ public class Data {
 
         double predict_err = err / m;
         if (predict_err > treshold * avg_err) {
-            res.add(Double.valueOf(this.X[kk]));
+            res.add(this.X[kk]);
             return res;
         }
 

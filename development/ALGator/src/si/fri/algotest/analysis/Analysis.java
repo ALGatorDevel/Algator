@@ -1,6 +1,7 @@
 package si.fri.algotest.analysis;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -87,9 +88,13 @@ public class Analysis {
     
     String generatorType = "TYPE" + defaultParams.getVariable("GeneratorType", "0").getStringValue();
 
-    AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(generatorType, parameters);
+    URL[] urls               = New.getClassPathsForProjectAlgorithm(project, algName);
+    String currentJobID      = New.generateClassloaderAndJobID(urls);    
+    String testCaseClassName = project.getEProject().getTestCaseClassname();
     
-    Variables result = ExternalExecutor.runTestCase(project, algName, testCase, MeasurementType.EM, OtherTestsetName, 1, timesToExecute, timeLimit, null, instanceID);
+    AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).generateTestCase(generatorType, parameters);
+    
+    Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, 1, timesToExecute, timeLimit, null, instanceID);
 
     result.addVariable(EResult.getTestsetNameParameter(RunOneTestsetID));
     
@@ -98,6 +103,8 @@ public class Analysis {
     );
     
     ExternalExecutor.printVariables(result, new File(resFilename), EResult.getVariableOrder(project.getTestCaseDescription(), emResultDesc), whereToPrint);
+    
+    New.removeClassLoader(currentJobID);
     
     return result;
   }
@@ -208,11 +215,16 @@ public class Analysis {
 
     boolean bisectionMode = false;
 
+    URL[] urls               = New.getClassPathsForProjectAlgorithm(project, algName);
+    String currentJobID      = New.generateClassloaderAndJobID(urls);    
+    String testCaseClassName = project.getEProject().getTestCaseClassname();
+    
+    
     while (true) {
       param.setValue(curParamValue);
-      AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(ETestCase.defaultGeneratorType, parameters);
+      AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).generateTestCase(ETestCase.defaultGeneratorType, parameters);
 
-      Variables result = ExternalExecutor.runTestCase(project, algName, testCase, MeasurementType.EM, OtherTestsetName, ++testID, 1, timeLimit, notificator, instanceID);
+      Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, ++testID, 1, timeLimit, notificator, instanceID);
       
       result.addVariable(EResult.getTestsetNameParameter(FindLimitTestsetID));
       result.addProperty(AbstractTestCase.PROPS, "t", timeLimit);            
@@ -262,6 +274,8 @@ public class Analysis {
       System.out.printf("Alg: %s, Param value: %d, time: %d\n", algName, lastOKParamValue, lastOKTime);
     }
 
+    New.removeClassLoader(currentJobID);
+    
     return lastOKResult;
   }
   
@@ -295,11 +309,15 @@ public class Analysis {
 
     boolean bisectionMode = false;
 
+    URL[] urls               = New.getClassPathsForProjectAlgorithm(project, algName);
+    String currentJobID      = New.generateClassloaderAndJobID(urls);    
+    String testCaseClassName = project.getEProject().getTestCaseClassname();    
+    
     while (true) {
       param.setValue(curParamValue);
-      AbstractTestCase testCase = New.testCaseInstance(project).generateTestCase(ETestCase.defaultGeneratorType, parameters);
+      AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).generateTestCase(ETestCase.defaultGeneratorType, parameters);
 
-      Variables result = ExternalExecutor.runTestCase(project, algName, testCase, MeasurementType.EM, OtherTestsetName, ++testID, 1, 2 * timeLimit, notificator, instanceID);
+      Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, ++testID, 1, 2 * timeLimit, notificator, instanceID);
 
       result.addVariable(EResult.getTestsetNameParameter(FindLimitTestsetID));
       result.addProperty(AbstractTestCase.PROPS, "t", timeLimit);      
@@ -363,8 +381,11 @@ public class Analysis {
     }
     Arrays.sort(x);
     for (i=0; i < n; i++){
-      y[i] = mapping.get(x[i]);
+      y[i] = mapping.get(x[i]);    
     }
+    
+    New.removeClassLoader(currentJobID);
+    
     return new Data("maxData", x,y);
   }
   

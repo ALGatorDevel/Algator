@@ -58,7 +58,8 @@ public class TableData {
             try {
               ArrayList<Object> ao1 = (ArrayList<Object>) o1;
               ArrayList<Object> ao2 = (ArrayList<Object>) o2;
-              return predznak * new Double(((Number) ao1.get(fieldNo)).doubleValue()).compareTo(((Number) ao2.get(fieldNo)).doubleValue());
+              Double left = ((Number) ao1.get(fieldNo)).doubleValue();
+              return predznak * left.compareTo(((Number) ao2.get(fieldNo)).doubleValue());
             } catch (Exception e) {
               return 0;
             }

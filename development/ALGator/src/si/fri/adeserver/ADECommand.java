@@ -129,7 +129,8 @@ public class ADECommand {
         classPath += File.pathSeparator +  "dist/lib/commons-cli-1.2.jar";
       }
       
-      String path = System.getenv("JAVA_HOME");      
+      String path = System.getenv("JAVA_HOME");
+      if (path==null) path ="";
       String jvmCommand = (path.isEmpty() ? "" : path + "/bin/") + "java";
     
       

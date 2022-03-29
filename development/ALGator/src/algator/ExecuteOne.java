@@ -1,6 +1,7 @@
 package algator;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Scanner;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -18,7 +19,9 @@ import si.fri.algotest.entities.Project;
 import si.fri.algotest.entities.Variables;
 import si.fri.algotest.execute.AbstractTestCase;
 import si.fri.algotest.execute.ExternalExecutor;
+import si.fri.algotest.execute.New;
 import si.fri.algotest.global.ATGlobal;
+import si.fri.algotest.global.ATLog;
 
 /**
  *
@@ -82,7 +85,8 @@ public class ExecuteOne {
 
     String projName,algName,tstName;
     MeasurementType  mType;
-    int testID, verboseLevel;
+    String testID;
+    int verboseLevel;
     
     String algatorRoot, dataRoot;
     
@@ -105,7 +109,7 @@ public class ExecuteOne {
       tstName   = curArgs[2];
       
       mType     = curArgs[3].equals("cnt") ? MeasurementType.CNT : (curArgs[3].equals("jvm") ? MeasurementType.JVM : MeasurementType.EM);
-      testID    = Integer.parseInt(curArgs[4]);
+      testID    = curArgs[4];
       
       verboseLevel = 1;
       if (line.hasOption("verbose")) {
@@ -156,8 +160,7 @@ public class ExecuteOne {
       }
 
       // Test the testID
-      int noInst = eTestSet.getFieldAsInt(ETestSet.ID_N, 0);            
-      if (testID >= noInst) {
+      if (testID.isEmpty()) {
         System.out.println("Invalid testID (test does not exist).");
         return;
       }
@@ -172,33 +175,51 @@ public class ExecuteOne {
   
   // Runs one test
   private static void runAlgorithm(Project project, String algName, ETestSet eTestSet, 
-          MeasurementType mType, int testID, int verboseLevel) {
+          MeasurementType mType, String testID, int verboseLevel) {
     
-    String qTestSetFIleName = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataLocal(), project.getName(), "QTestSet");
+    String qTestSetFileName = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataLocal(), project.getName(), "QTestSet");
     eTestSet.set(ETestSet.ID_N, 1);           // only one test
     eTestSet.set(ETestSet.ID_TimeLimit,  0);  // no time limit  
     eTestSet.set(ETestSet.ID_TestRepeat, 1);  // repeate only once
     
     String descFileName = ATGlobal.getTESTSroot(ATGlobal.getALGatorDataLocal(), project.getName()) +
              File.separator + eTestSet.getTestSetDescriptionFile();
-
+    String path = new File(descFileName).getParent();
+    
     String test = "?";
     try (Scanner sc = new Scanner(new File(descFileName))) {
-      for(int i=0; i<testID; i++) sc.nextLine();
-      test = sc.nextLine();
+      while(sc.hasNextLine()) {      
+        String trTestId="";
+        String line = sc.nextLine();       
+        try {trTestId = line.split(":")[1];} catch (Exception e){}
+        if (trTestId.equals(testID)) {
+          test = line;
+          break;
+        }
+      }
     } catch (Exception e) {}
-    
-    System.out.println(qTestSetFIleName);
-    System.out.println(test);
-    
-    AbstractTestCase testCase=null; //!!!
-    
-    Variables resultVariables = ExternalExecutor.runTestCase(project, algName, testCase, mType, eTestSet.getName(), testID, 1, 100, null, null);
-    //!!!!!!!
-    // ExternalExecutor.printVariables(resultVariables, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), whereToPrint);
-
+    if (test.equals("?")) {
+        System.out.println("Invalid testID (test does not exist).");
+        return;
+    }
     
     
+    URL[] urls = New.getClassPathsForProjectAlgorithm(project, algName);
+    String currentJobID = New.generateClassloaderAndJobID(urls);    
+    String testCaseClassName = project.getEProject().getTestCaseClassname();
+    
+    AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).getTestCase(project, test, path);
+    
+    Variables resultVariables = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, mType, eTestSet.getName(), 1, 1, 100, null, null);
+    
+    EResult resultDesc = project.getResultDescriptions().get(mType);
+    if (resultDesc == null) {
+      resultDesc = new EResult();
+    }
+    
+    ExternalExecutor.printVariables(resultVariables, null, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), ATLog.TARGET_STDOUT);    
+    
+    New.removeClassLoader(currentJobID); 
   }
 
 }
