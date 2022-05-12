@@ -396,8 +396,9 @@ public class Admin {
       copyFile("templates/P_TC.html",          projDocFolder,   "testcase.html",                  substitutions);
       copyFile("templates/P_AAA.html",         projDocFolder,   "algorithm.html",                 substitutions);
       copyFile("templates/P_REF.html",         projDocFolder,   "references.html",                substitutions);
-      
-      UsersTools.setProjectPermissions(username, proj_name);
+
+      if (Database.isDatabaseMode())
+        UsersTools.setProjectPermissions(username, proj_name);
     } catch (Exception e) {
       System.out.println("Can not create project: " + e.toString());
       return false;
@@ -443,7 +444,8 @@ public class Admin {
       eProject.set(EProject.ID_Algorithms, a.toArray());
       eProject.saveEntity();
 
-      UsersTools.setEntityPermissions(username, proj_name, alg_name, 2);
+      if (Database.isDatabaseMode())
+        UsersTools.setEntityPermissions(username, proj_name, alg_name, 2);
     } catch (Exception e) {
       System.out.println("Can not create algorithm: " + e.toString());
       return false;
@@ -495,8 +497,9 @@ public class Admin {
         ts.add(testset_name);
       eProject.set(EProject.ID_TestSets, ts.toArray());
       eProject.saveEntity();
-
-      UsersTools.setEntityPermissions(username, proj_name, testset_name, 3);
+      
+      if (Database.isDatabaseMode())
+        UsersTools.setEntityPermissions(username, proj_name, testset_name, 3);
     } catch (Exception e) {
       System.out.println("Can not create test set: " + e.toString());
       return false;

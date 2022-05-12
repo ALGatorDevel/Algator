@@ -58,11 +58,24 @@ public class ExecuteOne {
             .hasArg(true)
             .withDescription("print additional information (0 = OFF, 1 = some (default), 2 = all")
             .create("v");
+    
+    Option timeLimit = OptionBuilder.withArgName("time_limit")
+            .withLongOpt("timelimit")
+            .hasArg(true)
+            .withDescription("time limit before kill (in seconds); defalut: 10")
+            .create("t");
+    Option timesToExecute = OptionBuilder.withArgName("time_to_execute")
+            .withLongOpt("timestoexecute")
+            .hasArg(true)
+            .withDescription("number of times to execute algorithm; defulat: 1")
+            .create("te");    
 
     options.addOption(data_root);
     options.addOption(data_local);    
     options.addOption(algator_root);
     options.addOption(verbose);
+    options.addOption(timeLimit);
+    options.addOption(timesToExecute);
     
     options.addOption("h", "help", false, "print this help");
     
@@ -136,7 +149,20 @@ public class ExecuteOne {
       if (line.hasOption("data_local")) {
 	dataLocal = line.getOptionValue("data_local");
       }
-      ATGlobal.setALGatorDataLocal(dataLocal);      
+      ATGlobal.setALGatorDataLocal(dataLocal);     
+      
+      int timeLimit = 1;
+      if (line.hasOption("timelimit")) {
+        try {
+	  timeLimit = Integer.parseInt(line.getOptionValue("timelimit", "1"));
+        } catch (Exception e) {}
+      }
+      int timesToExecute = 1;
+      if (line.hasOption("timestoexecute")) {
+        try {
+	  timesToExecute = Integer.parseInt(line.getOptionValue("timestoexecute", "1"));
+        } catch (Exception e) {}
+      }      
            
       // Create and test the project
       Project project = new Project(dataRoot, projName);
@@ -165,7 +191,7 @@ public class ExecuteOne {
         return;
       }
       
-      runAlgorithm(project, algName, eTestSet, mType, testID, verboseLevel);    
+      runAlgorithm(project, algName, eTestSet, mType, testID, verboseLevel, timeLimit, timesToExecute);    
       
     } catch (ParseException ex) {
       printMsg(options);
@@ -175,12 +201,12 @@ public class ExecuteOne {
   
   // Runs one test
   private static void runAlgorithm(Project project, String algName, ETestSet eTestSet, 
-          MeasurementType mType, String testID, int verboseLevel) {
+          MeasurementType mType, String testID, int verboseLevel, int limit, int timesToExecute) {
     
     String qTestSetFileName = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataLocal(), project.getName(), "QTestSet");
-    eTestSet.set(ETestSet.ID_N, 1);           // only one test
-    eTestSet.set(ETestSet.ID_TimeLimit,  0);  // no time limit  
-    eTestSet.set(ETestSet.ID_TestRepeat, 1);  // repeate only once
+    eTestSet.set(ETestSet.ID_N, 1);                        // only one test
+    eTestSet.set(ETestSet.ID_TimeLimit,  limit);           // no time limit  
+    eTestSet.set(ETestSet.ID_TestRepeat, timesToExecute);  // repeate only once
     
     String descFileName = ATGlobal.getTESTSroot(ATGlobal.getALGatorDataLocal(), project.getName()) +
              File.separator + eTestSet.getTestSetDescriptionFile();

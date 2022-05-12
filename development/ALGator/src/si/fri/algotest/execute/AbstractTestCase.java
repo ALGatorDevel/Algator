@@ -56,9 +56,12 @@ public abstract class AbstractTestCase implements Serializable {
         String [] genPar = gen.getGeneratingParameters();
                 
         Variables generatingParameters = new Variables();
-        generatingParameters.setVariable(TESTS_PATH, path);
+        generatingParameters.setVariable(TESTS_PATH, path);        
         if (parts.length > 1) 
           generatingParameters.setVariable("Test", parts[1]);
+        
+        // at least one Property of TC_PROPS is always defined (i.e. the Type property)
+        generatingParameters.addProperty(PROPS, "Type", type);
         
         Variables pars = project.getTestCaseDescription().getParameters();        
         if (genPar != null) for (int i = 0; i < genPar.length; i++) {

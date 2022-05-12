@@ -120,7 +120,7 @@ public class ADECommand {
   
   public static Object executeCommand(String ukaz, String[] args, String outputFilename) { 
     try {                 
-      String classPath = Version.getClassesLocation();                
+      String classPath = Version.getClassesLocation();         
       // When running ALGator with NetBeans, getClassLocation() returns
       // a path to "classes" folder which is not enough to execute ALGator.
       // To enable running ALGator in Netbeans, we add local ALGator distribution to classpath
@@ -133,7 +133,9 @@ public class ADECommand {
       if (path==null) path ="";
       String jvmCommand = (path.isEmpty() ? "" : path + "/bin/") + "java";
     
-      
+      if (classPath.startsWith("/")) classPath = classPath.substring(1);
+            System.out.println("classPath: " + classPath);
+
       String[] command = ArrayUtils.addAll(new String[] {jvmCommand, "-cp", classPath, "-Xss1024k", "algator."+ukaz}, args);
       ProcessBuilder probuilder = new ProcessBuilder( command );
       Map<String, String> environment = probuilder.environment();

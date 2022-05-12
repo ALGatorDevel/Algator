@@ -403,7 +403,7 @@ public class TableData {
       for (int i = 0; i < data.size(); i++) {
         try {
           Object object = data.get(i).get(j);
-          if (object != null && !object.toString().isEmpty() && !"0".equals(object.toString()) && !"?".equals(object.toString())) {
+          if (object != null && !object.toString().isEmpty() && /*!"0".equals(object.toString()) &&*/ !"?".equals(object.toString())) {
             // found defined value - column will not be deleted
             allUndefined=false;
             break;

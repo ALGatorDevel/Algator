@@ -374,8 +374,17 @@ public class DataAnalyser {
         break;
       }
     }
-    if (containsAll) {
-      etts = allEntities;
+    if (containsAll) { // merge both - allParameters and current parameters
+      String[] newEtts = new String[etts.length + allEntities.length];
+      System.arraycopy(allEntities, 0,  newEtts, 0, allEntities.length);
+      System.arraycopy(etts,        0 , newEtts, allEntities.length, etts.length); 
+      
+      // remove the asterisk and the duplicates
+      ArrayList<String> aEtts = new ArrayList<>();
+      for (String ett : newEtts) 
+        if (!asterisk.equals(ett) && !aEtts.contains(ett))
+          aEtts.add(ett);
+      etts = aEtts.toArray(new String[]{});              
     }
 
     return etts;
@@ -662,7 +671,7 @@ public class DataAnalyser {
                     }
                   }
 
-                  // check is parameter has a type defined
+                  // check if parameter has a type defined
                   String parType = inPar.getType();
                   if (parType != null) {
                     switch (parType) {
@@ -721,6 +730,7 @@ public class DataAnalyser {
                   value = parameter.getValue();
                 }
               } catch (Exception e) {
+                System.out.println(e);
               }
             }
             line.add(value);
@@ -870,7 +880,7 @@ public class DataAnalyser {
     EVariable parameter = ps2.getVariable(name);
     if (parameter != null) {
       Object value = parameter.getValue();
-      exp = exp.replace(alg + name, value.toString());
+      exp = exp.replace("@" + alg + name, value.toString());
     }
     return exp;
   }

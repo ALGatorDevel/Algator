@@ -11,7 +11,7 @@ import si.fri.algotest.global.ATLog;
 public class AlgInterpreter {
 
     private static final String[] stringsNotAllowed = new String[]{"{", "}"};
-    public static final String[] mathMembers = new String[]{"abs", "ceil", "floor", "max", "min", "pow", "random", "round", "signum", "sqr"};
+    public static final String[] mathMembers = new String[]{"sin", "cos", "abs", "ceil", "floor", "max", "min", "pow", "random", "round", "signum", "sqr"};
 
     
     public static String prepareExpression(String expression) {
@@ -22,9 +22,9 @@ public class AlgInterpreter {
             }
         }
         expression = expression.replace(";", ",");
-        for (String mb : mathMembers) {
-            expression = expression.replace(mb + "(", "Math." + mb + "(");
-        }
+//        for (String mb : mathMembers) {
+//            expression = expression.replace(mb + "(", "Math." + mb + "(");
+//        }
         return expression;
     }
 

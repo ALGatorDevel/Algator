@@ -3,7 +3,9 @@ package algator;
 import static algator.Execute.syncTests;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Scanner;
+import java.util.TreeSet;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -12,6 +14,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.json.JSONArray;
 import si.fri.algotest.analysis.Analysis;
 import si.fri.algotest.analysis.DataAnalyser;
@@ -28,6 +31,10 @@ import si.fri.algotest.entities.Variables;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ATLog;
 import si.fri.algotest.global.ErrorStatus;
+import si.fri.complexityAnalysis.DataTools;
+import si.fri.complexityAnalysis.FitData;
+import si.fri.complexityAnalysis.FittingFunction;
+import si.fri.complexityAnalysis.FunctionType;
 import si.fri.timeComplexityAnalysis.Data;
 import si.fri.timeComplexityAnalysis.OutlierDetector;
 
@@ -181,7 +188,7 @@ public class Query {
       return new String[0];
     }
   }
-  
+
   /**
    * Used to run the system. Parameters are given trought the arguments
    *
@@ -369,7 +376,7 @@ public class Query {
     EVariable vMode = parameters.getVariable("mode");
     String mode = vMode==null ? "none" : vMode.getStringValue();    
     switch (mode) {
-      case "outliers":
+      case "outliersold":
         EVariable mPar = parameters.getVariable("M");
         double m = (mPar == null) ? 2 : mPar.getDoubleValue();
         
@@ -379,6 +386,117 @@ public class Query {
         System.out.println("X-values of detected outliers:");
         for (Double ind : od.outlierXValues){
           System.out.println(ind);
+        }
+        break;
+      case "fitold":
+        Data fitData = new Data("fit", xVal, yVal);
+        
+        Data prediction = fitData.LeastSquares();
+        System.out.println("Predicted class:");
+        System.out.println(prediction.GetBest());
+        System.out.println("Predicted function:");
+        System.out.println(prediction.GetFunction());
+        
+        break;
+      case "outliers":
+        break;
+        
+        // fitanje izmerjenih podatkov: za vsako krivuljo iz FunctionType.* izračunam optimalen fit
+        // in rmse ter rmspe dobljene krivulje in izmerjenih podatkov. Za fitanje vzamem le prvih 1/k 
+        // podatkov, rmse in rmspe računam na vseh podatkih. Izpis funkcij je lahko urejen po rmse ali
+        // po rmspe. Forma izpisa je lahko prilagojen za uporabo v jupytru ali algatorju. 
+        //
+        // paramateri: k=delilni faktor (default=1)  ... za fitanje uporabim 1/k podatkov 
+        //             u=način urejanja (default=0)  ... 0 ... po rmse, 1 ... po rmspe
+        //             out=tip izhoda   (default="") ... moznosti: "", "jupyter", "algator"
+       case "fit":
+         int kData = (parameters.getVariable("k") == null ? 1 : parameters.getVariable("k").getIntValue(1));
+         int uData = (parameters.getVariable("u") == null ? 0 : parameters.getVariable("u").getIntValue(0));
+
+         // vrednost parametra "output": FN ... izpis naj bo prilagojen za uvoz v jupyter
+        String out = (parameters.getVariable("out") == null ? "" : parameters.getVariable("out").getStringValue());
+         
+
+        int fD = xVal.length/kData, sD = xVal.length - fD;
+        double[] hX1 = new double[fD]; System.arraycopy(xVal, 0,  hX1, 0, fD);
+        double[] hX2 = new double[sD]; System.arraycopy(xVal, fD, hX2, 0, sD);
+        double[] hY1 = new double[fD]; System.arraycopy(yVal, 0,  hY1, 0, fD);
+        double[] hY2 = new double[sD]; System.arraycopy(yVal, fD, hY2, 0, sD);
+        
+        class CFit implements Comparable<CFit>{
+          double params[];
+          FunctionType fType;
+          double rmse;
+          double rmspe; 
+          double val; // rmse or rmspe (set will be sorted by this value)
+  
+          public int compareTo(CFit t) {
+            return Double.compare(this.val, t.val);
+          }                    
+        }
+        
+         TreeSet<CFit> fits = new TreeSet<>();
+        for (FunctionType fType: FunctionType.values()) {
+          CFit cfit = new CFit();
+          cfit.fType  = fType;
+          cfit.params = FitData.findFit(hX1, hY1, fType);
+          cfit.rmse   = DataTools.rmse (xVal, yVal, new FittingFunction(fType), cfit.params);
+          cfit.rmspe  = DataTools.rmspe(xVal, yVal, new FittingFunction(fType), cfit.params);
+          cfit.val = uData == 0 ? cfit.rmse : cfit.rmspe;
+          fits.add(cfit);
+        }
+        int ik=0;
+        for (CFit fit : fits) { 
+          switch (out) {
+            case "jupyter":
+              String fn = fit.fType.toString(fit.params).replaceAll("[,]", ".").replaceAll("x\\^1", "*x").replaceAll("x\\^2", "*x*x")
+                   .replaceAll("x\\^3", "*x*x*x").replaceAll("log[(]x[)]", "np.log(x)");
+              if (fit.fType==FunctionType.CONST) fn += " + 0*x";
+              System.out.println("# " + fit.fType.toString());
+              System.out.printf("y%d=%s\n", ik, fn);
+              System.out.printf("pylab.plot(x,y%d)\n", ik++);
+              break;
+            case "algator":
+              String param = td.header.get(td.header.size()-2);
+              System.out.printf("%s AS %S\n",
+                fit.fType.toString(fit.params).replaceAll(",", ".")
+                   .replaceAll("x\\^1", "*@PAR").replaceAll("x\\^2", "*@PAR*@PAR").replaceAll("x\\^3", "*@PAR*@PAR*@PAR")
+                   .replaceAll("log[(]x[)]", "log(@PAR)").replaceAll("exp[(]x[)]", "exp(@PAR)")
+                   .replaceAll("x", "*@PAR").replaceAll(" +", "").replaceAll("@PAR", "@"+param),
+                fit.fType.toString()
+              );
+              break;
+            default:
+              System.out.printf("%-13s - %-80s - %12.2f %12.2f\n",
+                fit.fType.toString(), fit.fType.toString(fit.params), fit.rmse,fit.rmspe);
+          }
+        }
+        break;        
+        
+      // Recimo, da bi (x[i], y[i]) fitali s preprostimi funkcijami (a*x, a*x^2, a*x^3, ...), koliko je a?
+      // Opcija "findf" za vse preproste funkcije izračuna a za vsak par (x[i],y[i]) iz ga izpiše.
+      // Izpiše se tudi statistika koeficientov za vsako funkcijo.
+        // to sem dodal, ker sem mislil, da bom na ta način lahko ugotovil, katera funkcija je najbolj primerna
+        // za fitanje danih podatkov (mislil sem, da bo pri funkciji, ki je najbolj primerna, 
+        // relativna varianca (ali katera druga statistična vrednost) najmanjša. Žal se izkaže, da je 
+        // najmanjša varianca pri x^3, kar za quicksort gotovo ni dober rezultat.
+        //
+        // OPOMBA: podoben rezultat dobimo z uporabo opcije "fit" - krivulje CLINEAR, CLOG, CLOGLOG, ...
+        //         imajo zelo podoben vodilni koeficient kot je povprečje a-jev, ki ga izpiše findf; 
+        //         razlika je tudi v tem, da fit ne izpiše std.odklona (saj vodilni koef. računa drugače).
+      case "findf":
+       System.out.println("x: " + Arrays.toString(xVal));
+       System.out.println("y: " + Arrays.toString(yVal));
+               
+        for (FunctionType fType: FunctionType.values()) {
+          double koefs[] = FitData.calculateKoefs(xVal, yVal, fType);
+          
+          SummaryStatistics ss = new SummaryStatistics();
+          for (double koef : koefs) ss.addValue(koef);  
+          
+          System.out.printf("%-13s - %s\n",
+            fType.toString(), Arrays.toString(koefs));
+          System.out.printf("Mean: %.15f, Variance: %.15f, RelV: %.15f\n\n", ss.getMean(), ss.getVariance(), ss.getVariance() / ss.getMean());
         }
         break;
     }

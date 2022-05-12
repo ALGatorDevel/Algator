@@ -129,8 +129,17 @@ public class Variables implements Serializable, Iterable<EVariable> {
       propVar = new EVariable(propVariableName, "");
       addVariable(propVar);
     }
-    String val = (String)propVar.getValue();
-    val += (val.isEmpty() ? "":",") + String.format("%s=%s", propName, value.toString()); 
+    
+    // add a value of a prop ...
+    String val = String.format("%s=%s", propName, value.toString());
+    // ... and remove previous prop with the same name (if exists)    
+    String[] props = ((String)propVar.getValue()).split(",");
+    for (String propN : props) {
+      String[] propParts = propN.split("=");
+      if (propParts.length>1 && !propName.equals(propParts[0]))
+        val += (val.isEmpty() ? "":",") + String.format("%s=%s", propParts[0], propParts[1]); 
+    }
+    
     propVar.setValue(val); 
   }
 

@@ -26,7 +26,7 @@ public class <PPP>TestCase extends AbstractTestCase {
   **/
   public <PPP>TestCase testCaseGenerator(Variables generatingParameters) {  
     // a path to the testset folder 
-    String path       = generatingParameters.getVariable("TESTS_PATH",    "").getStringValue();  
+    String path       = generatingParameters.getVariable(TESTS_PATH,    "").getStringValue();  
 
           
     // TODO: 

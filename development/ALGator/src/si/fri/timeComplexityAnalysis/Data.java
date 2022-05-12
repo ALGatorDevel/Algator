@@ -131,7 +131,7 @@ public class Data {
             double nrmseCross = 0;
             for (int q=0; q<10; q++){
                 Data prediction = predict(new Data(func[k], this.X, this.Y), func[k],q,-1);
-                nrmseCross+= nrmse(prediction.Y, this.Y,(int)Math.round(q*sliceLength), (int)Math.round((q+1)*sliceLength));
+                nrmseCross+= nrmse(prediction.Y, this.Y,(int)Math.round(q*sliceLength), (int)Math.round((q+1)*sliceLength)-1);
             }
             if (nrmseCross < nrmseBest){
                 best = func[k];
@@ -201,7 +201,6 @@ public class Data {
                 ret.function = String.format("exp(x)");
                 return ret;
             }
-
         }
 
         double[] params = scf.fit(measurement.ObservedPoints(q, k));

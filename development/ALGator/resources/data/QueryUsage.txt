@@ -6,11 +6,39 @@ java algator.Query BasicMatrixMul -v 2 -a Winograd -t TestSet2 -par "[N]" -ind "
 
 java algator.Query BasicSort -filter "[N>18000, N<20000]" -group "[N]"  -a BubbleSort
 
+// Prints a query result
 java algator.Query BasicSort -a QuickSort -par "[N]" -ind "[Tmin]" -group "[N]" -sort "[N]"
-Prints a query result
 
+// Prints outliers for the last two columns of a query result
 java algator.Query BasicSort -a QuickSort -par "[N]" -ind "[Tmin]" -group "[N]" -sort "[N]" -opt "{mode:outliers, "M":"2.0"}"
-Prints outliers for the last two columns of a query result
 
+// Use the 4th (x) and the second-from-the-right (y) column of the query result and print outliers
 java algator.Query BasicSort -par "[N]" -ind "[Tmin]" -group [N] -sort [N] -opt "{mode:outliers, "M":"2.4", x:4, y:-2}"
-Use the 4th (x) and the second-from-the-right (y) column of the query result and print outliers
+
+// Use a filter in a query. Example: for (N>100 && N<3000 && N!=2500) use 
+-filter "['N!=2500', 'N<3000', 'N>100']"
+
+
+// optija "fit"
+//
+// Fitanje izmerjenih podatkov: za vsako krivuljo iz FunctionType.* izračunam optimalen fit
+// in rmse ter rmspe dobljene krivulje in izmerjenih podatkov. Za fitanje vzamem le prvih 1/k 
+// podatkov, rmse in rmspe računam na vseh podatkih. Izpis funkcij je lahko urejen po rmse ali
+// po rmspe. Forma izpisa je lahko prilagojen za uporabo v jupytru ali algatorju. 
+//
+// paramateri: k=delilni faktor (default=1)  ... za fitanje uporabim 1/k podatkov 
+//             u=način urejanja (default=0)  ... 0 ... po rmse, 1 ... po rmspe
+//             out=tip izhoda   (default="") ... moznosti: "", "jupyter", "algator"
+
+java algator.Query Sorting -a CormenSort -t TestSet2 -m cnt -par [N] -ind [CALL] -opt "{mode:fit}"
+java algator.Query Sorting -a CormenSort -t TestSet2 -par [N] -ind [Tmin] -opt '{mode:fit, k:2, u:1}'
+java algator.Query Sorting -a CormenSort -t TestSet2 -par [N] -ind [Tmin] -opt '{mode:fit, k:2, u:1, out:algator}'
+java algator.Query Sorting -a WirthSort -t TestSet1 -opt "{mode:fit, x:0, y:-4}"
+
+// Use "fit" to produce graphs in jupyter:
+// a) Run a query
+java algator.Query BasicSort -a QuickSort -t TestSet2 -par "[N]" -ind "[Tmin]" -group [N] -sort [N] > $JDATA/BSQuickSortTS2.csv
+// b) Save the query command
+echo !!.cmd
+// c) generate jupyter functions
+java algator.Query BasicSort -a QuickSort -t TestSet2 -par "[N]" -ind "[Tmin]" -group [N] -sort [N] -opt "{mode:fit, x:-2, y:-1, M:FN}"
