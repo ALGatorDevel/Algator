@@ -128,6 +128,10 @@ public class Query {
 	    .hasArg(true)
 	    .withDescription("the list of sortBy criteria")
 	    .create("sort");    
+    Option compID = OptionBuilder.withArgName("cID")	    
+	    .hasArg(true)
+	    .withDescription("the compID")
+	    .create("cID");    
     
     Option opt = OptionBuilder.withArgName("options")	    
 	    .hasArg(true)
@@ -146,6 +150,8 @@ public class Query {
     options.addOption(group);
     options.addOption(filter);
     options.addOption(sort);
+    options.addOption(compID);
+
     
     options.addOption(opt);
     
@@ -281,7 +287,10 @@ public class Query {
         sort = getStringArrayFromJSON(line.getOptionValue("sort"));
       }
       
-      
+      String compID = "";
+      if (line.hasOption("cID")) {
+        compID = line.getOptionValue("cID");
+      }
 
       ATGlobal.verboseLevel = 0;
       if (line.hasOption("verbose")) {
@@ -319,7 +328,7 @@ public class Query {
       if (!syncTests(projectName)) 
         return;      
       
-      TableData td = runQuery(dataRoot, projectName, algorithmName, testsetName, mType, par, ind, group, filter, sort);
+      TableData td = runQuery(dataRoot, projectName, algorithmName, testsetName, mType, par, ind, group, filter, sort, compID);
       
       if (td == null) return;
       
@@ -504,7 +513,7 @@ public class Query {
   
   private static TableData runQuery(String dataRoot, String projName, String algName,
 	  String testsetName, MeasurementType mType, String[] par, String[] ind,
-          String[] groupBy, String[] filter, String[] sortBy) {
+          String[] groupBy, String[] filter, String[] sortBy, String compID) {
     
     if (!ATGlobal.projectExists(dataRoot, projName)) {
       ATGlobal.verboseLevel=1;
@@ -561,7 +570,7 @@ public class Query {
         i=0; String [] sTsts = new String[eTests.size()];for (ETestSet   eTst : eTests) {sTsts[i++] = eTst.getName();}
         
     
-    EQuery eq = new EQuery(sAlgs, sTsts, par, ind, groupBy, filter, sortBy, "0", "");
+    EQuery eq = new EQuery(sAlgs, sTsts, par, ind, groupBy, filter, sortBy, "0", compID);
     return DataAnalyser.runQuery(projekt.getEProject(), eq, "");
   }
 }

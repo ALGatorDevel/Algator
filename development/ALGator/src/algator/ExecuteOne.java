@@ -206,7 +206,7 @@ public class ExecuteOne {
     String qTestSetFileName = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataLocal(), project.getName(), "QTestSet");
     eTestSet.set(ETestSet.ID_N, 1);                        // only one test
     eTestSet.set(ETestSet.ID_TimeLimit,  limit);           // no time limit  
-    eTestSet.set(ETestSet.ID_TestRepeat, timesToExecute);  // repeate only once
+    eTestSet.set(ETestSet.ID_TestRepeat, timesToExecute);  // numbers of repetition
     
     String descFileName = ATGlobal.getTESTSroot(ATGlobal.getALGatorDataLocal(), project.getName()) +
              File.separator + eTestSet.getTestSetDescriptionFile();
@@ -236,7 +236,7 @@ public class ExecuteOne {
     
     AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).getTestCase(project, test, path);
     
-    Variables resultVariables = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, mType, eTestSet.getName(), 1, 1, 100, null, null);
+    Variables resultVariables = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, mType, eTestSet.getName(), 1, timesToExecute, 100, null, null);
     
     EResult resultDesc = project.getResultDescriptions().get(mType);
     if (resultDesc == null) {
