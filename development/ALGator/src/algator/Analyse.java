@@ -116,6 +116,12 @@ public class Analyse {
 	    .withDescription("identifier of this test instance; default: unique random value")
 	    .create("i");
     
+    Option outputFormat = OptionBuilder.withLongOpt("output_format")
+            .withArgName("format")	    
+            .hasArg(true)
+            .withDescription("the format of the output (json (default) or csv)")
+            .create("ofmt"); 
+    
     options.addOption(algorithm);
     options.addOption(data_root);
     options.addOption(data_local);    
@@ -126,6 +132,7 @@ public class Analyse {
     options.addOption(timesToExecute);
     options.addOption(measurement);
     options.addOption(instanceID);
+    options.addOption(outputFormat);
     
         
     options.addOption(verbose);
@@ -267,6 +274,12 @@ public class Analyse {
       }
       Variables parameters = getParametersFromJSON(paramsJSON);
       
+      // dva možna izpisa: csv ali json
+      boolean asJSON = true;
+      if (line.hasOption("output_format")) {
+        asJSON = !"csv".equals(line.getOptionValue("output_format"));
+      }
+      
       // valid project?
       if (!ATGlobal.projectExists(dataRoot, projectName)) {
         ATGlobal.verboseLevel=1;
@@ -292,7 +305,7 @@ public class Analyse {
       
       switch (function.toUpperCase()) {
         case "RUNONE":
-          Analysis.runOne(dataRoot, project, algorithms, parameters, timeLimit, timesToExecute, mType, instanceID, whereToPrint);
+          Analysis.runOne(dataRoot, project, algorithms, parameters, timeLimit, timesToExecute, mType, instanceID, whereToPrint, asJSON);
           break;
         
         case "FINDLIMIT":
@@ -307,7 +320,7 @@ public class Analyse {
             return;
           }
           ArrayList<Variables> results = 
-            Analysis.getParameterLimit(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator);
+            Analysis.getParameterLimit(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator, asJSON);
           break;
                               
         case "FINDLIMITS":
@@ -318,7 +331,7 @@ public class Analyse {
             return;     
           }
           
-          Analysis.getParameterLimits(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator);
+          Analysis.getParameterLimits(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator, asJSON);
           break;          
           
         case "TIMECOMPLEXITY":
@@ -518,17 +531,14 @@ public class Analyse {
     return parameters;
   }
   
-  private static void printResult(Project project, ArrayList<String> algorithms, ArrayList<Variables> results ) {
-        EResult emResultDesc = project.getResultDescriptions().get(MeasurementType.EM);
+  private static void printResults(Project project, MeasurementType mt, ArrayList<Variables> results, boolean asJSON ) {
+    EResult emResultDesc = project.getResultDescriptions().get(mt);
+    String[] variablesOrder = EResult.getVariableOrder(project.getTestCaseDescription(), emResultDesc);     
 
     for (int i=0; i<results.size(); i++) {
       Variables result = results.get(i);
       if (result != null) {
-        System.out.print(
-          result.toString(EResult.getVariableOrder(project.getTestCaseDescription(), emResultDesc), false, ATGlobal.DEFAULT_CSV_DELIMITER)
-        );
-        System.out.println(ATGlobal.DEFAULT_CSV_DELIMITER + 
-          result.getVariable(Analysis.MY_TIMER).getLongValue());
+        System.out.println(result.toString(variablesOrder, asJSON, ATGlobal.DEFAULT_CSV_DELIMITER));
       }
     }
   }

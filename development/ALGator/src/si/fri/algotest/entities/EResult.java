@@ -86,7 +86,7 @@ public class EResult extends Entity {
       if (ja != null) for (int i = 0; i < ja.length(); i++) {
 	JSONObject jo = ja.getJSONObject(i);
         EVariable var = new EVariable(jo.toString());
-	result.addVariable(var, true);
+	result.addVariable(var, true);        
         indicators.addVariable(var, true);
       }
             

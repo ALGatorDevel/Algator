@@ -182,6 +182,13 @@ public enum ErrorStatus {
     }
   },
   
+  PROCESS_QUEUED {
+    public String toString() {
+      return "Msg: Process was queued.";
+    }
+  },
+  
+  
   ERROR       {
     public String toString() {
       return "Error: ";
@@ -230,4 +237,9 @@ public enum ErrorStatus {
     return this.equals(STATUS_OK);
   }
 
+  public boolean taskWasQueued() {
+    return this.equals(PROCESS_QUEUED);
+  }
+
+  
 }

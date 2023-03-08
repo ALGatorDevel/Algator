@@ -1,6 +1,6 @@
 package si.fri.algotest.execute;
 
-import si.fri.adeserver.ADETask;
+import si.fri.adeserver.STask;
 import si.fri.adeserver.ADETools;
 import si.fri.adeserver.TaskStatus;
 import si.fri.algotest.entities.MeasurementType;
@@ -60,8 +60,8 @@ public abstract class Notificator {
         }
 
         String statusMsg = String.format("%d/%d # %d%c", i, getN(), 100 * i / this.getN(), '%');
-        ADETask tmpTask = new ADETask(proj, alg, testSet, mt.getExtension(), true);
-        ADETools.writeTaskStatus(tmpTask, TaskStatus.RUNNING, statusMsg, ATGlobal.getThisComputerID());
+        STask tmpTask = new STask(proj, alg, testSet, mt.getExtension());
+        ADETools.logTaskStatus(tmpTask, TaskStatus.INPROGRESS, statusMsg, ATGlobal.getThisComputerID());
       }
     };
     return notificator;

@@ -69,7 +69,7 @@ public class ETestCase extends Entity {
         parameters.addVariable(var, true);
       }
       
-      result.addVariable(new EVariable(TESTCASE_PROPS,VariableType.STRING, ""));
+      result.addVariable(new EVariable(TESTCASE_PROPS,VariableType.JSONSTRING, ""));
             
       // Add all undefined parameters - default type for undefined parameter is INT
       String [] parameters = getStringArray(ID_inputParameters);

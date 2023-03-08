@@ -1,20 +1,30 @@
 package si.fri.algotest.users;
 
+import java.sql.Date;
+
 /**
  *
- * @author Gregor, Tomaž
+ * @author Tomaž
  */
 public class DBUser {
-    public int id;
-    public String name;
-    public String password;
-    public int status;
+    public int     id;
+    public String  username;    
+    public String  password;
+    public String  first_name;
+    public String  last_name;
+    public String  email;
+    public Date    date_joined;    
+    public Date    last_login;         // read with getTimestamp(columnName)
+    public boolean is_superuser;
+    public boolean is_staff;
+    public boolean is_active;
 
-    public DBUser(int id, String name, String password, int status) {
+    
+    public DBUser(int id, String username, String password, boolean is_active) {
         this.id = id;
-        this.name = name;
+        this.username = username;
         this.password = password;
-        this.status = status;
+        this.is_active = is_active;
     }
     
 }

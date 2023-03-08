@@ -11,27 +11,47 @@ import si.fri.algotest.global.ATGlobal;
  * @author tomaz
  */
 public class ADEGlobal {
-  
-  public static final int ADEPort = 12321;
+  public static final String    DEFAULT_TASK_SERVER_NAME  = "localhost";
+  public static final int       DEFAULT_TASK_SERVER_PORT  = 12321;  
+  public static final int       DEFAULT_RSYNC_SERVER_PORT = 12322;  
   
   /*
    * REQUESTS
    */
   public static final String REQ_WHO              = "WHO";            // no parameters
-  public static final String REQ_LIST             = "LIST";           // no parameters
-  public static final String REQ_ADD_TASK         = "ADDTASK";        // parameters: project_name algorithm_name testset_name measurement_type
-  public static final String REQ_REMOVE_TASK      = "REMOVETASK";     // parameters: taskID
-  public static final String REQ_GET_NEXT_TASK    = "GETNEXTTASK";    // parameters: computerID
-  public static final String REQ_COMPLETE_TASK    = "COMPLETETASK";   // parameters: taskID
   public static final String REQ_STATUS           = "STATUS";         // no parameters
-  public static final String REQ_TASK_STATUS      = "TASKSTATUS";     // parameters: taskID
-  public static final String REQ_PROJ_STATUS      = "PROJECTSTATUS";  // parameters: projectName
+
+  
+  public static final String REQ_GET_TASKS        = "GETTASKS";       // parameters: optional json(type=active,closed,archived)
+  public static final String REQ_ADD_TASK         = "ADDTASK";        // parameters: json(project(required), algorithm(required), testset(required), mtype (default:em), priority (default: 5), family (default: ""))
+  public static final String REQ_GET_TASK         = "GETTASK";        // parameters: json(computerID)
+  public static final String REQ_CLOSE_TASK       = "CLOSETASK";      // parameters: json(ExitCode, TaskId, Message)
+  public static final String REQ_TASK_STATUS      = "TASKSTATUS";     // parameters: json(TaskID)
+  public static final String REQ_PAUSE_TASK       = "PAUSETASK";      // parameters: json(TaskID)
+  public static final String REQ_CANCEL_TASK      = "CANCELTASK";     // parameters: json(TaskID)
+  public static final String REQ_RESUME_TASK      = "RESUMETASK";     // parameters: json(TaskID)
+  public static final String REQ_TASK_RESULT      = "TASKRESULT";     // parameters: json(ComputerUID, TaskID, TestNo, Result)
+ 
   public static final String REQ_QUERY_RES        = "GETQUERYRESULT"; // parameters: projectName
   public static final String REQ_ADMIN_PRINTPATHS = "PRINTPATHS";     // no parameters
   public static final String REQ_ADMIN_PRINTLOG   = "PRINTLOG";       // parameters: numberOfLogs (default: 10)
   public static final String REQ_USERS            = "USERS";          // users (povezava do programa algator.Users)
   public static final String REQ_ADMIN            = "ADMIN";          // admin (povezava do programa algator.Admin)  
-  public static final String REQ_GETFILE          = "GETFILE";        // parameters: type projectName  [some more]
+  public static final String REQ_GETFILE          = "GETFILE";        // parameters: json(ProjectName, fileName), result: file content 
+  public static final String REQ_SAVEFILE         = "SAVEFILE";       // parameters: json(ProjectName, fileName, length, content)
+  
+  public static final String REQ_GETFAMILIES      = "GETFAMILIES";    // no parametes
+  public static final String REQ_ADDFAMILY        = "ADDFAMILY";      // paremater: json object
+  public static final String REQ_GETCOMPUTERS     = "GETCOMPUTERS";   // parameter: 'FamilyID' 
+  public static final String REQ_ADDCOMPUTER      = "ADDCOMPUTER";    // paremater: json object
+  
+  public static final String REQ_GETTIMESTAMP     = "GETTIMESTAMP";   // no parametes
+  
+  public static final String REQ_GETPFILES        = "GETPFILES";      // String (projectName)
+  
+  
+  
+  
   
   // dodana funkcionalnost za poganjanje ALGator ukazov (execute, analyse, ...) v svojem procesu. Za podrobnosti glej komentar v ADECommand
   public static final String COMMAND              = "COMMAND";        // parameters: run / status / output / stop + params
@@ -40,14 +60,13 @@ public class ADEGlobal {
   public static final TreeSet<String> nonlogableRequests;
   static {
     nonlogableRequests = new TreeSet(String.CASE_INSENSITIVE_ORDER);
-    nonlogableRequests.add(REQ_WHO);
-    nonlogableRequests.add(REQ_LIST);
-    nonlogableRequests.add(REQ_GET_NEXT_TASK);
-    nonlogableRequests.add(REQ_STATUS);
-    nonlogableRequests.add(REQ_TASK_STATUS);
-    nonlogableRequests.add(REQ_PROJ_STATUS);
-    nonlogableRequests.add(REQ_ADMIN_PRINTLOG);
-    nonlogableRequests.add(REQ_ADMIN_PRINTPATHS);
+    //nonlogableRequests.add(REQ_GET_TASK);        
+    //nonlogableRequests.add(REQ_STATUS);
+    //nonlogableRequests.add(REQ_WHO);
+    //nonlogableRequests.add(REQ_LIST);    
+    //nonlogableRequests.add(REQ_TASK_STATUS);
+    //nonlogableRequests.add(REQ_ADMIN_PRINTLOG);
+    //nonlogableRequests.add(REQ_ADMIN_PRINTPATHS);
   }
   
 
@@ -63,20 +82,19 @@ public class ADEGlobal {
   public static final String ERROR_PREFIX  = "ERROR:: ";
   
   // the answer string, if on tasks is available for a given computer
-  public static final String NO_TASKS = "NONE AVAILABLE";
+  public static final String NO_TASKS = "NO_TASKS";
   
   
-  public static final String ERROR_INVALID_NPARS     = "Invalid number of parameters";
+  public static final String ERROR_INVALID_NPARS     = "Invalid number or type of parameters";
   public static final String ERROR_ERROR_CREATE_TASK = "Error occured when creating a task";
   
   // if a string holds more than one information, data if separated by STRING_DELIMITER
   public static final String STRING_DELIMITER  = " ";
   
-  
-  private static final String TASKSERVER_LOG_FOLDER  = "taskserver";
-  private static final String TASK_ID_FILENAME       = "task.number";
-  private static final String TASK_LIST_FILENAME     = "task.list";
-  private static final String TASKSERVER_LOG_FILENAME           = "taskserver.log";
+  private static final String TASKSERVER_LOG_FOLDER    = "taskserver";
+  private static final String TASK_ID_FILENAME         = "task.number";
+  private static final String TASK_LIST_FILENAME       = "task.";
+  private static final String TASKSERVER_LOG_FILENAME  = "taskserver.log";
   
 
   public static String getTaskServerLogFolder() {
@@ -87,9 +105,20 @@ public class ADEGlobal {
     
     return adeFolderName;
   }
-    
-  public static String getADETasklistFilename() {
-    return  getTaskServerLogFolder() + File.separator + TASK_LIST_FILENAME;
+   
+  /**
+   * Returns task file name.
+   * @param type 0 ... active tasks, 1 ... closed tasks, 2 ... archived tasks
+   * @return 
+   */
+  public static String getADETasklistFilename(int type) {
+    String suffix;
+    switch (type) {
+      case 1 : suffix="closed"; break;
+      case 2 : suffix="archived";break;
+      default: suffix="active";break;
+    }
+    return  getTaskServerLogFolder() + File.separator + TASK_LIST_FILENAME + suffix;
   }
 
   public static String getTaskserverLogFilename() {

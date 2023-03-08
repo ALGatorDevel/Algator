@@ -123,7 +123,7 @@ public class VMEPExecute {
   }
     
   public static void runTest(String dataRoot, String projName, String algName, 
-          String testsetName, int testNumber, String commFolder) {
+          String testsetName, int testNumber, String commFolder, boolean asJSON) {
 
     ATLog.setPateFilename(ATGlobal.getTaskHistoryFilename(projName, algName, testsetName, "jvm"));
     
@@ -187,7 +187,7 @@ public class VMEPExecute {
     
     String resFilename = ATGlobal.getJVMRESULTfilename(commFolder, algName, testsetName, testNumber);
     
-    runAlgorithmOnATest(projekt, algName, testsetName, currentJobID, testNumber, resultDescription, testsetIterator, resFilename);
+    runAlgorithmOnATest(projekt, algName, testsetName, currentJobID, testNumber, resultDescription, testsetIterator, resFilename, asJSON);
     
     New.removeClassLoader(currentJobID);
   }
@@ -199,7 +199,7 @@ public class VMEPExecute {
    */
   public static void runAlgorithmOnATest(
     Project project, String algName, String testsetName, String currentJobID, int testNumber, EResult resultDesc,
-          AbstractTestSetIterator testsetIterator, String resFilename) {
+          AbstractTestSetIterator testsetIterator, String resFilename, boolean asJSON) {
                 
     // the order of parameters to be printed
     String[] order = EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc);
@@ -290,7 +290,7 @@ public class VMEPExecute {
          result.addVariable(EResult.getErrorIndicator("Unknown JVM error"), true);
       }
       try (PrintWriter pw = new PrintWriter(new FileWriter(resFilename, true))) {                  
-          pw.println(result.toString(order, false, delim));
+          pw.println(result.toString(order, asJSON, delim));
       } catch (IOException e) {
         if (ATGlobal.verboseLevel > 0)
           ATLog.log(e.toString(), 3);
@@ -420,13 +420,18 @@ public class VMEPExecute {
       }     
       ATLog.setLogTarget(ATGlobal.logTarget);
 
+      // tu se ne bom nič zmišljeval - vmep naj izhod v vsakem primeru 
+      // zapiše kot json; če bi želel to spremeniti, dodaj opcijo output_format
+      // (poglej, kako je bilo to narejeno pri Execute .java)
+      boolean asJSON = true;
+      
       
       // Notify to the caller (message: JVM has started) 
       ExternalExecutor.initCommunicationFile(commFolder);
       ExternalExecutor.addToCommunicationFile(commFolder);
       
       
-      runTest(dataRoot, projectName, algorithmName, testsetName, testNumber, commFolder);
+      runTest(dataRoot, projectName, algorithmName, testsetName, testNumber, commFolder, asJSON);
 
     } catch (ParseException ex) {
       printMsg(options);

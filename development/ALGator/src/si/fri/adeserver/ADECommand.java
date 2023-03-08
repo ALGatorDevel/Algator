@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
@@ -133,10 +134,10 @@ public class ADECommand {
       if (path==null) path ="";
       String jvmCommand = (path.isEmpty() ? "" : path + "/bin/") + "java";
     
-      if (classPath.startsWith("/")) classPath = classPath.substring(1);
-            System.out.println("classPath: " + classPath);
-
+      //if (classPath.startsWith("/")) classPath = classPath.substring(1);
+      
       String[] command = ArrayUtils.addAll(new String[] {jvmCommand, "-cp", classPath, "-Xss1024k", "algator."+ukaz}, args);
+      
       ProcessBuilder probuilder = new ProcessBuilder( command );
       Map<String, String> environment = probuilder.environment();
       environment.put("ALGATOR_ROOT", ATGlobal.getALGatorRoot());

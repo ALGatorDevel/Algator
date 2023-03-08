@@ -7,7 +7,7 @@ package si.fri.algotest.entities;
  */
 public enum VariableType {
 
-  UNKNOWN, TIMER, COUNTER, INT, DOUBLE, STRING, ENUM;
+  UNKNOWN, TIMER, COUNTER, INT, DOUBLE, STRING, ENUM, JSONSTRING;
 
   @Override
   public String toString() {
@@ -26,6 +26,8 @@ public enum VariableType {
         return "string";        
       case ENUM:
         return "enum";
+      case JSONSTRING:
+        return "jsonstring";                      
       default:
         return "/unknown/";
     }

@@ -26,7 +26,11 @@ import si.fri.algotest.global.ATGlobal;
 public class ADECommandManager {
         
   private static int nextID = 0;
-  private static ConcurrentHashMap<Integer, ADECommand> commands = new ConcurrentHashMap<>();
+  private static ConcurrentHashMap<Integer, ADECommand> commands       = new ConcurrentHashMap<>();
+  
+  // kaj sem nazadnje vrnil, ko so me vprašali "getOutput(id)"; vrnjeno vrednos si zapomnim in jo
+  // prihodnjič primerjam z novim outputom; če sta enaka, potem metoda getOutput vrne OUTPUT_NOT_CHANGED
+  private static ConcurrentHashMap<Integer, String> prevCommandOutput  = new ConcurrentHashMap<>();
   
   public static String execute(ArrayList<String> prms) {
     sanitize();
@@ -99,6 +103,10 @@ public class ADECommandManager {
     
     ADECommand command = new ADECommand(myID, ukaz, outputFilename);
     commands.put(myID, command);
+    
+    // pocistim morebitno shranjeno vrednost shranjenega izhoda
+    prevCommandOutput.put(myID, ""); 
+    
     command.start();
     
     return myID;
@@ -130,7 +138,15 @@ public class ADECommandManager {
   private static String getOutput(int id) {
     ADECommand command = commands.get(id);
     if (command != null) {
-      return command.getOutput();
+      String curOutput = command.getOutput();
+      
+      if (curOutput.equals(prevCommandOutput.get(id)))
+        return "OUTPUT_NOT_CHANGED";
+      else {
+        prevCommandOutput.put(id, curOutput);
+        return curOutput;
+      }
+     
     } else
       return "_NO_OUTPUT_AVAILABLE_";
   }

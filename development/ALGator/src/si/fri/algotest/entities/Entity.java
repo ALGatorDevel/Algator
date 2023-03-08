@@ -11,7 +11,6 @@ import java.util.Scanner;
 import java.util.TreeSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import si.fri.algotest.global.ATLog;
 import si.fri.algotest.tools.ATTools;
 import si.fri.algotest.global.ErrorStatus;
 
@@ -29,7 +28,7 @@ import si.fri.algotest.global.ErrorStatus;
  */
 public class Entity implements Cloneable, Serializable {
 
-  private final String unknown_value = "?";
+  public static final String unknown_value = "?";
 
   // The name of the entity (property Name)
   private static final String ID_NAME = "Name";
@@ -79,17 +78,41 @@ public class Entity implements Cloneable, Serializable {
   protected ArrayList<String> representatives;
 
   public Entity() {
-    fieldNames = new String[0];
+    fieldNames = new String[0];    
     fields = new HashMap();
   }
 
   public Entity(String entityID, String[] fieldNames) {
+    this(entityID, fieldNames, new Object[0]);
+  }
+  
+  
+  /**
+   * 
+   * @param entityID
+   * 
+   * @param fieldNames  imena lastnosti v JSON datoteki. Vrstni red lastnosti je pomemben zaradi toString
+   * zapisa (ker sem json objekt popravil tako, da uporablja LinkedList, se lastnosti pri toString berejo v
+   * vrstnem redu, ki je podan tule). 
+   * 
+   * @param defaultValues privzete vrednosti za posamezno lastnost. Če uporabnik želi, da ALGator sam ustvari 
+   * JSON objekt (z new <X>Entity()) z vsemi lastnostmi, mora določiti privzete vrednosti; na podlagi teh 
+   * vrednosti ALGator tudi ve, kakšnega tipa je lastnost (npr. String, int, JSONObject, JSONArray, ...). 
+   * Primer: glej entiteto ELOcalConfig
+   */
+  public Entity(String entityID, String[] fieldNames, Object[] defaultValues) {
     this();
 
     entity_id = entityID;
     entity_name = unknown_value;
     entity_file_ext = unknown_value;
     this.fieldNames = fieldNames;
+    
+    // add default values, if they are provided
+    if (defaultValues.length == fieldNames.length)
+      for (int i = 0; i < fieldNames.length; i++) {
+        fields.put(fieldNames[i], defaultValues[i]);
+      }
 
     representatives = new ArrayList<>();
   }
@@ -183,10 +206,12 @@ public class Entity implements Cloneable, Serializable {
       JSONObject jsonObj = new JSONObject(json);
 
       // every entity should have Name
-      fields.put(ID_NAME, jsonObj.opt(ID_NAME));
+      if (!fields.containsKey(ID_NAME))
+         fields.put(ID_NAME, jsonObj.opt(ID_NAME));
 
       for (String sp : fieldNames) {
-        fields.put(sp, jsonObj.opt(sp));
+        Object f = jsonObj.opt(sp);
+        if (f!=null) fields.put(sp, f);
       }
       return ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, "");
     } catch (Exception e) {
@@ -206,10 +231,15 @@ public class Entity implements Cloneable, Serializable {
   }
 
   public String toJSONString() {
-    return toJSONString(false);
+    return toJSONString(false, 2);
   }
-
+  public String toJSONString(int indent) {
+    return toJSONString(false, indent);
+  }
   public String toJSONString(boolean wrapWithEntity) {
+    return toJSONString(wrapWithEntity, 2);
+  }
+  public String toJSONString(boolean wrapWithEntity, int indent) {
     JSONObject result = new JSONObject();
 
     result.put(ID_NAME, getName());
@@ -226,9 +256,9 @@ public class Entity implements Cloneable, Serializable {
     if (wrapWithEntity) {
       JSONObject wrapped = new JSONObject();
       wrapped.put(entity_id, result);
-      return wrapped.toString(2);
+      return wrapped.toString(indent);
     } else {
-      return result.toString(2);
+      return result.toString(indent);
     }
   }
 
@@ -239,6 +269,16 @@ public class Entity implements Cloneable, Serializable {
       return unknown_value;
     }
   }
+  
+  public String getString(String fieldKey) {
+    Object value = fields.get(fieldKey);
+    return value != null && value instanceof String ? (String) value : unknown_value;
+  }
+  
+  public void clear(String fieldKey) {
+    if (fields.containsKey(fieldKey)) fields.remove(fieldKey);
+  }
+  
 
   public void set(String fieldKey, Object object) {
     fields.put(fieldKey, object);
@@ -253,7 +293,6 @@ public class Entity implements Cloneable, Serializable {
     E result = null;
     if (fields.containsKey(fieldKey)) {
       result = (E) fields.get(fieldKey);
-
     }
     return result;
   }
@@ -273,8 +312,37 @@ public class Entity implements Cloneable, Serializable {
     return result;
   }
 
+  public long getFieldAsLong(String fieldKey, long default_value) {
+    long result = default_value;
+    if (new TreeSet(Arrays.asList(fieldNames)).contains(fieldKey)) {
+      try {
+        result = (Long) fields.get(fieldKey);
+      } catch (Exception e1) {
+        try {
+          result = Long.parseLong((String) fields.get(fieldKey));
+        } catch (Exception e2) {}
+      }
+    }
+    return result;
+  }
+
+  
   public int getFieldAsInt(String fieldKey) {
     return getFieldAsInt(fieldKey, 0);
+  }
+  
+  public long getFieldAsLong(String fieldKey) {
+    return getFieldAsLong(fieldKey, 0);
+  }
+
+  public boolean getFieldAsBoolean(String fieldKey, boolean defaultValue) {
+    boolean result = defaultValue;
+    if (new TreeSet(Arrays.asList(fieldNames)).contains(fieldKey)) {
+      try {
+        result = (Boolean) fields.get(fieldKey);
+      } catch (Exception e) {}
+    }
+    return result;
   }
 
   /**

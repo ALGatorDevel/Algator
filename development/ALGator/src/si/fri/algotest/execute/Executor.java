@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Scanner;
 import org.apache.commons.io.FileUtils;
-import si.fri.adeserver.ADETask;
+import si.fri.adeserver.STask;
 import si.fri.adeserver.ADETools;
 import si.fri.adeserver.TaskStatus;
 import si.fri.algotest.entities.AlgorithmLanguage;
@@ -177,7 +177,8 @@ public class Executor {
    * @return
    */
   public static ErrorStatus algorithmRun(Project project, String algName, String testSetName,
-          MeasurementType mType, Notificator notificator, boolean alwaysCompile, boolean alwaysRun, int whereToPrint) {
+          MeasurementType mType, Notificator notificator, boolean alwaysCompile, 
+          boolean alwaysRun, int whereToPrint, boolean asJSON, STask task) {
 
     if (project == null) {
       return ErrorStatus.ERROR;
@@ -214,9 +215,6 @@ public class Executor {
       return ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, runningMsg + " - nothing to be done.");
     }
     
-    ADETask tmpTask = new ADETask(project.getName(), algName, testSetName, mType.getExtension(), false);
-    tmpTask.set(ADETask.ID_AssignedComputer, ATGlobal.getThisComputerID());
-
 
     if (eAlgorithm.getLanguage().equals(AlgorithmLanguage.C)) { // C algorithm
       if (!mType.equals(MeasurementType.EM)) {
@@ -252,13 +250,15 @@ public class Executor {
       File resFile;
       try {
         String resFilename = ATGlobal.getRESULTfilename(projRoot, algName, testSetName, mType, ATGlobal.getThisComputerID());
-        File resPath = new File(ATTools.extractFilePath(new File(resFilename)));
-        if (!resPath.exists()) {
-          resPath.mkdirs();
-        }
+
+        ATTools.createFilePath(resFilename);        
         resFile = new File(resFilename);
-        if (resFile.exists())
-          resFile.delete();
+        
+        // Če bom želel, da datoteke  ne brišem (da nove rezultate (ponovne rezultate testov) dodajam na konec;
+        // ko berem datoteko, se odločim, katere rezultate bom uporabil (prve, zadnje, najboljše, vse, ...))
+        // potem moram zakomentirati spodnjo vrstico
+        if (resFile.exists()) resFile.delete();
+        
       } catch (Exception e) {
         New.removeClassLoader(currentJobID);
         return ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_RUN, e.toString());
@@ -267,11 +267,11 @@ public class Executor {
 
       try {
         if (mType.equals(MeasurementType.EM) || mType.equals(MeasurementType.CNT)) 
-          ExternalExecutor.iterateTestSetAndRunAlgorithm(project, algName, currentJobID, tsIt, notificator, mType, resFile, whereToPrint);
+          ExternalExecutor.iterateTestSetAndRunAlgorithm(project, algName, currentJobID, tsIt, notificator, mType, resFile, whereToPrint, asJSON, task);
         else
-          VMEPExecutor.iterateTestSetAndRunAlgorithm(project, algName, currentJobID, testSetName, resDesc, tsIt, notificator, resFile);
+          VMEPExecutor.iterateTestSetAndRunAlgorithm(project, algName, currentJobID, testSetName, resDesc, tsIt, notificator, resFile, asJSON);
       } catch (Exception e) {
-        ADETools.writeTaskStatus(tmpTask,  TaskStatus.FAILED, ErrorStatus.ERROR_CANT_RUN.toString(), ATGlobal.getThisComputerID());
+        ADETools.logTaskStatus(task,  TaskStatus.FAILED, ErrorStatus.ERROR_CANT_RUN.toString(), ATGlobal.getThisComputerID());
         return ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_RUN, e.toString());
       } finally {
         New.removeClassLoader(currentJobID);
@@ -279,12 +279,13 @@ public class Executor {
     } // end java execution
       
 
-    if (ErrorStatus.getLastErrorStatus().isOK()) {  
-      ADETools.writeTaskStatus(tmpTask,  TaskStatus.COMPLETED, null, ATGlobal.getThisComputerID());
+    ErrorStatus lastError = ErrorStatus.getLastErrorStatus();
+    if (lastError.isOK()) {  
+      if (task != null) ADETools.logTaskStatus(task,  TaskStatus.COMPLETED, null, ATGlobal.getThisComputerID());
       return ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, runningMsg + " - done.");
-    } else  {// execution failed 
-      ADETools.writeTaskStatus(tmpTask,  TaskStatus.FAILED, ErrorStatus.getLastErrorStatus().toString(), ATGlobal.getThisComputerID());
-      return ErrorStatus.getLastErrorStatus();
+    } else  {// execution failed or was paused
+      if (task != null)  ADETools.logTaskStatus(task,  lastError.taskWasQueued() ? TaskStatus.QUEUED : TaskStatus.FAILED, lastError.toString(), ATGlobal.getThisComputerID());
+      return lastError;
     } 
   }
 }

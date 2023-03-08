@@ -313,11 +313,11 @@ public class Query {
                                   
       ELocalConfig localConfig = ELocalConfig.getConfig();
       
-      String username=localConfig.getField(ELocalConfig.ID_Username);
+      String username=localConfig.getUsername();
       if (line.hasOption("u")) {
 	username = line.getOptionValue("u");
       }      
-      String password=localConfig.getField(ELocalConfig.ID_Password);
+      String password=localConfig.getPassword();
       if (line.hasOption("p")) {
 	password = line.getOptionValue("p");
       }           

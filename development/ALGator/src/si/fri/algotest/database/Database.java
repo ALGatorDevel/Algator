@@ -118,8 +118,6 @@ public class Database {
   public static boolean init() {
     if (!isDatabaseMode()) return true;
     
-    if (!UsersDatabase.init()) return false;
-
-    return true;
+    return UsersDatabase.init();
   }  
 }

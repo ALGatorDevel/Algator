@@ -31,7 +31,8 @@ public class UsersTools {
   public static final int INVALID_ID      = -1;
 
   public static String format = "json";
-
+  
+  static String[] STATUS = {"inactive", "active"};
   
   public static boolean addgroup(String name) {
     try {
@@ -212,7 +213,7 @@ public class UsersTools {
 
 
   public static DBUser getUserByName(String name) {
-    String sql  = String.format("SELECT * from %s.u_users WHERE name='%s'", DATABASE, name);
+    String sql  = String.format("SELECT * from %s.auth_user WHERE username='%s'", DATABASE, name);
     DBUser user = null;
     
     try {
@@ -220,7 +221,7 @@ public class UsersTools {
       Statement stmt = (Statement) conn.createStatement();
       ResultSet rs = stmt.executeQuery(sql);
       if (rs.next()) {
-        user = new DBUser(rs.getInt("id"), rs.getString("name"), rs.getString("password"), rs.getInt("status"));
+        user = new DBUser(rs.getInt("id"), rs.getString("username"), rs.getString("password"), rs.getBoolean("is_active"));
       }
     } catch (Exception e) {}
     return user;
@@ -241,9 +242,9 @@ public class UsersTools {
   public static void showUsers(String username) {
     String statement = "";
     if (username.equals("")) {
-      statement = "SELECT * from " + Database.getDatabase() + ".u_users";
+      statement = "SELECT * from " + Database.getDatabase() + ".auth_user";
     } else {
-      statement = "SELECT * from " + Database.getDatabase() + ".u_users WHERE name='" + username + "'";
+      statement = "SELECT * from " + Database.getDatabase() + ".auth_user WHERE username='" + username + "'";
     }
     try {
       Statement stmt = (Statement) Database.getConnectionToDatabase().createStatement();
@@ -252,7 +253,7 @@ public class UsersTools {
         Gson gson = new Gson();
         ArrayList<DBUser> users = new ArrayList<>();
         while (rs.next()) {
-          users.add(new DBUser(rs.getInt("id"), rs.getString("name"), rs.getString("password"), rs.getInt("status")));
+          users.add(new DBUser(rs.getInt("id"), rs.getString("username"), rs.getString("password"), rs.getBoolean("is_active")));
         }
         System.out.println(gson.toJson(users));
         return;
@@ -261,13 +262,13 @@ public class UsersTools {
         System.out.println(">>> User with this username does not exist!");
         return;
       }
-      System.out.printf("%1$-5s %2$-20s %3$10s", "id", "Username", "Status");
-      System.out.println("");
+      System.out.printf("%-5s %-20s %-20s\n", "id", "Username", "status");
+      System.out.println("----------------------------------------");
       while (rs.next()) {
-        String lastName = rs.getString("name");
-        String status   = rs.getString("status");
+        String  lastName = rs.getString("username");
+        boolean isActive = rs.getBoolean("is_active");
         String id       = rs.getString("id");
-        System.out.printf("%1$-5s %2$-20s %3$8s", id, lastName, status);
+        System.out.printf("%-5s %-20s %-20s", id, lastName, STATUS[isActive?1:0]);
         System.out.println("");
       }
     } catch (SQLException e) {
@@ -289,11 +290,12 @@ public class UsersTools {
         System.out.println(gson.toJson(groups));
         return;
       }
-      System.out.printf("%1$-20s %2$10s", "Group name", "Status");
-      System.out.println("");
+      System.out.printf("%-20s %-15s\n", "Group name", "Status");
+      System.out.println("------------------------------------");
       while (rs.next()) {
-        String groupName = rs.getString("name");
-        System.out.printf("%1$-20s %2$8s", groupName, "1");
+        String  groupName   = rs.getString("name");
+        boolean groupStatus = rs.getBoolean("status");
+        System.out.printf("%-20s %-15s", groupName, STATUS[groupStatus ? 1 : 0]);
         System.out.println("");
       }
     } catch (SQLException e) {
@@ -359,22 +361,21 @@ public class UsersTools {
     }
   }
 
-  public static void changeUserStatus(String username, String status) {
-    String[] status_string = {"Activated", "Deactivated"};
-    int status_number = Integer.parseInt(status);
+  public static void changeUserStatus(String username, String isActive) {
+    int iStatus = Integer.parseInt(isActive);
 
-    if (status_number < 0 || status_number > 1) {
+    if (iStatus < 0 || iStatus > 1) {
       System.out.println("Status number must be 0 or 1!");
       return;
     }
     if (getUserID(username, false) > 0) {
       try {
         Statement stmt = (Statement) Database.getConnectionToDatabase().createStatement();
-        String insert = "UPDATE " + Database.getDatabase() + ".u_users SET status = " + status + " WHERE name = '" + username + "'";
+        String insert = "UPDATE " + Database.getDatabase() + ".auth_user SET is_active = " + isActive + " WHERE username = '" + username + "'";
         int result = stmt.executeUpdate(insert);
 
         if (result > 0) {
-          System.out.println(">>> " + username + " status changed to: " + status_string[status_number]);
+          System.out.println(">>> " + username + " status changed to: " + STATUS[iStatus]);
         } else {
           System.out.println(">>> Error while adding user to group!");
         }
@@ -385,10 +386,9 @@ public class UsersTools {
   }
 
   public static void changeGroupStatus(String groupname, String status) {
-    String[] status_string = {"Activated", "Deactivated"};
-    int status_number = Integer.parseInt(status);
+    int iStatus = Integer.parseInt(status);
 
-    if (status_number < 0 || status_number > 1) {
+    if (iStatus < 0 || iStatus > 1) {
       System.out.println("Status number must be 0 or 1!");
       return;
     }
@@ -399,7 +399,7 @@ public class UsersTools {
         int result = stmt.executeUpdate(insert);
 
         if (result > 0) {
-          System.out.println(">>> " + groupname + " status changed to: " + status_string[status_number]);
+          System.out.println(">>> " + groupname + " status changed to: " + STATUS[iStatus]);
         } else {
           System.out.println(">>> Error while adding user to group!");
         }
@@ -413,7 +413,7 @@ public class UsersTools {
     try {
       Statement stmt = (Statement) Database.getConnectionToDatabase().createStatement();
 
-      String select = "SELECT * from " + Database.getDatabase() + ".u_users WHERE name='" + username + "'";
+      String select = "SELECT * from " + Database.getDatabase() + ".auth_user WHERE username='" + username + "'";
 
       ResultSet rs = stmt.executeQuery(select);
       if (rs.next()) {
@@ -726,7 +726,7 @@ public class UsersTools {
               + "t3.name AS username "
               + "FROM " + Database.getDatabase() + ".u_entities AS t1 "
               + "JOIN " + Database.getDatabase() + ".u_owners AS t2 on t1.id=t2.id_entity "
-              + "JOIN " + Database.getDatabase() + ".u_users AS t3 on t2.id_owner=t3.id "
+              + "JOIN " + Database.getDatabase() + ".auth_user AS t3 on t2.id_owner=t3.id "
               + "WHERE t1.name='" + projectName + "'";
 
       ResultSet rs = stmt.executeQuery(select);
@@ -789,7 +789,7 @@ public class UsersTools {
                   + "t3.name AS username "
                   + "FROM " + Database.getDatabase() + ".u_entities AS t1 "
                   + "JOIN " + Database.getDatabase() + ".u_owners AS t2 on t1.id=t2.id_entity "
-                  + "JOIN " + Database.getDatabase() + ".u_users AS t3 on t2.id_owner=t3.id "
+                  + "JOIN " + Database.getDatabase() + ".auth_user AS t3 on t2.id_owner=t3.id "
                   + "WHERE t1.name='" + alg.name + "'"
                   + " AND t1.id_parent=" + proj_id + "";
 
@@ -866,7 +866,7 @@ public class UsersTools {
                   + "t3.name AS username "
                   + "FROM " + Database.getDatabase() + ".u_entities AS t1 "
                   + "JOIN " + Database.getDatabase() + ".u_owners AS t2 on t1.id=t2.id_entity "
-                  + "JOIN " + Database.getDatabase() + ".u_users AS t3 on t2.id_owner=t3.id "
+                  + "JOIN " + Database.getDatabase() + ".auth_user AS t3 on t2.id_owner=t3.id "
                   + "WHERE t1.name='" + test.name + "'"
                   + " AND t1.id_parent=" + proj_id + "";
 

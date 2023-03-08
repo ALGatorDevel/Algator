@@ -29,25 +29,10 @@ import si.fri.algotest.users.UsersDatabase;
 import si.fri.algotest.users.DBEntity;
 import si.fri.algotest.users.UsersTools;
 
-/*import static si.fri.algotest.users.UsersTools.addgroup;
-import static si.fri.algotest.users.UsersTools.adduser;
-import static si.fri.algotest.users.UsersTools.can_user;
-import static si.fri.algotest.users.UsersTools.chmod;
-import static si.fri.algotest.users.UsersTools.findEntityId;
-import static si.fri.algotest.users.UsersTools.listEntities;
-import static si.fri.algotest.users.UsersTools.moduser;
-import static si.fri.algotest.users.UsersTools.setDefaultOwnerForAllEntities;
-import static si.fri.algotest.users.UsersTools.setowner;
-import static si.fri.algotest.users.UsersTools.showOwnerAlg;
-import static si.fri.algotest.users.UsersTools.showOwnerProj;
-import static si.fri.algotest.users.UsersTools.showOwnerTest;
-import static si.fri.algotest.users.UsersTools.userperm;
-*/
-
 
 /**
  *
- * @author Gregor
+ * @author Gregor, Tomaž
  */
 public class Users {
   
@@ -481,11 +466,11 @@ public class Users {
       ATLog.setLogTarget(ATGlobal.logTarget);
       
       ELocalConfig localConfig = ELocalConfig.getConfig();
-      String username=localConfig.getField(ELocalConfig.ID_Username);
+      String username=localConfig.getUsername();
       if (line.hasOption("u")) {
 	username = line.getOptionValue("u");
       }      
-      String password=localConfig.getField(ELocalConfig.ID_Password);
+      String password=localConfig.getPassword();
       if (line.hasOption("p")) {
 	password = line.getOptionValue("p");
       }                              

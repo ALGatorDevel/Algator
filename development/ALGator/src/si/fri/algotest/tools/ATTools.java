@@ -10,13 +10,18 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.tools.JavaCompiler;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
@@ -27,6 +32,7 @@ import org.json.JSONObject;
 import si.fri.algotest.entities.EComputer;
 import si.fri.algotest.entities.EComputerFamily;
 import si.fri.algotest.entities.EAlgatorConfig;
+import static si.fri.algotest.entities.EAlgatorConfig.ID_DBServer;
 import si.fri.algotest.entities.EProject;
 import si.fri.algotest.entities.EQuery;
 import si.fri.algotest.entities.ETestSet;
@@ -347,7 +353,7 @@ public class ATTools {
   }
 
   /**
-   * Compate the date of last change of the file with results with the date of
+   * Compare the date of last change of the file with results with the date of
    * last change of all files of the project-algoritgm-testset-mtype and returns
    * true if results file is the youngest file and false otherwise.
    */
@@ -391,7 +397,7 @@ public class ATTools {
    * expectedNumberOfLines lines
    */
   public static boolean resultsAreComplete(String resultFileName, int expectedNumberOfInstances) {
-    return expectedNumberOfInstances == getNumberOfLines(resultFileName);
+    return expectedNumberOfInstances == getNumberOfTests(resultFileName);
   }
 
   /**
@@ -411,7 +417,7 @@ public class ATTools {
    * izbrati eno izmed njih. Izbiram po naslednjem postopku: najprej določim
    * aktualne družine računalnikov. To je project.family, če obstaja, sicer so
    * to vse obstoječe družine. Potem za vse računalnike izbranih družin po vrsti
-   * pregledujem datoteke in vrnem PRVO up-todat ali complete ali non-empty
+   * pregledujem datoteke in vrnem PRVO up-todate ali complete ali non-empty
    * datoteko.
    */
   public static String getTaskResultFileName(Project project, String algorithmName, String testsetName, String mType) {
@@ -481,14 +487,17 @@ public class ATTools {
    * katero je naletel med pregledom.
    */
   private static String[] getTaskResultFilesNameForFamily(Project project, String algorithmName, String testsetName,
-          MeasurementType mType, EComputerFamily compFamily, int expectedNumberOfLines) {
+          MeasurementType mType, EComputerFamily compFamily, int expectedNumberOfTests) {
 
     String firstNonEmptyFile = "", firstCompletFile = "", firstUptodateFile = "";
 
     String thisFamilyID = compFamily.getField(EComputerFamily.ID_FamilyID);
 
     // for all computer in given family ...
-    for (EComputer computer : compFamily.getComputers()) {
+    for (EComputer computer : EAlgatorConfig.getConfig().getComputers()) {
+      // vse računalnike, ki niso v 
+      if (!computer.getField(EComputer.ID_FamilyID).equals(compFamily.get(EComputerFamily.ID_FamilyID))) continue;
+      
       String computerID = thisFamilyID + "." + computer.getField(EComputer.ID_ComputerID);
       String resultFileName = ATGlobal.getRESULTfilename(project.getEProject().getProjectRootDir(),
               algorithmName, testsetName, mType, computerID);
@@ -502,8 +511,8 @@ public class ATTools {
         firstNonEmptyFile = resultFileName;
       }
 
-      int numberOfLines = getNumberOfLines(resultFileName);
-      if (numberOfLines == expectedNumberOfLines) {
+      int numberOfTests = getNumberOfTests(resultFileName);
+      if (numberOfTests == expectedNumberOfTests) {
         if (firstCompletFile.isEmpty()) {
           firstCompletFile = resultFileName;
         }
@@ -519,8 +528,23 @@ public class ATTools {
     return new String[]{firstNonEmptyFile, firstCompletFile, firstUptodateFile};
   }
 
-  public static int getNumberOfLines(String filename) {
-    return getNumberOfLines(new File(filename));
+  /**
+   * Returns the number of different tests in result file. Each test result is represented by a json 
+   * line in result file. Test identifier is "InstanceID".  Method returns the number of different identifiers in 
+   * result file. 
+   */
+  public static int getNumberOfTests(String filename) {
+    TreeSet<String> testIDs = new TreeSet<>();
+    try (Scanner sc = new Scanner(new File(filename));) {      
+      while (sc.hasNextLine()) {
+        String testResult = sc.nextLine();
+        try {
+          JSONObject jResult = new JSONObject(testResult);
+          testIDs.add(jResult.getString("InstanceID"));
+        } catch (Exception e) {}
+      }
+    } catch (Exception e) {}
+    return testIDs.size();
   }
 
   public static int getNumberOfLines(File file) {
@@ -594,6 +618,15 @@ public class ATTools {
   public static String getFilenameExtension(String fileName) {
     int pos = fileName.lastIndexOf(".");
     return (pos != -1) ? fileName.substring(pos + 1, fileName.length()) : fileName;
+  }
+  
+  
+  /**
+   * Method creates path of a file (if this path does not exist yet).
+   */
+  public static void createFilePath(String fileName) {
+    File resPath = new File(ATTools.extractFilePath(new File(fileName)));        
+    if (!resPath.exists()) resPath.mkdirs();
   }
 
   /**
@@ -699,6 +732,23 @@ public class ATTools {
     return result.toString();
   }
 
+  /**
+   * Creates a HashMap from JSON and adds missing default keys with empty values
+   */
+  public static HashMap<String, Object> jSONObjectToMap(JSONObject jObj, String... defaultKeys) {
+    HashMap<String, Object> result;
+    try {
+      result  = ATTools.jSONObjectToMap(jObj);
+    } catch (Exception e) {
+      result = new HashMap<>();
+    }    
+    
+    for (String defaultKey : defaultKeys) {
+      if (!result.containsKey(defaultKey))
+        result.put(defaultKey, "");
+    }
+    return result;    
+  }
   
   /**********************+ JSON tools *************************/
   public static HashMap<String, Object> jSONObjectToMap(JSONObject object) throws JSONException {
@@ -712,7 +762,7 @@ public class ATTools {
       if (value instanceof JSONArray) {
         value = jSONObjectToList((JSONArray) value);
       } else if (value instanceof JSONObject) {
-        value = jSONObjectToMap((JSONObject) value);
+        value = ATTools.jSONObjectToMap((JSONObject) value);
       }
       map.put(key, value);
     }
@@ -725,11 +775,39 @@ public class ATTools {
       if (value instanceof JSONArray) {
         value = jSONObjectToList((JSONArray) value);
       } else if (value instanceof JSONObject) {
-        value = jSONObjectToMap((JSONObject) value);
+        value = ATTools.jSONObjectToMap((JSONObject) value);
       }
       list.add(value);
     }
     return list;
   }
+ 
   
+  
+  
+    /**
+   * Method replaces all occurencies of "...Date":dateL,  with "...Date":"dateS", where
+   * dateS is a string representation of a dateL.
+   * 
+   * Example: if dateFormat = "YY/MM/dd hh:mm:ss", "CreationDate":1673360936132 -> "CreationDate":"2023/01/10 15:28:56"
+   */  
+  public static String replaceDateL2S(String line, String dateFormat) {
+    Pattern datePat = Pattern.compile("Date\":([0-9]+),");
+    DateFormat dateFormater = new SimpleDateFormat(dateFormat);
+    
+    Matcher action = datePat.matcher(line);
+    
+    System.out.println(line);
+    while (action.find()) {
+      String dateL = action.group(1);
+      if (dateL == null || dateL.length() < 6) continue;
+      
+      Date   dateD = new Date(Long.parseLong(dateL)); 
+      String dateS = dateFormater.format(dateD);
+
+      line = line.replaceAll(dateL, "\""+ dateS +"\"");
+    }
+    return line;
+  }
+
 }

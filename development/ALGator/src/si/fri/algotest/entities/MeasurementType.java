@@ -20,9 +20,13 @@ public enum MeasurementType  {
         return "/unknown/";
     }
   }
+  
+  static public MeasurementType mtOf(String mt) {
+    if (mt.equalsIgnoreCase("cnt")) return MeasurementType.CNT;
+    if (mt.equalsIgnoreCase("jvm")) return MeasurementType.JVM;
+    return MeasurementType.EM;
+  }
 
-  
-  
   /**
    * Returns the extension to the result file for a  measurement of a given type
    * (results/AlgName-TestSetname.extension)

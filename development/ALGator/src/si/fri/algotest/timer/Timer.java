@@ -21,10 +21,6 @@ public class Timer implements Serializable {
 
     startTime = new long[MAX_TIMERS];
     stopTime = new long[MAX_TIMERS];
-
-    for (int i = 0; i < MAX_TIMERS; i++) {
-      startTime[i] = stopTime[i] = 0;
-    }
   }
 
   /**
@@ -59,7 +55,7 @@ public class Timer implements Serializable {
    * Resumes the i-th timer
    */
   public void resume(int i) {
-    startTime[i] = System.nanoTime()- startTime[i];
+    startTime[i] = System.nanoTime()- (stopTime[i] - startTime[i]);
   }
 
   /**

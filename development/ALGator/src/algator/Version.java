@@ -13,8 +13,8 @@ import si.fri.algotest.users.UsersDatabase;
  * @author tomaz
  */
 public class Version {
-  private static String version = "0.98";
-  private static String date    = "Januar 2021";
+  private static String version = "0.985";
+  private static String date    = "December 2022";
   
   public static String getVersion() {
     return String.format("version %s (%s)", version, date);
@@ -41,10 +41,10 @@ public class Version {
     
     try {
       Statement stmt = (Statement) conn.createStatement();    
-      ResultSet rs = stmt.executeQuery("SELECT * FROM u_users");
+      ResultSet rs = stmt.executeQuery("SELECT * FROM auth_user");
       System.out.print("Users in database: ");
       while (rs.next()) {
-          System.out.print(rs.getString("name") + " ");
+          System.out.print(rs.getString("username") + " ");
       }
       System.out.println("");
     } catch (Exception e) {

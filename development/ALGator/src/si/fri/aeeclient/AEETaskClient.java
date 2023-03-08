@@ -6,21 +6,250 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Base64;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteWatchdog;
+import org.apache.commons.exec.ShutdownHookProcessDestroyer;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import si.fri.adeserver.ADEGlobal;
+import si.fri.adeserver.ADETaskServer;
+import si.fri.algotest.entities.EComputerFamily;
 import si.fri.algotest.entities.ELocalConfig;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ErrorStatus;
+        
+import static si.fri.adeserver.ADETaskServer.ID_STATUS;
+import static si.fri.adeserver.ADETaskServer.ID_ANSWER;
+import static si.fri.adeserver.ADETaskServer.ID_MSG;
+import static si.fri.adeserver.ADETaskServer.decodeAnswer;
+import si.fri.adeserver.STask;
+import si.fri.adeserver.TaskStatus;
+import si.fri.algotest.entities.CompCap;
+import si.fri.algotest.entities.EComputer;
 
 /**
  *
  * @author tomaz
  */
 public class AEETaskClient {
+  private static String badRequestMsg(String request, JSONObject jAns) {
+    return String.format("Bad request: '%s'. Return status: %d, Return message '%s'", 
+            request, jAns.getInt(ID_STATUS), jAns.getString(ID_MSG));
+  }
+  
+  /**
+   * This method is used by TaskClient after the instalation to set the information about the server 
+   * (name and port) and to obtain the FamilyID and ComputerID for this computer. 
+   *   - taskservername, taskserverport
+   *   - FamilyID/ComputerID of this computer
+   */
+  static void initTaskServer() {
+    System.out.println("ALGator TaskClient configuration\n");
+    
+    ELocalConfig lconfig = ELocalConfig.getConfig();
+    
+    Scanner sc = new Scanner(System.in);
+    
+    // TaskServer connection info
+    boolean serverSet = false;String server=""; int port=0;
+    
+    System.out.println("1) Information about TaskServer that is going to be used by this TaskClient");   
+    while (!serverSet) {
+      // ... servername 
+      server = lconfig.getTaskServerName();
+        System.out.print(String.format("  Enter the name (or IP) of the TaskServer [%s]: ", server));
+        String nServer = sc.nextLine().trim();
+        server = nServer.isEmpty() ? server : nServer;
+      // ... server port
+      port   = lconfig.getTaskServerPort();         
+        System.out.print(String.format("  Enter the port number of the TaskServer [%d]: ", port));
+        String sPort = sc.nextLine().trim();
+        int nPort = 0;
+        try {nPort = Integer.parseInt(sPort);} catch (Exception e) {}
+        if (nPort != 0) port = nPort;
+        
+      System.out.println(String.format("  ... connecting to TaskServer (%s:%d)", server,port));
+      String serverAns = Requester.askTaskServer(server, port, ADEGlobal.REQ_STATUS);
+      if (serverAns.startsWith("Error")) {
+        System.out.println("   ... " + serverAns);      
+        System.out.println();
+      } else serverSet=true;
+    }
+    lconfig.setTaskServerName(server);
+    lconfig.setTaskServerPort(port);
+    lconfig.saveEntity();
+    System.out.println("  ... OK; information saved\n");
+
+
+    String[] cID = lconfig.getComputerID().split("[.]");
+    String computerID  = cID.length > 1 ? cID[1].trim():"";    
+    String familyID    = cID.length > 0 ? cID[0].trim():"";
+    String computerUID = lconfig.getComputerUID().trim();
+    
+    int tfIDX = 0;
+    
+    System.out.println("2) Information about available computer families:\n");
+    
+    // ask server for info about families
+    String answer = Requester.askTaskServer(server, port, ADEGlobal.REQ_GETFAMILIES);
+    JSONObject jAns = decodeAnswer(answer);
+    if (jAns.getInt(ID_STATUS) != 0) { // if error occures...
+      System.out.println(badRequestMsg(ADEGlobal.REQ_GETFAMILIES, jAns));
+      return;
+    }
+    
+    JSONArray families = new JSONArray();
+    try {families = (JSONArray) jAns.get(ID_ANSWER);} catch (Exception e) {}
+    for (int i=0; i<families.length(); i++) {
+      JSONObject family = families.getJSONObject(i);
+      String tfID = family.getString(EComputerFamily.ID_FamilyID);
+      if (familyID.equals(tfID)) tfIDX = i+1;
+      
+      System.out.printf("  %d : %s \n", i+1, family.toString(4).replaceAll("[{}]",""));
+    }
+    System.out.printf("  Select one of the above families or 0 to define a new family [%d]: ", tfIDX);
+    String sFamily = sc.nextLine().trim();
+    try {tfIDX = Integer.parseInt(sFamily);if (tfIDX < 0 || tfIDX > families.length()) tfIDX = 0;} catch (Exception e) {}
+    System.out.println("  Selected family: " + tfIDX);
+        
+    // define a new family
+    if (tfIDX == 0) {
+      boolean familyOK = false;
+      String id="", desc="", plat="", hard="";
+      while (!familyOK) {        
+        System.out.println("\n  Enter information (ID, description, platform, hardware) for the family this computer belongs to:");
+        System.out.println("  (Example -  ID: F5, Description: Fast computers, Platform: Ubuntu 16.04, x64, Hardware: i7, 2.8Ghz, 32GB RAM)\n");
+        System.out.print  ("      ID ["+id+"] : ");            String tid   = sc.nextLine(); id   = tid  .isEmpty() ? id : tid;
+        System.out.print  ("      Description ["+desc+"] : "); String tdesc = sc.nextLine(); desc = tdesc.isEmpty() ? desc : tdesc;
+        System.out.print  ("      Platform ["+plat+"] : ");    String tplat = sc.nextLine(); plat = tplat.isEmpty() ? plat : tplat;
+        System.out.print  ("      Hardware ["+hard+"] : ");    String thard = sc.nextLine(); hard = thard.isEmpty() ? hard : thard;
+        
+        JSONObject jFamily = new JSONObject();
+        jFamily.put(EComputerFamily.ID_Name, "Family-" + id);
+        jFamily.put(EComputerFamily.ID_FamilyID, id);
+        jFamily.put(EComputerFamily.ID_Desc, desc);
+        jFamily.put(EComputerFamily.ID_Platform, plat);
+        jFamily.put(EComputerFamily.ID_Hardware, hard);
+        
+        answer = Requester.askTaskServer(server, port, ADEGlobal.REQ_ADDFAMILY + " " + jFamily.toString(0));
+        jAns = decodeAnswer(answer);
+        if (jAns.getInt(ID_STATUS) != 0) {
+          System.out.println("\n  ... " + jAns.getString(ID_MSG));
+          id="";
+          System.out.println();
+        } else
+          familyOK=true;
+      }
+      // if everything is OK, the answer contains the ID of a new computer
+      familyID = jAns.getString(ID_ANSWER);
+    } else {
+      if (tfIDX > 0 && tfIDX <= families.length()) 
+        familyID = families.getJSONObject(tfIDX-1).getString(EComputerFamily.ID_FamilyID);
+      else {
+        System.out.println("Invalid family.");
+        return;
+      }
+    }
+
+    System.out.println("\n3) Information about this computer:\n");
+                   
+    // ask server for info about computers
+    JSONObject jFID = new JSONObject(); jFID.put(EComputer.ID_FamilyID, familyID);
+    answer = Requester.askTaskServer(server, port, ADEGlobal.REQ_GETCOMPUTERS + " " + jFID.toString(0));
+    jAns = decodeAnswer(answer);
+    if (jAns.getInt(ID_STATUS) != 0) { // if error occures...
+      System.out.println(badRequestMsg(ADEGlobal.REQ_GETCOMPUTERS, jAns));
+      return;
+    }
+    
+    JSONArray computers = new JSONArray();
+    int tcIDX = 0;
+    try {computers = (JSONArray) jAns.get(ID_ANSWER);} catch (Exception e) {}
+    for (int i=0; i<computers.length(); i++) {
+      try {
+        JSONObject comp = computers.getJSONObject(i);
+        String tcID = comp.getString(EComputer.ID_ComputerID);
+        if (computerID.equals(tcID)) tcIDX = i+1;
+      
+        System.out.printf("  %d : %s \n", i+1, comp.toString(4).replaceAll("[{}]",""));
+      } catch (Exception e) {}
+    }
+    System.out.printf("  Select the number of this computer or enter 0 to define a new computer [%d]: ", tcIDX);
+    String sComputer = sc.nextLine().trim();
+    try {tcIDX = Integer.parseInt(sComputer);if (tcIDX < 0 || tcIDX > computers.length()) tcIDX = 0;} catch (Exception e) {}
+    System.out.println("  Selected computer: " + tcIDX);
+
+    
+    // define a new computer
+    if (tcIDX == 0) {
+      boolean computerOK = false;
+      String id="", desc="", ip="", cap="1100";
+      while (!computerOK) {        
+        System.out.println("\n  Enter information (ID, name, description, ip, capabilities) for this computer:");
+        System.out.println("  (Example -  ID: C3, Description: My desktop, IP: 212.168.179.159, Capabilities: 1001)\n");
+        System.out.print  ("      ID ["+id+"] : ");            String tid   = sc.nextLine(); id   = tid  .isEmpty() ? id : tid;
+        System.out.print  ("      Description ["+desc+"] : "); String tdesc = sc.nextLine(); desc = tdesc.isEmpty() ? desc : tdesc;
+        System.out.print  ("      IP address ["+ip+"] : ");    String tip = sc.nextLine(); ip = tip.isEmpty() ? ip : tip;
+        System.out.print  ("      Capabilities (EM, CNT, JVM, QUICK; Example: 1100 for EM and CNT) ["+cap+"] : ");    String tcap = sc.nextLine(); cap = tcap.isEmpty() ? cap : tcap;
+        
+        JSONObject jFamily = new JSONObject();
+        jFamily.put(EComputer.ID_Name, "Computer-" + id);
+        jFamily.put(EComputer.ID_FamilyID, familyID);
+        jFamily.put(EComputer.ID_ComputerID, id);
+        jFamily.put(EComputer.ID_Desc, desc);
+        jFamily.put(EComputer.ID_IP, ip);
+        
+        JSONArray caps = new JSONArray();if (cap.length()==4){
+          if (cap.charAt(0)=='1')caps.put(CompCap.EM);
+          if (cap.charAt(1)=='1')caps.put(CompCap.CNT);
+          if (cap.charAt(2)=='1')caps.put(CompCap.JVM);
+          if (cap.charAt(3)=='1')caps.put(CompCap.QUICK);
+        }
+        jFamily.put(EComputer.ID_Capabilities, caps);
+        
+        answer = Requester.askTaskServer(server, port, ADEGlobal.REQ_ADDCOMPUTER + " " + jFamily.toString(0));
+        jAns = decodeAnswer(answer);
+        if (jAns.getInt(ID_STATUS) != 0) {
+          System.out.println("\n  ... " + jAns.getString(ID_MSG));
+          id="";
+          System.out.println();
+        } else
+          computerOK=true;
+      }
+      // if everything is OK, the answer contains the ID of a new computer
+      JSONObject jjans = new JSONObject(); try {jjans=jAns.getJSONObject(ID_ANSWER);} catch (Exception e) {}
+      computerID = "";  
+      computerUID = "";
+      try {
+        computerID  = jjans.getString(EComputer.ID_ComputerID);
+        computerUID = jjans.getString(EComputer.ID_ComputerUID);
+      } catch (Exception e) {}
+      
+      if (computerUID==null || computerUID.length() != 10) {
+        System.out.println("Invalid computer UID: " + computerUID);
+        return;
+      }
+    } else {
+      if (tcIDX > 0 && tcIDX <= computers.length()) {
+        computerID  = computers.getJSONObject(tcIDX-1).getString(EComputer.ID_ComputerID);
+        computerUID = computers.getJSONObject(tcIDX-1).getString(EComputer.ID_ComputerUID);
+      } else {
+        System.out.println("Invalid computer.");
+        return;
+      }
+    }
+    System.out.printf("\n  Your computer: %s.%s (%s)\n", familyID, computerID, computerUID);
+    lconfig.setFamilyID(familyID);
+    lconfig.setComputerID(computerID);
+    lconfig.setComputerUID(computerUID);
+    lconfig.saveEntity();
+    System.out.println("  ... OK; information saved\n");
+  }
   
   /**
    * Exit values: 0 ... OK
@@ -30,12 +259,14 @@ public class AEETaskClient {
    * @param task
    * @return 
    */
-  private static int runTask(String task) {
-    String [] parts = task.split(ADEGlobal.STRING_DELIMITER);
-    if (parts.length < 5) return 200; // error in task format
-    
+  private static int runTask(STask task) {    
     DefaultExecutor executor = new DefaultExecutor();
     executor.setExitValue(0);
+    
+    // this line ensures that a subtask (executor) will be automatically closed 
+    // when TaskClient will be closed (with CTRL-C, for example).
+    // Without this line, the executor continued to run task in background eventhough TaskClient was stoped.  
+    executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());    
     
     // max time to wait for task to finish; in the future this time should be read
     // from configuration files (should be testset-dependant)
@@ -54,16 +285,16 @@ public class AEETaskClient {
     cmdLine.addArgument("algator.Execute"); 
     
     // Project
-    cmdLine.addArgument(parts[1]);
+    cmdLine.addArgument(task.getString(STask.ID_Project));
     // Algorithm
     cmdLine.addArgument("-a");
-    cmdLine.addArgument(parts[2]);
+    cmdLine.addArgument(task.getString(STask.ID_Algorithm));
     // Testset
     cmdLine.addArgument("-t");
-    cmdLine.addArgument(parts[3]);
+    cmdLine.addArgument(task.getString(STask.ID_Testset));
     // Measurement type
     cmdLine.addArgument("-m");
-    cmdLine.addArgument(parts[4]);
+    cmdLine.addArgument(task.getString(STask.ID_MType));
     // data_root
     cmdLine.addArgument("-dr");
     cmdLine.addArgument(ATGlobal.getALGatorDataRoot());
@@ -75,7 +306,14 @@ public class AEETaskClient {
     // log into file
     cmdLine.addArgument("-log");
     cmdLine.addArgument("2");
-
+    
+    // task info
+    STask taskInfo = new STask();
+    taskInfo.set(STask.ID_TaskID,      task.getFieldAsInt(STask.ID_TaskID));
+    taskInfo.set(STask.ID_ComputerUID, task.getString(STask.ID_ComputerUID));
+    taskInfo.set(STask.ID_Progress,    task.getFieldAsInt(STask.ID_Progress));    
+    cmdLine.addArgument("-task");
+    cmdLine.addArgument(taskInfo.toJSONString(0).replaceAll("\"", "'"));
     
     AEELog.log(": Starting    - " + task);
     int exitValue = 201;
@@ -110,9 +348,9 @@ public class AEETaskClient {
     if (hostName == null)
       hostName   = ELocalConfig.getConfig().getTaskServerName();
     
-    int    portNumber = ADEGlobal.ADEPort;
+    int    portNumber = ELocalConfig.getConfig().getTaskServerPort();
     
-    String compID = ELocalConfig.getConfig().getComputerID();
+    String compID = ELocalConfig.getConfig().getComputerUID();
     
     boolean logTaskServerProblem = true;
     
@@ -126,15 +364,61 @@ public class AEETaskClient {
         AEELog.log(        "Task client connected to server - " + hostName);
         System.out.println("Task client connected to server - " + hostName);
         while (true) {
-          String taskRequset = ADEGlobal.REQ_GET_NEXT_TASK + ADEGlobal.STRING_DELIMITER + compID;
+          JSONObject reqJsno = new JSONObject(); reqJsno.put(EComputer.ID_ComputerUID, compID);
+          String taskRequset = ADEGlobal.REQ_GET_TASK + ADEGlobal.STRING_DELIMITER + reqJsno.toString();
+          
+          taskRequset = Base64.getEncoder().encodeToString(taskRequset.getBytes());
           toServer.println(taskRequset);
-          String task = fromServer.readLine();
-          if ((task != null) && !task.isEmpty() && !task.equals(ADEGlobal.NO_TASKS)) {
-            if (!ADEGlobal.isError(task)) {
+          
+          String taskS = fromServer.readLine();
+          try {
+            taskS = new String(Base64.getDecoder().decode(taskS));
+          } catch (Exception e) {}
+          
+          if ((taskS != null) && !taskS.isEmpty()) {
+            STask task = null; 
+            try {
+              JSONObject answer = new JSONObject(taskS); 
+              // is status 0, then a task is available to be executed
+              if (answer.getInt(ADETaskServer.ID_STATUS)==0) {
+                task = new STask(answer.get(ADETaskServer.ID_ANSWER).toString());
+              }
+            } catch (Exception e) {}
+            if (task != null) {
               int exitCode = runTask(task);
               
-              String taskNo = ""; try {taskNo = task.split(" ")[0];} catch (Exception e) {}
-              toServer.println(ADEGlobal.REQ_COMPLETE_TASK + ADEGlobal.STRING_DELIMITER + taskNo + ADEGlobal.STRING_DELIMITER + exitCode);
+              
+              if (exitCode == 242) {
+                // 242 means that task was paused by server; this is a signal 
+                // to client to send another REQ_GET_TASK request
+              } else {
+                int taskNo = task.getTaskID(); 
+
+                String exitMsg = "?";
+                switch (exitCode) {
+                  case 0  : exitMsg = "Task completed successfully."; break;
+                  case 202: exitMsg = "TaskID and ComputerID mismatch."; break;
+                  case 203: exitMsg = "Invalid project name."; break;
+                  case 204: exitMsg = "Problems with testset synchronization."; break;
+                  case 205: exitMsg = "Invalid testset name."; break;
+                  case 206: exitMsg = "Invalid algorithm name."; break;
+                  case 207: exitMsg = "Invalid measurement type."; break;
+                  case 208: exitMsg = "Problems with vmep configuration."; break;
+                  case 214: exitMsg = "Problems with project synchronization."; break;
+                }
+                JSONObject answer = new JSONObject();
+                answer.put("ExitCode", exitCode); 
+                answer.put(STask.ID_TaskID, task.getFieldAsInt(STask.ID_TaskID));
+                answer.put("Message", exitMsg);
+                
+                String closeTaskRequest = ADEGlobal.REQ_CLOSE_TASK + ADEGlobal.STRING_DELIMITER + answer.toString();
+                try {
+                  closeTaskRequest = Base64.getEncoder().encodeToString(closeTaskRequest.getBytes());
+                } catch (Exception e) {closeTaskRequest = "";}
+                toServer.println(closeTaskRequest);                
+                fromServer.readLine();
+
+              }
             }
           }
           

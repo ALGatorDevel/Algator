@@ -17,7 +17,7 @@ public class ADELog {
   private static String logFileName = null;
   
   // maximal error size in bytes (to truncate very long error messages)
-  private static int MAX_ERROR_SIZE = 1024;
+  private static int MAX_ERROR_SIZE = 256;
   
   
   public static void log(String msg) {
@@ -25,7 +25,8 @@ public class ADELog {
       logFileName = ADEGlobal.getTaskserverLogFilename();
     }
     
-    msg = msg.substring(0, Math.min(msg.length(), MAX_ERROR_SIZE));
+    String sufix = msg.length() > MAX_ERROR_SIZE ? " ..." : "";
+    msg = msg.substring(0, Math.min(msg.length(), MAX_ERROR_SIZE)) + sufix;
 
     DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
     Date date = new Date();

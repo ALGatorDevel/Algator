@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import si.fri.algotest.entities.DeparamFilter;
 import si.fri.algotest.entities.EVariable;
 import si.fri.algotest.entities.EProject;
@@ -141,7 +142,7 @@ public class DataAnalyser {
     ArrayList<String> lines;
 
     String resFileName;
-    // če imam eksplicitno podano ime racunalnika, vem, kjer moram iskati rezultate ...
+    // če imam eksplicitno podano ime racunalnika, vem, kje moram iskati rezultate ...
     if (computerID != null && !computerID.isEmpty()) {
       resFileName = ATGlobal.getRESULTfilename(project.getProjectRoot(), algorithm, testset, measurement, computerID);
     } // ... sicer pa poiščem najbolj primerno datoteko
@@ -185,54 +186,38 @@ public class DataAnalyser {
     String delim = ATGlobal.DEFAULT_CSV_DELIMITER;
 
     for (String line : lines) {
+      JSONObject res  = new JSONObject();
+      try {res = new JSONObject(line);} catch (Exception e) {}
+      
       Variables algPS = resultPS.copy();
 
-      String[] lineFields = line.split(delim);
-
-      String curTestSet = lineFields[1];
-      String testName = lineFields[2];
-      String pass = lineFields[4];
-
       // sets the value of default parameters
-      algPS.getVariable(EResult.algParName).set(EVariable.ID_Value, algorithm);
-      algPS.getVariable(EResult.tstParName).set(EVariable.ID_Value, curTestSet);
+      String curTestset = res.optString(EResult.tstParName, testset);
+      String testName   = res.optString(EResult.instanceIDParName, "test0");
+      algPS.getVariable(EResult.algParName).       set(EVariable.ID_Value, res.optString(EResult.algParName, algorithm));
+      algPS.getVariable(EResult.tstParName).       set(EVariable.ID_Value, curTestset);
       algPS.getVariable(EResult.instanceIDParName).set(EVariable.ID_Value, testName);
-      algPS.getVariable(EResult.passParName).set(EVariable.ID_Value, pass);
+      algPS.getVariable(EResult.passParName).      set(EVariable.ID_Value, res.optString(EResult.passParName, "?"));
 
-      int lineFiledsPos = EResult.FIXNUM;
-
-      // sets the value of test parameters
-      for (String param : testOrder) {
+      ArrayList<String> trOrder = new ArrayList(testOrder); trOrder.addAll(resultOrder);
+      for (String param : trOrder) {
         EVariable tP = algPS.getVariable(param);
-
+        
         if (tP != null) {
-          if (lineFiledsPos < lineFields.length) {
-            tP.set(EVariable.ID_Value, lineFields[lineFiledsPos]);
+          Object value = res.opt(tP.getName());
+
+          if (value != null) {
+            tP.set(EVariable.ID_Value, value);
           } else {
             tP.set(EVariable.ID_Value, tP.getType().getDefaultValue());
           }
         }
 
-        lineFiledsPos++;
       }
 
-      // sets the value of result parameters
-      for (String ind : resultOrder) {
-        EVariable tP = algPS.getVariable(ind);
-
-        if (tP != null) {
-          if (lineFiledsPos < lineFields.length) {
-            tP.set(EVariable.ID_Value, lineFields[lineFiledsPos]);
-          } else {
-            tP.set(EVariable.ID_Value, tP.getType().getDefaultValue());
-          }
-        }
-
-        lineFiledsPos++;
-      }
 
       // add this ParameterSet to the ResultPack
-      String key = curTestSet + "-" + testName;
+      String key = curTestset + "-" + testName;
       Variables ps = resPack.getResult(key);
       // If ParameterSet for this testset-test doesn't exist ...
       if (ps == null) {
@@ -661,16 +646,11 @@ public class DataAnalyser {
               // if param is like tc_PROPS.Type, we have to split TP_PROPS and get only "Type" part of it ....
               if (pName.startsWith("TC_PROPS")) {
                 value = "?";
-                String tcProps = (String) ps.getVariable("TC_PROPS").get(EVariable.ID_Value);
+                JSONObject tcProps = (JSONObject) ps.getVariable("TC_PROPS").get(EVariable.ID_Value);
                 if (pName.contains(".")) {
                   String prop = pName.split("[.]")[1];
-                  String[] tcParts = tcProps.split(",");
-                  for (String tcPart : tcParts) {
-                    if (tcPart.trim().startsWith(prop + "=")) {
-                      value = tcPart.split("=")[1];
-                    }
-                  }
-
+                  value = tcProps.opt(prop);
+                                    
                   // check if parameter has a type defined
                   String parType = inPar.getType();
                   if (parType != null) {
@@ -730,7 +710,9 @@ public class DataAnalyser {
                   value = parameter.getValue();
                 }
               } catch (Exception e) {
-                System.out.println(e);
+                // to ne gre za napako ampak za neobstoječ parameter, kar pa 
+                // rešujem z "value = ?"
+                // System.out.println(e);
               }
             }
             line.add(value);

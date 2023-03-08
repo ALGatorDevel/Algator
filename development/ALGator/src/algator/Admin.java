@@ -181,8 +181,11 @@ public class Admin {
       
     // create a database and its tables
     boolean databaseInit = Database.init();
-    if (databaseInit) {      
-      ATLog.log("Creating a new user ...", 0);
+    if (databaseInit) {    
+      
+      if (ATGlobal.verboseLevel > 2) 
+        ATLog.log("Creating a new user ...", 0);
+      
       if (username==null || username.isEmpty()|| password==null || password.isEmpty()) {
         String up[] = getUsernameAndPassword();
         if (up==null) {
@@ -243,11 +246,11 @@ public class Admin {
       
       ELocalConfig localConfig = ELocalConfig.getConfig();
       
-      String username=localConfig.getField(ELocalConfig.ID_Username);
+      String username=localConfig.getUsername();
       if (line.hasOption("u")) {
 	username = line.getOptionValue("u");
       }      
-      String password=localConfig.getField(ELocalConfig.ID_Password);
+      String password=localConfig.getPassword();
       if (line.hasOption("p")) {
 	password = line.getOptionValue("p");
       }            

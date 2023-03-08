@@ -69,12 +69,13 @@ public class EProject extends Entity {
       entity_rootdir.substring(0, entity_rootdir.length()-5) : entity_rootdir;
   }
 
-    
+  public String getProjectFamily(String mType) { 
+    return getProjectFamily(MeasurementType.mtOf(mType));
+  }
+  
   public String getProjectFamily(MeasurementType mt) {
-    String myFamily = "";
-    myFamily = getField(getMeasurementTypeFieldID(mt));
-    if (myFamily == null) myFamily = "";
-    return myFamily;
+    String myFamily = getField(getMeasurementTypeFieldID(mt));
+    return myFamily == null ? "" : myFamily;
   }
   
   /**

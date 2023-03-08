@@ -135,6 +135,10 @@ public class EVariable extends Entity  implements Serializable {
   public VariableType getType() {
     return type;
   }
+  
+  public void setType(VariableType type) {
+    this.type = type;
+  }
 
   public HashMap<String,Object> getMetaData() {
     return metadata;
@@ -155,31 +159,33 @@ public class EVariable extends Entity  implements Serializable {
   public Object getValue() {
     Object value = get(ID_Value);
     
-    // getValue() method for parameters of type DOUBLE returns a value with 
-    // limited number of decimals (given in meta data) 
-    if (type.equals(VariableType.DOUBLE)) {
-      int decimals = getMeta("Decimals", 2);
-      
-      try {
-        Double d = null;
-        if (value instanceof String)
-          d = Double.parseDouble((String) value);
-        else if (value instanceof Double)
-          d = (Double) value;
-        else return value;
-        
-        double potenca = Math.pow(10, decimals);
-        value = Math.round(d * potenca)/potenca;
-      } catch (NumberFormatException e) {
-        return value; 
-      }      
-    } else  if (type.equals(VariableType.STRING) || type.equals(VariableType.ENUM)) {
-      return value==null ? "?" : value;
-    } else  if (type.equals(VariableType.INT)) {
-      return value==null ? 0 : value;
+    // getValue() method for parameters of type DOUBLE returns a value with
+    // limited number of decimals (given in meta data)
+    switch (type) {
+      case DOUBLE:
+        int decimals = getMeta("Decimals", 2);
+        try {
+          Double d = null;
+          if (value instanceof String)
+            d = Double.parseDouble((String) value);
+          else if (value instanceof Double)
+            d = (Double) value;
+          else return value;
+          
+          double potenca = Math.pow(10, decimals);
+          value = Math.round(d * potenca)/potenca;
+        } catch (NumberFormatException e) {} 
+        break;
+      case STRING:
+      case JSONSTRING:
+      case ENUM:
+        if (value == null) value = "?";
+        break;
+      case INT:
+        if (value == null) value = 0;
+        break;
     }
- 
-    
+  
     return value;
   }
   

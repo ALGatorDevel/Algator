@@ -1,10 +1,12 @@
 package si.fri.aeeclient;
 
 import algator.*;
+import static algator.Admin.initAlgatorSystem;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Base64;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -58,11 +60,17 @@ public class Requester {
             .withDescription("print additional information (0 = OFF (default), 1 = some, 2 = all")
             .create("v");
     
+    Option init = OptionBuilder
+	    .hasArg(false)
+	    .withDescription("initialize the task client")
+	    .create("init");  
+    
     options.addOption(data_root);
     options.addOption(data_local);
     options.addOption(algator_root);
     options.addOption(server);
     options.addOption(verbose);
+    options.addOption(init);
 
     options.addOption("h", "help", false,
             "print this message");
@@ -77,12 +85,12 @@ public class Requester {
     formatter.printHelp("algator." + programName + " [options]", options);
   }
   
-  
-  private static String askTaskServer(String hostName, String request) {
+  public static String askTaskServer(String hostName, int portNumber, String request) {
     if (hostName == null)
       hostName   = ELocalConfig.getConfig().getTaskServerName();
     
-    int    portNumber = ADEGlobal.ADEPort;
+    if (portNumber==0)
+      portNumber = ELocalConfig.getConfig().getTaskServerPort();
     
     String compID = ELocalConfig.getConfig().getComputerID();
 
@@ -91,11 +99,16 @@ public class Requester {
         PrintWriter    toServer    = new PrintWriter(kkSocket.getOutputStream(), true);
         BufferedReader fromServer  = new BufferedReader(new InputStreamReader(kkSocket.getInputStream()));) 
       {
-          String taskRequset = ADEGlobal.REQ_STATUS;
+          request = Base64.getEncoder().encodeToString(request.getBytes());
           toServer.println(request);
-          return fromServer.readLine().replaceAll("<br>", "\n");
+          
+          String response = fromServer.readLine();
+          response = new String(Base64.getDecoder().decode(response));
+                  ;
+          return response;
+          
       } catch (Exception e) {
-        return String.format("TaskServer on '%s' is not running.", hostName);
+        return String.format("Error: TaskServer on '%s:%d' is not running.", hostName, portNumber);
       }          
   }
 
@@ -145,9 +158,15 @@ public class Requester {
           ATGlobal.verboseLevel = 2;
         }
       }
+      
+      if (line.hasOption("init")) {
+        AEETaskClient.initTaskServer();
+        return;
+      }          
+           
             
       if (type == 0) {
-        si.fri.aeeclient.AEETaskClient.runClient(serverName);
+        AEETaskClient.runClient(serverName);
       } else {
         
         String request = "";
@@ -155,7 +174,7 @@ public class Requester {
           request += (request.isEmpty() ? "" : " ") + arg;
         
 
-        System.out.println(askTaskServer(serverName, request));
+        System.out.println(askTaskServer(serverName, 0, request));
         return;
       }
             

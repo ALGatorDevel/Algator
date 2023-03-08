@@ -39,7 +39,7 @@ public class VMEPExecutor {
    */
   public static void iterateTestSetAndRunAlgorithm(Project project, String algName, String currentJobID, 
           String testSetName, EResult resultDesc, AbstractTestSetIterator it, 
-          Notificator notificator, File resultFile) {
+          Notificator notificator, File resultFile, boolean asJSON) {
 
     ArrayList<Variables> allAlgsRestuls = new ArrayList();
     VMEPErrorStatus executionStatus;
@@ -103,7 +103,7 @@ public class VMEPExecutor {
             result.addVariable(EResult.getErrorIndicator(
               ErrorStatus.getLastErrorMessage() + executionStatus.toString()), true);
           }
-          testResultLine=result.toString(EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), false, delim);
+          testResultLine=result.toString(EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), asJSON, delim);
         } else {
           String oneResultFilename = ATGlobal.getJVMRESULTfilename(tmpFolderName, algName, testSetName, testID);
           try (Scanner sc = new Scanner(new File(oneResultFilename))) {
@@ -115,13 +115,13 @@ public class VMEPExecutor {
               result.addVariable(failedEx, true);
               result.addVariable(EResult.getErrorIndicator(
                 VMEPErrorStatus.UNKNOWN.toString()), true);
-              testResultLine=result.toString(EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), false, delim);
+              testResultLine=result.toString(EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), asJSON, delim);
             }
           } catch (Exception e) {
             notificator.notify(testID,ExecutionStatus.FAILED);
             result.addVariable(failedEx, true);
             result.addVariable(EResult.getErrorIndicator(e.toString()), true);
-            testResultLine=result.toString(EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), false, delim);
+            testResultLine=result.toString(EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), asJSON, delim);
           }
         }  
         // append a line representing test results to the corresponding result file        

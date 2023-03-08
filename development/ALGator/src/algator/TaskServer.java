@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Base64;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -16,6 +17,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import si.fri.adeserver.ADEGlobal;
 import si.fri.adeserver.ADELog;
+import si.fri.algotest.entities.EAlgatorConfig;
 import si.fri.algotest.global.ATGlobal;
 
 /**
@@ -63,7 +65,7 @@ public class TaskServer {
     Options options = getOptions();
 
     CommandLineParser parser = new BasicParser();
-    try {
+    try { 
       CommandLine line = parser.parse(options, args);
 
       if (line.hasOption("h")) {
@@ -116,15 +118,18 @@ public class TaskServer {
   
   private static String askServer(String question) {
     String hostName   = "localhost"; // it has to be local host, since this method only tries to communicate with the server installed on this machine
-    int    portNumber = ADEGlobal.ADEPort;
+    int    portNumber = EAlgatorConfig.getTaskServerPort();
     
     try (   Socket kkSocket = new Socket(hostName, portNumber);
             PrintWriter    toServer    = new PrintWriter(kkSocket.getOutputStream(), true);
             BufferedReader fromServer  = new BufferedReader(new InputStreamReader(kkSocket.getInputStream()));
         ) {
 
+      question = Base64.getEncoder().encodeToString(question.getBytes());
       toServer.println(question);
+      
       String answer = fromServer.readLine();
+      answer = new String(Base64.getDecoder().decode(answer));
       
       return answer;      
       

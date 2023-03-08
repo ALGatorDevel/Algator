@@ -69,6 +69,12 @@ public class ExecuteOne {
             .hasArg(true)
             .withDescription("number of times to execute algorithm; defulat: 1")
             .create("te");    
+    
+    Option outputFormat = OptionBuilder.withLongOpt("output_format")
+            .withArgName("format")	    
+	    .hasArg(true)
+	    .withDescription("the format of the output (json (default) or csv)")
+	    .create("ofmt");     
 
     options.addOption(data_root);
     options.addOption(data_local);    
@@ -76,6 +82,7 @@ public class ExecuteOne {
     options.addOption(verbose);
     options.addOption(timeLimit);
     options.addOption(timesToExecute);
+    options.addOption(outputFormat);
     
     options.addOption("h", "help", false, "print this help");
     
@@ -191,7 +198,13 @@ public class ExecuteOne {
         return;
       }
       
-      runAlgorithm(project, algName, eTestSet, mType, testID, verboseLevel, timeLimit, timesToExecute);    
+      // dva možna izpisa: csv ali json
+      boolean asJSON = true;
+      if (line.hasOption("output_format")) {
+        asJSON = !"csv".equals(line.getOptionValue("output_format"));
+      }
+      
+      runAlgorithm(project, algName, eTestSet, mType, testID, verboseLevel, timeLimit, timesToExecute, asJSON);    
       
     } catch (ParseException ex) {
       printMsg(options);
@@ -201,7 +214,7 @@ public class ExecuteOne {
   
   // Runs one test
   private static void runAlgorithm(Project project, String algName, ETestSet eTestSet, 
-          MeasurementType mType, String testID, int verboseLevel, int limit, int timesToExecute) {
+          MeasurementType mType, String testID, int verboseLevel, int limit, int timesToExecute, boolean asJSON) {
     
     String qTestSetFileName = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataLocal(), project.getName(), "QTestSet");
     eTestSet.set(ETestSet.ID_N, 1);                        // only one test
@@ -243,7 +256,7 @@ public class ExecuteOne {
       resultDesc = new EResult();
     }
     
-    ExternalExecutor.printVariables(resultVariables, null, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), ATLog.TARGET_STDOUT);    
+    ExternalExecutor.printVariables(resultVariables, null, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), ATLog.TARGET_STDOUT, asJSON);    
     
     New.removeClassLoader(currentJobID); 
   }

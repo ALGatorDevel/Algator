@@ -14,6 +14,14 @@ import si.fri.algotest.entities.MeasurementType;
  * @author tomaz
  */
 public class ATGlobal {
+  
+  // with this we ensure UTF-8 socket communication in non UTF-8 systems (like Windows). 
+  // without this setting the "pw.println(response);" in TaskServer didn't send correct 
+  // data to the client (e.g. web page).
+  static {
+    System.setProperty("file.encoding", "UTF-8");
+  }
+  
 
   private static String ALGatorRoot      = System.getenv("ALGATOR_ROOT");
   private static String ALGatorDataRoot  = System.getenv("ALGATOR_DATA_ROOT");
@@ -145,12 +153,19 @@ public class ATGlobal {
   }
 
   /**
+   * Returns "PROJ-" + name
+   */
+  public static String getProjectDirName(String projName) {
+    return String.format(ATDIR_projRootDir, projName);
+  }
+  
+  /**
    * Extracts and returns the data root folder from the project root folder.
    * Example: /ALGATOR_ROOT/data_root/projects/PROJ-Sorting -> /ALGATOR_ROOT/data_root
    */
   public static String getDataRootFromProjectRoot(String projRoot) {
     //     /projects/PROJ-
-    String middleStr = File.separator + ATDIR_projects + File.separator + String.format(ATDIR_projRootDir, "");
+    String middleStr = File.separator + ATDIR_projects + File.separator + getProjectDirName(""); 
     int pos = projRoot.lastIndexOf(middleStr);
     return (pos != -1 ? projRoot.substring(0, pos) : projRoot);
   }
@@ -163,7 +178,7 @@ public class ATGlobal {
    * @return
    */
   public static String getPROJECTroot(String data_root, String projName) {
-    return data_root + File.separator + ATDIR_projects + File.separator + String.format(ATDIR_projRootDir, projName);
+    return data_root + File.separator + ATDIR_projects + File.separator + getProjectDirName(projName); 
   }
 
   /**
@@ -174,10 +189,10 @@ public class ATGlobal {
   }
   
   public static String getALGORITHMpath(String data_root, String projName) {
-    return data_root + File.separator + ATDIR_projects + File.separator + String.format(ATDIR_projRootDir, projName)+ File.separator + ATDIR_algsDir;
+    return data_root + File.separator + ATDIR_projects + File.separator + getProjectDirName(projName) + File.separator + ATDIR_algsDir;
   }
   public static String getTESTSETpath(String data_root, String projName) {
-    return data_root + File.separator + ATDIR_projects + File.separator + String.format(ATDIR_projRootDir, projName)+ File.separator + ATDIR_testsDir;
+    return data_root + File.separator + ATDIR_projects + File.separator + getProjectDirName(projName) + File.separator + ATDIR_testsDir;
   }
   
   

@@ -11,7 +11,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import si.fri.adeserver.STask;
 import si.fri.algotest.database.Database;
+import si.fri.algotest.entities.EAlgatorConfig;
 import si.fri.algotest.entities.EAlgorithm;
 import si.fri.algotest.entities.ELocalConfig;
 import si.fri.algotest.entities.EResult;
@@ -35,7 +37,6 @@ public class Execute {
 
   private static String introMsg = "ALGator Execute, " + Version.getVersion();
   
-
   private static Options getOptions() {
     Options options = new Options();
 
@@ -101,6 +102,19 @@ public class Execute {
 	    .hasArg(true)
 	    .withDescription("the password of the current user")
 	    .create("p");    
+
+    Option outputFormat = OptionBuilder.withLongOpt("output_format")
+            .withArgName("format")	    
+	    .hasArg(true)
+	    .withDescription("the format of the output (json (default) or csv)")
+	    .create("ofmt");  
+    
+    Option task = OptionBuilder
+            .withArgName("task_description")	    
+	    .hasArg(true)
+	    .withDescription("this option is given if execution was forced by TaskClient; parameter describes a task in json string with the following properties: TaskID, Progress, ComputerUID")
+	    .create("task");  
+    
     
     options.addOption(algorithm);
     options.addOption(testset);
@@ -108,13 +122,14 @@ public class Execute {
     options.addOption(data_local);    
     options.addOption(algator_root);
     options.addOption(measurement);
-    
     options.addOption(username);
     options.addOption(password);
-        
     options.addOption(verbose);
     options.addOption(logTarget);
     options.addOption(whereResults);
+    options.addOption(outputFormat);
+    options.addOption(task);
+
     
     options.addOption("h", "help", false,
 	    "print this message");
@@ -254,27 +269,74 @@ public class Execute {
       
       ELocalConfig localConfig = ELocalConfig.getConfig();
       
-      String username=localConfig.getField(ELocalConfig.ID_Username);
+      String username=localConfig.getUsername();
       if (line.hasOption("u")) {
 	username = line.getOptionValue("u");
       }      
-      String password=localConfig.getField(ELocalConfig.ID_Password);
+      String password=localConfig.getPassword();
       if (line.hasOption("p")) {
 	password = line.getOptionValue("p");
       }           
 
       if (!Database.databaseAccessGranted(username, password)) return;
       
+      // dva možna izpisa: csv ali json
+      boolean asJSON = true;
+      if (line.hasOption("output_format")) {
+        asJSON = !"csv".equals(line.getOptionValue("output_format"));
+      }
+
+      // Ta parameter bom dobil le v primeru, da sem bil pognan iz TaskClienta
+      // podatki taska, ki se bodo kasneje uporabili: TaskID, ComputerUID, Progress
+      // (morebitni ostali podatki taska se ignorirajo)
+      STask task = null;
+      if (line.hasOption("task")) {
+        String task_desc = line.getOptionValue("task");
+        try {task = new STask(task_desc);} catch (Exception e) {}
+      }      
+      // Check if task.computerID equals my computerID. If not -> don't execute, return!
+      if (task != null) {
+        String compUID = ELocalConfig.getConfig().getComputerUID();          
+        if (!compUID.equals(task.getComputerUID())) {          
+        // !!! we can only use exit() if Execute was  invoked by TaskClient 
+        // in a separate JVM; this is the case if task != null
+          System.exit(202); // invalid computerID
+        }
+      }
       
-      
-      runAlgorithms(dataRoot, projectName, algorithmName, testsetName, mType, alwaysCompile, alwaysRunTests, listOnly, whereToPrint);
+      runAlgorithms(dataRoot, projectName, algorithmName, testsetName, mType, alwaysCompile, alwaysRunTests, listOnly, whereToPrint, asJSON, task);
  
     } catch (ParseException ex) {
       printMsg(options);
-      return;
     }
   }
 
+  /**
+   * Sync project from server to data_root
+   */
+  public static boolean syncProject(String projName) {
+    ELocalConfig config = ELocalConfig.getConfig();
+    String source = String.format("rsync://%s:%d/algator/%s", 
+       config.getTaskServerName(), config.getRSyncServerPort(), ATGlobal.getProjectDirName(projName));
+    
+    String destinatoin = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(),  projName);
+    
+    ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing project from %s to %s", source, destinatoin));
+
+    // sync from server to local data_root
+    int syncStatus = RSync.mirror(source, destinatoin);
+    
+    if (syncStatus != 0) {      
+      ATLog.log("Syncing project failed  (sync status: " + syncStatus +") " + ErrorStatus.getLastErrorMessage(), 1);      
+      return false;
+    }
+    ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing project done"));    
+    return true;
+  }
+  
+  /**
+   * Sync project from data_root to data_local
+   */
   public static boolean syncTests(String projName) {
     String dataRootTests  = ATGlobal.getTESTSroot(ATGlobal.getALGatorDataRoot(),  projName);
     String dataLocalTests = ATGlobal.getTESTSroot(ATGlobal.getALGatorDataLocal(), projName);
@@ -290,18 +352,38 @@ public class Execute {
   
   private static void runAlgorithms(String dataRoot, String projName, String algName,
 	  String testsetName, MeasurementType mType, boolean alwaysCompile, 
-          boolean alwaysRun, boolean printOnly, int whereToPrint) {
+          boolean alwaysRun, boolean printOnly, int whereToPrint, boolean asJSON, STask task) {
+    
+    // če je podan task (to pomeni, da sem bil pognan iz TaskClienta), potem 
+    // moram pred izvajanje vse projektne datoteke sinhronizirati, da bo 
+    // kopija projekta, ki je na lokalnem računalniku enaka projektu na serverju
+    if (task != null) {
+      if (ELocalConfig.getConfig().isSyncProjects() && !syncProject(projName))
+        System.exit(214);
+    }
     
     if (!ATGlobal.projectExists(dataRoot, projName)) {
       ATGlobal.verboseLevel=1;
       ATLog.log("Project configuration file does not exist for " + projName, 1);
 
+      // !!! we can only use exit() if Execute was  invoked by TaskClient 
+      // in a separate JVM; this is the case if task != null
+      if (task != null)
+        System.exit(203); // invalid Project
+      
       return;      
     }
     
     // before executing algorithms we sync test folder from data_root to data_local
-    if (!syncTests(projName)) 
+    if (!syncTests(projName)) {
+        // !!! we can only use exit() if Execute was  invoked by TaskClient 
+      // in a separate JVM; this is the case if task != null
+      if (task != null)
+        System.exit(204); // error with syncing
+      
       return;
+    }
+      
 
     // Test the project
     Project projekt = new Project(dataRoot, projName);
@@ -309,6 +391,11 @@ public class Execute {
       ATGlobal.verboseLevel=1;
       ATLog.log("Invalid project: " + projekt.getErrors().get(0).toString(), 1);
 
+        // !!! we can only use exit() if Execute was  invoked by TaskClient 
+      // in a separate JVM; this is the case if task != null
+      if (task != null)
+        System.exit(203); // invalid Project      
+      
       return;
     }
             
@@ -319,6 +406,12 @@ public class Execute {
       if (alg == null) {
         ATGlobal.verboseLevel=1;
 	ATLog.log("Invalid algorithm - " + algName, 1);
+        
+        // !!! we can only use exit() if Execute was  invoked by TaskClient 
+        // in a separate JVM; this is the case if task != null
+        if (task != null)
+          System.exit(206); // invalid Algorithm
+        
 	return;
       }
       eAlgs = new ArrayList(); 
@@ -334,6 +427,12 @@ public class Execute {
       if (test == null) {
         ATGlobal.verboseLevel=1;
 	ATLog.log("Invalid testset - " + testsetName, 1);
+        
+        // !!! we can only use exit() if Execute was  invoked by TaskClient 
+        // in a separate JVM; this is the case if task != null
+        if (task != null)
+          System.exit(205); // invalid Testcase        
+        
 	return;
       }
       eTests = new ArrayList<>(); 
@@ -347,6 +446,12 @@ public class Execute {
     if (rDesc == null) {
       ATGlobal.verboseLevel=1;
       ATLog.log(String.format("Result description file for '%s' does not exist.\n", mType.getExtension()), 1);
+
+      // !!! we can only use exit() if Execute was  invoked by TaskClient 
+      // in a separate JVM; this is the case if task != null
+      if (task != null)
+        System.exit(207); // invalid measurementType
+      
       return;
     }
     if (mType.equals(MeasurementType.JVM)) {
@@ -356,10 +461,15 @@ public class Execute {
       if (vmep == null || vmep.isEmpty() /*|| !vmepFile.exists()  || !vmepFile.canExecute()*/) {
         ATGlobal.verboseLevel=1;
         ATLog.log(String.format("Invelid vmep executable: '%s'.\n", vmep), 1);
+        
+        // !!! we can only use exit() if Execute was  invoked by TaskClient 
+        // in a separate JVM; this is the case if task != null
+        if (task != null)
+          System.exit(208); // Invalid vmep exacutable      
         return;
       }
     }
-        
+            
     if (printOnly) {    
       System.out.println("DataRoot       : " + dataRoot);
       System.out.println("Project        : " + projName);
@@ -380,12 +490,18 @@ public class Execute {
       }
     } else {
       ErrorStatus error = ErrorStatus.STATUS_OK;
+      
       for (int i = 0; i < eAlgs.size(); i++) {
 	for (int j = 0; j < eTests.size(); j++) {
           ATLog.setPateFilename(ATGlobal.getTaskHistoryFilename(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType.getExtension()));
           Notificator notificator = Notificator.getNotificator(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType);
 	  error = Executor.algorithmRun(projekt, eAlgs.get(i).getName(), 
-		  eTests.get(j).getName(),  mType, notificator, alwaysCompile, alwaysRun, whereToPrint);           
+		  eTests.get(j).getName(),  mType, notificator, alwaysCompile, alwaysRun, whereToPrint, asJSON, task);           
+
+          // prislo je do prekinitve izvajanja TestSeta (iz strani strežnika)?
+          if (task!=null && error.equals(ErrorStatus.PROCESS_QUEUED))
+            System.exit(242); // signal to the caller that task was queued
+            
 	}        
       }
     }

@@ -1,23 +1,18 @@
 package si.fri.algotest.tools;
 
 /**
- * Comments by Ziga Zorman:
- * Namestil sem si rsync iz tega paketa: https://cygwin.com/install.html (MinGW 
- * mi ni delal, ker so ga muèile poti do map zaradi ':')
- * Poleg tega, da nisem imel namešèenega rsync-a je bila težava še v tem, da sem moral 
- * popraviti absolutne poti do map katere se sinhronizirajo. Ker rsync razume samo linux 
- * notacijo (C:\tralala\ mu ne gre, sem moral nadomestiti z /cygdrive/c\tralala) - glej
- * metodo replaceDriveLetter.
+ *
+ * @author Z.Zorman, tomaz
+ *
+ * 
+ * Pomembno: Ce program teče na windows, za pravilno delovanje potrebuješ program  
+ *     cygwin rsync (https://cygwin.com/install.html)
  */
 
 import java.io.File;
 import java.io.IOException;
 import si.fri.algotest.global.ErrorStatus;
 
-/**
- *
- * @author tomaz
- */
 public class RSync {
 
   /**
@@ -36,14 +31,13 @@ public class RSync {
       ddir.mkdirs();
     }
 
-    //changed by Ziga Zorman
-    //String[] cmd = new String[]{"rsync", "-az", "--delete", srcDir, destDir};
-    //ProcessBuilder pb = new ProcessBuilder(cmd);
+    // on Windows, filenames have to be modified
     if (OsUtils.isWindows()) {
       srcDir  = replaceDriveLetter(srcDir);
       destDir = replaceDriveLetter(destDir);
     }
-    String[] cmd = new String[]{"rsync", "-a", srcDir, destDir};
+    
+    String[] cmd = new String[]{"rsync", "-ar", "--delete",  srcDir, destDir};
     ProcessBuilder pb = new ProcessBuilder(cmd);
     
     int val = -1;
@@ -63,28 +57,20 @@ public class RSync {
     try {
       Process p = pb.start();
       val = p.waitFor();
-    } catch (IOException | InterruptedException e) {
-    }
-
+    } catch (IOException | InterruptedException e) {}
     return val == 0;
   }
 
   /**
-   * It states that rsync considers any directory with a colon to be remote, but
-   * we can use cygwin or unix style representations:
-   * "/cygdrive/<drive_letter><separator char>dir" or "/<drive_letter><separator
-   * char>dir".
-   *
-   * @param dirPath - path to the directory
-   * @return valid rsync path representation
+   * Method converts filename from windows syntax to cygwin-rsync windows syntax.
+   * Example: "C:\\drive\\to\\backup" -> "/cygdrive/C/drive/to/backup"
    * @author Ziga Zorman
    */
   private static String replaceDriveLetter(String dirPath) {
     if (dirPath.matches("((?i)[A-Z]):.*")) {
-      return "/cygdrive/" + dirPath.charAt(0) + dirPath.substring(2, dirPath.length());
+      return ("/cygdrive/" + dirPath.charAt(0) + dirPath.substring(2, dirPath.length())).replace("\\", "/");
     } else {
       return dirPath;
     }
   }
-
 }

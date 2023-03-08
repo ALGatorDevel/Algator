@@ -17,8 +17,12 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import org.apache.commons.lang3.ArrayUtils;
+import org.json.JSONObject;
+import si.fri.adeserver.STask;
+import si.fri.aeeclient.Requester;
 import si.fri.algotest.entities.EVariable;
 import si.fri.algotest.entities.EResult;
 import si.fri.algotest.entities.ETestSet;
@@ -83,10 +87,11 @@ public class ExternalExecutor {
    * @param resultDesc
    * @param notificator
    * @param mType
+   * @param task ... if task != null, we are running as TaskClient; in this case, we proceed from task.i test on; after each test, we send data to server; server telll us, if we should go on with tests or stop  
    * @return
    */
   public static void iterateTestSetAndRunAlgorithm(Project project, String algName, String currentJobID, AbstractTestSetIterator it,
-          Notificator notificator, MeasurementType mType, File resultFile, int whereToPrint) {
+          Notificator notificator, MeasurementType mType, File resultFile, int whereToPrint, boolean asJSON, STask task) {
 
     String instanceID = "Test"; //UniqueIDGenerator.getNextID();
 
@@ -122,11 +127,19 @@ public class ExternalExecutor {
       resultDesc = new EResult();
     }
 
-    int testID = 0; // 
+    int taskProgress = 0;
+    if (task != null) 
+      taskProgress = task.getProgress();
+    
+    int testID = 0; 
+    ErrorStatus eStatus = ErrorStatus.STATUS_OK;
     try {
       while (it.hasNext()) {
         it.readNext();
-        testID++;
+
+        // skip all the tests that were already completed
+        if (taskProgress > testID++) continue;
+        
 
         if (ATGlobal.verboseLevel == 2) {
           System.out.print("\rGenerating testcase...");
@@ -163,14 +176,48 @@ public class ExternalExecutor {
           System.out.flush();
         }
 
-        printVariables(resultVariables, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), whereToPrint);
+        printVariables(resultVariables, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), whereToPrint, asJSON);
+        
+        taskProgress++;
+        if (task!= null) {
+          resultVariables.addVariable(new EVariable("TaskID", task.getTaskID()));
+          // obvesti server -> pošlji mu podatke: taskID, computerUID, taskProgress ter result 
+          String[] order = EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc);
+          if (asJSON) {order = Arrays.copyOf(order, order.length+1);order[order.length-1]="TaskID";}
+          String result = 
+            resultVariables.toString(order, asJSON, ATGlobal.DEFAULT_CSV_DELIMITER);
+          
+          JSONObject jObj = new JSONObject();
+          jObj.put(STask.ID_ComputerUID, task.getComputerUID());
+          jObj.put(STask.ID_TaskID, task.getTaskID());
+          jObj.put("TestNo", testID);
+          jObj.put("Result", result);
+          String sResponse = Requester.askTaskServer(null, 0, "TASKRESULT " + jObj.toString());
+          
+          
+          // od serverja dobiš odgovor: CONTINUE ali QUEUED ali BREAK ali napako
+          // samo odgovor CONTUNUE pomeni nadaljevanje, vse ostalo pa sproži
+          // prekinitev izvajanja tega testseta
+          boolean cont = false;
+          try {
+            JSONObject jAns = new JSONObject(sResponse);
+            if (jAns.getInt("Status")==0 && jAns.getString("Answer").equals("CONTINUE"))
+              cont = true;
+          } catch (Exception e) {}
+          
+          if (!cont) {
+            eStatus = ErrorStatus.PROCESS_QUEUED;
+            break;
+          }
+        }
       }
       it.close();
     } catch (Exception e) {
       ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_RUN, e.toString());
+      return;
     }
 
-    ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, "");
+    ErrorStatus.setLastErrorMessage(eStatus, "");
   }
 
   public static Variables runTestCase(
@@ -316,16 +363,16 @@ public class ExternalExecutor {
    * and/or file. Parameter whereToPrint: 0 ... none, 1 ... stdout, 2 ... file
    * (note: 3 = both, 1 and 2).
    */
-  public static void printVariables(Variables resultVariables, File resultFile, String[] order, int whereToPrint) {
+  public static void printVariables(Variables resultVariables, File resultFile, String[] order, int whereToPrint, boolean asJSON) {
     if (resultVariables != null) {
       // print to stdout
       if (((whereToPrint & ATLog.TARGET_STDOUT) == ATLog.TARGET_STDOUT)) {
-        resultVariables.printToFile(new PrintWriter(System.out), order, true);
+        resultVariables.printToFile(new PrintWriter(System.out), order, true, asJSON);
       }
 
       // print to file
       if (((whereToPrint & ATLog.TARGET_FILE) == ATLog.TARGET_FILE) && (resultFile != null)) {
-        resultVariables.printToFile(resultFile, order);
+        resultVariables.printToFile(resultFile, order, asJSON);
       }
     }
   }
@@ -426,7 +473,6 @@ public class ExternalExecutor {
     if (resultDesc != null) {
       for (EVariable rdP : resultDesc.getVariables()) {
         if (VariableType.TIMER.equals(rdP.getType())) {
-          String[] subtypeFields;
           try {
             int tID = rdP.getMeta("ID", 0);
             String statDesc = rdP.getMeta("STAT", "MIN");

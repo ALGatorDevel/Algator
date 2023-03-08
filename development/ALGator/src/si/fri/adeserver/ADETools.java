@@ -6,25 +6,30 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Scanner;
 import java.util.TreeSet;
-import java.util.Vector;
-import static si.fri.adeserver.ADETaskServer.taskQueue;
-import si.fri.algotest.entities.ComputerCapability;
+import si.fri.algotest.entities.CompCap;
+import si.fri.algotest.entities.EAlgatorConfig;
 import si.fri.algotest.entities.EAlgorithm;
 import si.fri.algotest.entities.EComputer;
-import si.fri.algotest.entities.EComputerFamily;
-import si.fri.algotest.entities.EAlgatorConfig;
 import si.fri.algotest.entities.EProject;
 import si.fri.algotest.entities.ETestSet;
 import si.fri.algotest.entities.MeasurementType;
 import si.fri.algotest.entities.Project;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ErrorStatus;
-import si.fri.algotest.tools.ATTools;
+import si.fri.algotest.tools.SortedArray;
+import static si.fri.adeserver.ADETaskServer.activeTasks;
+import static si.fri.adeserver.ADETaskServer.closedTasks;
+import si.fri.algotest.entities.Entity;
 
 /**
  *
@@ -32,15 +37,19 @@ import si.fri.algotest.tools.ATTools;
  */
 public class ADETools {
   
-  public static Vector<ADETask> readADETasks() {
-    Vector<ADETask> tasks = new Vector<>();
-    File taskFile = new File(ADEGlobal.getADETasklistFilename());
+  /**
+   * Method reads a file with tasks and returns a list.
+   * @param type 0 ... active tasks, 1 ... closed tasks, 2 ... archived tasks
+   * @return 
+   */
+  public static SortedArray<STask> readADETasks(int type) {
+    SortedArray<STask> tasks = new SortedArray<>();
+    File taskFile = new File(ADEGlobal.getADETasklistFilename(type));
     if (taskFile.exists()) {
       try (DataInputStream dis = new DataInputStream(new FileInputStream(taskFile));) {
         while (dis.available() > 0) {
           String line = dis.readUTF();
-          ADETask task = new ADETask(line);
-          task.setCandidateComputers(ADETools.getCondidateComputersFor(task));
+          STask task = new STask(line);
           tasks.add(task);
         }
       } catch (Exception e) {
@@ -50,51 +59,178 @@ public class ADETools {
     return tasks;
   }
 
-  public static void writeADETasks(Vector<ADETask> tasks) {
-    File taskFile = new File(ADEGlobal.getADETasklistFilename());
+  /**
+   * From closedTasks remove all tasks that are more than numberOfDays old 
+   *   and write them to archivedTasks file. 
+   */
+  private static void removeAndArchiveOldTasks(SortedArray<STask> closedTasks, int numberOfDays) {
+    ArrayList<STask> removedTasks = new ArrayList<>();
+    
+    long now = new Date().getTime();
+    File archivedFile = new File(ADEGlobal.getADETasklistFilename(2)); // archived tasks file
+    try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(archivedFile));) {
+      Iterator<STask> it = closedTasks.iterator();
+      while (it.hasNext()) {
+        STask task = it.next();
+        if (now - task.getTaskStatusDate() > numberOfDays*1000*60*60*24) {
+          dos.writeUTF(task.toJSONString());
+          removedTasks.add(task);
+        }
+      }
+    } catch (Exception e) {
+      // if error ocures, nothing can be done
+      System.out.println(e);
+    }
+    
+    for (STask removedTask : removedTasks) {
+      closedTasks.remove(removedTask); 
+    }
+  }
+  
+  public static void writeADETasks(SortedArray<STask> tasks, int type) {
+    File taskFile = new File(ADEGlobal.getADETasklistFilename(type));
     try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(taskFile));) {
-      for (ADETask aDETask : tasks) {
-        dos.writeUTF(aDETask.toJSONString());
+      Iterator<STask> it = tasks.iterator();
+      while (it.hasNext()) {
+        dos.writeUTF(it.next().toJSONString());
       }
     } catch (Exception e) {
       // if error ocures, nothing can be done
     }
   }
 
+  /**
+   *  Among all the registered computers, find and return the one with a given uid.
+   *  If no computer has that uid, method returns null.
+   */
+  private static EComputer getComputer(String uid) {
+    ArrayList<EComputer> computers = EAlgatorConfig.getConfig().getComputers();
+    for (EComputer computer : computers) {
+      if (uid.equals(computer.getField(EComputer.ID_ComputerUID)))
+        return computer;
+     }
+    return null;    
+  }
+  
+    
+  public static String familyOfComputer(String uid) {
+    EComputer comp = getComputer(uid);
+    if (comp != null)
+      return comp.getString(EComputer.ID_FamilyID);
+    else 
+      return "?";
+  }
+  
+  public static String getFamilyAndComputerName(String uid) {
+    String result = "unknown";
+    try {
+     EComputer comp = getComputer(uid);
+     if (comp != null)
+       result = comp.getString(EComputer.ID_FamilyID) + "." + comp.getString(EComputer.ID_ComputerID);
+    } catch (Exception e) {}
+    return result;
+  }
+  
+  /**
+   * Method finds the first (most appropriate) task for computer uid. Task is appropriate if task's and computer's 
+   * families match and if computers's capabilities are sufficient.
+   * More appropritate tasks are queued before (i.e. have smaller index in queue than) less appropriate ones. 
+   */
+  public static STask findFirstTaskForComputer(SortedArray<STask> taskQueue, String uid, boolean allowInprogressTasks) {
+    EComputer comp = getComputer(uid);
+    if (comp == null || comp.getCapabilities() == null) return null;
+    
+    TreeSet<CompCap> cCapabilities = comp.getCapabilities();
+    String        cfamily          = comp.getString(EComputer.ID_FamilyID);
+    if (cfamily == null || cfamily.isEmpty()) return null;
+    
+        
+    for (STask task: taskQueue) {
+      if (!allowInprogressTasks && TaskStatus.INPROGRESS.equals(task.getTaskStatus())) continue;
 
+      if (!(task.getTaskStatus().equals(TaskStatus.INPROGRESS) || task.getTaskStatus().equals(TaskStatus.PENDING) || task.getTaskStatus().equals(TaskStatus.QUEUED)))
+        continue;
+     
+      // tasks with computer already assigned can only be executed by the same computer 
+      String taskComputerID = task.getComputerUID();
+      if (taskComputerID != null && !taskComputerID.equals(Entity.unknown_value) && !taskComputerID.isEmpty()) {
+        if (uid.equals(taskComputerID))
+          return task;
+        else 
+          continue;
+      }
+      
+      String tFamily = task.getString(STask.ID_Family); if (tFamily == null) tFamily = "";
+      String tmtype  = task.getString(STask.ID_MType);  if (tmtype  == null || tmtype.isEmpty()) tmtype = "em";
+      CompCap requiredCapability = CompCap.capability(tmtype);
+                  
+      if ((tFamily.isEmpty() || tFamily.equals(cfamily)) && cCapabilities.contains(requiredCapability))
+        return task;
+    }
+    return null;
+  }
+
+  
+  public static String getResultFilename(STask task) {
+    String projName    = (String) task.getField(STask.ID_Project); 
+    String algName     = (String) task.getField(STask.ID_Algorithm); 
+    String testsetName = (String) task.getField(STask.ID_Testset);
+    
+    
+    String compID           = getFamilyAndComputerName((String) task.getField(STask.ID_ComputerUID));
+    MeasurementType mType   = MeasurementType.mtOf    ((String) task.getField(STask.ID_MType));
+    
+    return ATGlobal.getRESULTfilename(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projName), 
+        algName, testsetName, mType, compID
+    );
+  }
   
   /**
    * Sets the status of a task and writes this status to the task status file
    */
-  public static String getTaskStatusFilename(ADETask task) {
+  public static String getTaskStatusFilename(STask task) {
     return ATGlobal.getTaskStatusFilename(
-       (String) task.getField(ADETask.ID_Project), (String) task.getField(ADETask.ID_Algorithm), 
-       (String) task.getField(ADETask.ID_Testset), (String) task.getField(ADETask.ID_MType));
+       (String) task.getField(STask.ID_Project), (String) task.getField(STask.ID_Algorithm), 
+       (String) task.getField(STask.ID_Testset), (String) task.getField(STask.ID_MType));
   }
   
-  public static void setTaskStatus(ADETask task, TaskStatus status, String msg, String computer) {
-    task.setTaskStatus(status, computer);
+  public static void setTaskStatus(STask task, TaskStatus status, String msg, String computer) {
+    task.setTaskStatus(status, computer, msg);
+    
     if (computer == null)
-      computer = task.getField(ADETask.ID_AssignedComputer);
+      computer = task.getField(STask.ID_ComputerUID);    
+    logTaskStatus(task, status, msg, computer);
     
-    
-    writeTaskStatus(task, status, msg, computer);
-    
-    ADETools.writeADETasks(taskQueue);
-    ADELog.log(status + " " + task.toString() + " [Computer:"+computer+"]");
+    // if task was closed --> move from "active" to "closed" queue
+    if (TaskStatus.closedTaskStatuses.contains(status)) {
+      activeTasks.remove(task); 
+      ADETools.writeADETasks(activeTasks, 0);
+      
+      closedTasks.add(task);
+      
+      // "clean up" closedTasks ...
+      removeAndArchiveOldTasks(closedTasks, 1);
+      // ... and write the remaining queue to file
+      ADETools.writeADETasks(closedTasks, 1);  
+    } else {
+      activeTasks.touch(task);    
+      ADETools.writeADETasks(activeTasks, 0);
+    }
   }
   
   /**
    * Writes the status of a task to the task status file.
    * Computer name is valid only when task status is "COMPLETED"
    */
-  public static void writeTaskStatus(ADETask task, TaskStatus status, String msg, String computer) {
+  public static void logTaskStatus(STask task, TaskStatus status, String msg, String computer) {
+    if (task==null) return;
+    
     String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
     String idtFilename = getTaskStatusFilename(task);
     
     String startDate="", statusMsg = "", endDate="";
-    if (status.equals(TaskStatus.QUEUED)) {      
-      startDate = date + ": Task queued";
+    if (status.equals(TaskStatus.PENDING)) {      
+      startDate = date + ": Task pending";
     } else try (Scanner sc = new Scanner(new File(idtFilename))) {
       startDate = sc.nextLine();
       statusMsg = sc.nextLine();
@@ -110,8 +246,8 @@ public class ADETools {
       statusMsg = msg;
 
     switch (status) {
-      case RUNNING:
-        statusMsg = date + ":RUNNING # " + computer + (statusMsg.isEmpty() ? "" : " # ") + statusMsg;
+      case INPROGRESS:
+        statusMsg = date + ":INPROGRESS # " + computer + (statusMsg.isEmpty() ? "" : " # ") + statusMsg;
         break;
       case COMPLETED:  
         endDate   = date + ":COMPLETED # " + computer;
@@ -119,6 +255,9 @@ public class ADETools {
       case FAILED:
         endDate = date + ": Task failed on " + computer ;
         break;        
+      case KILLED:
+        endDate = date + ": Task killed on " + computer ;
+        break;                
     }
       
     
@@ -131,10 +270,20 @@ public class ADETools {
     }
   }
   
+  /**
+   * Method finds in a given queue; if task does not exist, method returns null.
+   */
+  public static STask findTask(SortedArray<STask> tasks, int taskID) {
+    for (STask task : tasks) {
+      if (task.getTaskID()  == taskID) 
+        return task;
+    }
+    return null;
+  }
     /**
      * Method returns the last non-empty line from task status file.
      */
-    public static String getTaskStatus(ADETask task) {
+    public static String getTaskStatus(STask task) {
       String taskFilename = getTaskStatusFilename(task);
       String result = "";
       try (Scanner sc = new Scanner(new File(taskFilename))) {        
@@ -148,42 +297,7 @@ public class ADETools {
     }
 
     
-    /**
-     * For all [comp] from [comps] check the file PROJ-[project]/results/[comp]/[algorithm]-[testset].[mtype] and return 
-     *   ADETask.HTML_TAG_NEW if no such file exists                                          <br>
-     *   ADETask.HTML_TAG_OUTDATED  if file is older than project's configurations            <br>
-     *   ADETask.HTML_TAG_CORRUPTED if file does not have correct number of lines             <br>
-     *   ADETask.HTML_TAG_UPTODATE if file is up to date (correct date and number of lines)   <br>
-     * 
-     *  Here <comp> is 
-     */
-    public static String getTaskResultFileStatus(Project project, ADETask task) { 
-      String algorithmName = task.getField(ADETask.ID_Algorithm);
-      String testsetName   = task.getField(ADETask.ID_Testset);
-      String mtype         = task.getField(ADETask.ID_MType);
-
-      String resultFileName = ATTools.getTaskResultFileName(project, algorithmName, testsetName, mtype);
-
-      if (!new File(resultFileName).exists()) // file does not exist - task was not executed yet
-        return ADETask.HTML_TAG_NEW;
-      
-      int expectedNumberOfLines = 0;
-      ETestSet testset = project.getTestSets().get(testsetName);
-      if (testset != null) try {
-        expectedNumberOfLines = testset.getFieldAsInt(ETestSet.ID_N, 0);
-      } catch (Exception e) {}
-
-      int numberOfLines = ATTools.getNumberOfLines(resultFileName);
-      
-      if (!ATTools.resultsAreComplete(resultFileName, expectedNumberOfLines))
-        return ADETask.HTML_TAG_CORRUPTED;
-      
-      if (ATTools.resultsAreUpToDate(project, algorithmName, testsetName, mtype, resultFileName))
-        return ADETask.HTML_TAG_UPTODATE;
-      else
-        return ADETask.HTML_TAG_OUTDATED;
-    }
-  
+    
   /**
    * Returns an array of all tasks described by request. Request can have one, two, three or 
    * four parameters; if only one parameter is given (project) result contains all possible tasks
@@ -246,50 +360,17 @@ public class ADETools {
   
   
   /**
-   * Returns all the computers tha are capable of executing current task. If project.<mtype>ExecFamily is 
-   * defined, then only computers from this family are checked, otherwise, computers from all families are checked.
-   */
-  public static ArrayList<String> getCondidateComputersFor(ADETask task) {
-    ArrayList<String> result = new ArrayList<>();    
-    Project project = new Project(ATGlobal.getALGatorDataRoot(), (String) task.getField(ADETask.ID_Project));
-    if (project.getErrors().get(0).equals(ErrorStatus.STATUS_OK)) {
-      // TODO: tu bi lahko preveril, če so algoritem, testset in mtype pravilni (so definirani v projektu)
-            
-      MeasurementType mt = task.getMType();      
-      String myFamily = project.getEProject().getProjectFamily(mt);
-            
-      // generate a list of computer that are capable to execute a given task
-      ComputerCapability requiredCompCap = ComputerCapability.getComputerCapability(mt.getExtension());      
-      EAlgatorConfig config = EAlgatorConfig.getConfig();
-      for(EComputerFamily ef : config.getFamilies()) {
-        for (EComputer comp : ef.getComputers()) {
-          if (myFamily.isEmpty() || ef.getField(EComputerFamily.ID_FamilyID).equals(myFamily)) {
-            TreeSet<ComputerCapability> compcap = comp.getCapabilities();
-            if (compcap.contains(requiredCompCap))
-              result.add(ef.getField(EComputerFamily.ID_FamilyID) + "." + comp.getField(EComputer.ID_ComputerID));
-          }
-        }
-      }
-    }
-    return result;
-  }
-  
-  
-  /**
    * Method sets <mtype>ExecFamily parameter in the project of the task.
    * Method is called when computer cid starts executing task. 
    */
-  public static void setComputerFamilyForProject(ADETask task, String cid) {
-    String mType = ((String) task.getField(ADETask.ID_MType)).toUpperCase();
+  public static void setComputerFamilyForProject(STask task, String family) {
+    String mType = ((String) task.getField(STask.ID_MType)).toUpperCase();
     MeasurementType mt = MeasurementType.UNKNOWN;
     try {mt = MeasurementType.valueOf(mType); } catch (Exception e) {}
     if (mt.equals(MeasurementType.UNKNOWN)) return;
 
-    String [] parts = cid.split("[.]");
-    if (parts.length < 2) return;
-    String myFamily = parts[1];
     
-    String projectName = task.getField(ADETask.ID_Project);
+    String projectName = task.getField(STask.ID_Project);
     if (projectName == null || projectName.isEmpty()) return;
     
     String projectFileName = ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projectName);
@@ -298,7 +379,80 @@ public class ADETools {
     File projectFile = new File(projectFileName);
     EProject project = new EProject(projectFile);
         
-    project.setFamilyAndSave(mt, myFamily, false);
+    project.setFamilyAndSave(mt, family, false);    
+  }  
+  
+  /**
+   * Checks existance of the project and algorithm. If they both exist, method 
+   * returns "Family:familyName" else it returns error message string.
+   */
+  public static String checkTaskAndGetFamily(String projName, String algName, String tsName, String mType) {
+    EProject proj = new EProject(new File(ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projName)));
+    if (!ErrorStatus.getLastErrorStatus().equals(ErrorStatus.STATUS_OK)) 
+      return String.format("Project '%s' does not exist.", projName);
     
+    String[] algs = proj.getStringArray(EProject.ID_Algorithms);
+    if (!Arrays.asList(algs).contains(algName))
+      return String.format("Algorithm '%s' does not exist.", algName);
+          
+    if (mType == null) mType = "em";
+    return "Family:" + proj.getProjectFamily(mType); 
+  }
+    
+  static String getFilesAsHTMLList(File root, String indent, int prLength) {
+    String result = "  " + indent + "<li><span class=\"treeNLI treeNLI-_hID_ treeCaret"+(indent.length()==0 ? " treeCaret-down" : "")+"\">"+ root.getName() + "</span>";
+        
+    // first add all files ...
+    result += "\n" + "  " + indent + "<ul id=\"treeNUL\" class=\"treeNested"+(indent.length()==0 ? " treeActive" : "")+"\">";
+    for(File file: root.listFiles()) {
+      if (!file.isDirectory()) { 
+        String dat = file.getAbsolutePath().substring(prLength).replace("\\", "/");
+        result += "\n" + "    " + indent + "<li><span dat=\""+dat+"\" class=\"treeALI treeALI-_hID_\">"+file.getName()+"</span></li>";  
+      }
+    }
+    // ... then folders
+    for(File file: root.listFiles()) {
+      if (file.isDirectory())
+        result += "\n" + getFilesAsHTMLList(file, "  "+indent, prLength);
+    }
+    result += "\n" + "  " + indent + "</ul>";
+    return result;
+  }  
+  
+  public static String getProjectFiles(String projectName) {
+    String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName);
+    
+    File pr = new File(projectRoot);
+    if (pr.exists())
+      return "<ul id=\"treeUL\">\n" + getFilesAsHTMLList(pr, "", pr.getAbsolutePath().length()) +"\n</ul>";
+    else return "";
+  }
+  
+  public static String getFileContent(String projectName, String fileName) {
+    String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName);
+    String filePath = projectRoot + File.separator + fileName;
+    StringBuilder result = new StringBuilder();
+    try {
+      for (String l : Files.readAllLines(Paths.get(filePath))) 
+        result.append((result.length()==0 ? "" : "\n")).append(l);      
+    } catch (Exception e) {
+      result = new StringBuilder("!!" + e.toString());
+    }
+    return result.toString();
+  }
+  
+  public static String saveFile(String projectName, String fileName, String content) {
+    String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName);
+    String filePath = projectRoot + File.separator + fileName;
+    try (PrintWriter pw = new PrintWriter(filePath)) {
+      pw.print(content);
+    } catch (Exception e) {
+      return "!!" + e.toString();
+    }
+    return "OK";
+  }
+  
+  public static void main(String[] args) {
+    System.out.println(getProjectFiles("BasicSort"));
   }
 }
