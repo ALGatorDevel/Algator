@@ -1,52 +1,52 @@
-BasicMUL;TestSet3;test00;1574925933523;DONE;500;217153;219095;219095,217153;OK
-BasicMUL;TestSet3;test01;1574925934904;DONE;550;314908;325794;325794,314908;OK
-BasicMUL;TestSet3;test02;1574925936482;DONE;600;357974;382041;382041,357974;OK
-BasicMUL;TestSet3;test03;1574925938475;DONE;650;490315;536325;536325,490315;OK
-BasicMUL;TestSet3;test04;1574925940886;DONE;700;620126;620126;620126,699040;OK
-BasicMUL;TestSet3;test05;1574925943840;DONE;750;798136;841838;841838,798136;OK
-BasicMUL;TestSet3;test06;1574925947456;DONE;800;901617;907779;907779,901617;OK
-BasicMUL;TestSet3;test07;1574925951498;DONE;850;1051014;1051014;1051014,1332655;OK
-BasicMUL;TestSet3;test08;1574925956250;DONE;900;1349415;1425620;1425620,1349415;OK
-BasicMUL;TestSet3;test09;1574925962650;DONE;950;1859289;2034565;2034565,1859289;OK
-BasicMUL;TestSet3;test10;1574925970321;DONE;1000;2360256;2375802;2375802,2360256;OK
-BasicMUL;TestSet3;test11;1574925978340;DONE;1050;2210679;2210679;2210679,2608443;OK
-BasicMUL;TestSet3;test12;1574925986750;DONE;1100;2487658;2487658;2487658,2637421;OK
-BasicMUL;TestSet3;test13;1574925999522;DONE;1150;3667541;3774403;3774403,3667541;OK
-BasicMUL;TestSet3;test14;1574926015572;DONE;1200;5420994;5420994;5420994,5509489;OK
-BasicMUL;TestSet3;test15;1574926036077;DONE;1250;6151084;7366188;7366188,6151084;OK
-BasicMUL;TestSet3;test16;1574926064507;DONE;1300;8568777;8568777;8568777,9719852;OK
-BasicMUL;TestSet3;test17;1574926086133;KILLED;1350;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test18;1574926110721;KILLED;1400;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test19;1574926138864;KILLED;1450;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test20;1574926168376;KILLED;1500;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test21;1574926205634;KILLED;1550;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test22;1574926240093;KILLED;1600;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test23;1574926278919;KILLED;1650;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test24;1574926319267;KILLED;1700;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test25;1574926366826;KILLED;1750;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test26;1574926414446;KILLED;1800;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test27;1574926467540;KILLED;1850;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test28;1574926524304;KILLED;1900;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test29;1574926584665;KILLED;1950;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test30;1574926648183;KILLED;2000;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test31;1574926718103;KILLED;2000;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test32;1574926829069;KILLED;2050;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test33;1574926919986;KILLED;2100;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test34;1574927001948;KILLED;2150;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test35;1574927085018;KILLED;2200;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test36;1574927176767;KILLED;2250;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test37;1574927297270;KILLED;2300;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test38;1574927403985;KILLED;2350;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test39;1574927541194;KILLED;2400;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test40;1574927678217;KILLED;2450;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test41;1574927810358;KILLED;2500;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test42;1574927943045;KILLED;2550;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test43;1574928084423;KILLED;2600;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test44;1574928235275;KILLED;2650;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test45;1574928381636;KILLED;2700;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test46;1574928651348;KILLED;2750;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test47;1574928846216;KILLED;2800;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test48;1574929126049;KILLED;2850;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test49;1574929456533;KILLED;2900;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test50;1574929752013;KILLED;2950;?;?;?;?;Process killed after 10 seconds.
-BasicMUL;TestSet3;test51;1574929980349;KILLED;3000;?;?;?;?;Process killed after 10 seconds.
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test00","Timestamp":1678398971814,"Pass":"DONE","N":500,"TC_PROPS":{"Type":"TYPE1"},"Tmin":201868,"TFirst":201868,"TAll":[201868,209083],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test01","Timestamp":1678398972781,"Pass":"DONE","N":550,"TC_PROPS":{"Type":"TYPE1"},"Tmin":268293,"TFirst":268293,"TAll":[268293,269814],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test02","Timestamp":1678398973996,"Pass":"DONE","N":600,"TC_PROPS":{"Type":"TYPE1"},"Tmin":345666,"TFirst":350179,"TAll":[350179,345666],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test03","Timestamp":1678398975496,"Pass":"DONE","N":650,"TC_PROPS":{"Type":"TYPE1"},"Tmin":433693,"TFirst":433693,"TAll":[433693,435430],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test04","Timestamp":1678398977524,"Pass":"DONE","N":700,"TC_PROPS":{"Type":"TYPE1"},"Tmin":619337,"TFirst":619337,"TAll":[619337,632751],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test05","Timestamp":1678398979783,"Pass":"DONE","N":750,"TC_PROPS":{"Type":"TYPE1"},"Tmin":671969,"TFirst":692459,"TAll":[692459,671969],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test06","Timestamp":1678398982495,"Pass":"DONE","N":800,"TC_PROPS":{"Type":"TYPE1"},"Tmin":828462,"TFirst":828462,"TAll":[828462,833868],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test07","Timestamp":1678398985783,"Pass":"DONE","N":850,"TC_PROPS":{"Type":"TYPE1"},"Tmin":991447,"TFirst":1015044,"TAll":[1015044,991447],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test08","Timestamp":1678398989803,"Pass":"DONE","N":900,"TC_PROPS":{"Type":"TYPE1"},"Tmin":1201205,"TFirst":1201205,"TAll":[1201205,1208483],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test09","Timestamp":1678398994971,"Pass":"DONE","N":950,"TC_PROPS":{"Type":"TYPE1"},"Tmin":1445657,"TFirst":1445657,"TAll":[1445657,1449905],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test10","Timestamp":1678399000253,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":1592450,"TFirst":1592450,"TAll":[1592450,1676146],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test11","Timestamp":1678399006498,"Pass":"DONE","N":1050,"TC_PROPS":{"Type":"TYPE1"},"Tmin":1964906,"TFirst":1964906,"TAll":[1964906,2005740],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test12","Timestamp":1678399013853,"Pass":"DONE","N":1100,"TC_PROPS":{"Type":"TYPE1"},"Tmin":2266247,"TFirst":2266247,"TAll":[2266247,2335277],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test13","Timestamp":1678399022296,"Pass":"DONE","N":1150,"TC_PROPS":{"Type":"TYPE1"},"Tmin":2658304,"TFirst":2658304,"TAll":[2658304,2739824],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test14","Timestamp":1678399031905,"Pass":"DONE","N":1200,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3079250,"TFirst":3080377,"TAll":[3080377,3079250],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test15","Timestamp":1678399046547,"Pass":"DONE","N":1250,"TC_PROPS":{"Type":"TYPE1"},"Tmin":4109067,"TFirst":5109852,"TAll":[5109852,4109067],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test16","Timestamp":1678399068482,"Pass":"DONE","N":1300,"TC_PROPS":{"Type":"TYPE1"},"Tmin":6601496,"TFirst":6601496,"TAll":[6601496,7497025],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test17","Timestamp":1678399097911,"Pass":"DONE","N":1350,"TC_PROPS":{"Type":"TYPE1"},"Tmin":9658879,"TFirst":9658879,"TAll":[9658879,9734549],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test18","Timestamp":1678399132518,"Pass":"DONE","N":1400,"TC_PROPS":{"Type":"TYPE1"},"Tmin":11383511,"TFirst":11383511,"TAll":[11383511,11439376],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test19","Timestamp":1678399173425,"Pass":"DONE","N":1450,"TC_PROPS":{"Type":"TYPE1"},"Tmin":13385137,"TFirst":13385137,"TAll":[13385137,13497949],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test20","Timestamp":1678399220483,"Pass":"DONE","N":1500,"TC_PROPS":{"Type":"TYPE1"},"Tmin":15516860,"TFirst":15516860,"TAll":[15516860,15629316],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test21","Timestamp":1678399273933,"Pass":"DONE","N":1550,"TC_PROPS":{"Type":"TYPE1"},"Tmin":17679995,"TFirst":17679995,"TAll":[17679995,17680171],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test22","Timestamp":1678399335256,"Pass":"DONE","N":1600,"TC_PROPS":{"Type":"TYPE1"},"Tmin":20201508,"TFirst":20311514,"TAll":[20311514,20201508],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test23","Timestamp":1678399404222,"Pass":"DONE","N":1650,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22794496,"TFirst":22918969,"TAll":[22918969,22794496],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test24","Timestamp":1678399480470,"Pass":"DONE","N":1700,"TC_PROPS":{"Type":"TYPE1"},"Tmin":25192839,"TFirst":25192839,"TAll":[25192839,25275595],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test25","Timestamp":1678399567225,"Pass":"DONE","N":1750,"TC_PROPS":{"Type":"TYPE1"},"Tmin":28276146,"TFirst":29484389,"TAll":[29484389,28276146],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test26","Timestamp":1678399661239,"Pass":"DONE","N":1800,"TC_PROPS":{"Type":"TYPE1"},"Tmin":31125110,"TFirst":31125110,"TAll":[31125110,31270175],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test27","Timestamp":1678399766201,"Pass":"DONE","N":1850,"TC_PROPS":{"Type":"TYPE1"},"Tmin":34283480,"TFirst":34283480,"TAll":[34283480,35723924],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test28","Timestamp":1678399878992,"Pass":"DONE","N":1900,"TC_PROPS":{"Type":"TYPE1"},"Tmin":37372861,"TFirst":37416759,"TAll":[37416759,37372861],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test29","Timestamp":1678400004144,"Pass":"DONE","N":1950,"TC_PROPS":{"Type":"TYPE1"},"Tmin":41306992,"TFirst":41306992,"TAll":[41306992,41822941],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test30","Timestamp":1678400139634,"Pass":"DONE","N":2000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":44646348,"TFirst":44646348,"TAll":[44646348,45019668],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test31","Timestamp":1678400277962,"Pass":"DONE","N":2000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":45104749,"TFirst":47523109,"TAll":[47523109,45104749],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test32","Timestamp":1678400426098,"Pass":"DONE","N":2050,"TC_PROPS":{"Type":"TYPE1"},"Tmin":49101552,"TFirst":49101552,"TAll":[49101552,49167923],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test33","Timestamp":1678400585426,"Pass":"DONE","N":2100,"TC_PROPS":{"Type":"TYPE1"},"Tmin":52721803,"TFirst":52808364,"TAll":[52808364,52721803],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test34","Timestamp":1678400758353,"Pass":"DONE","N":2150,"TC_PROPS":{"Type":"TYPE1"},"Tmin":57338044,"TFirst":57371268,"TAll":[57371268,57338044],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test35","Timestamp":1678400943244,"Pass":"DONE","N":2200,"TC_PROPS":{"Type":"TYPE1"},"Tmin":61000685,"TFirst":61000685,"TAll":[61000685,61522456],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test36","Timestamp":1678401144692,"Pass":"DONE","N":2250,"TC_PROPS":{"Type":"TYPE1"},"Tmin":66796197,"TFirst":66810146,"TAll":[66810146,66796197],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test37","Timestamp":1678401361529,"Pass":"DONE","N":2300,"TC_PROPS":{"Type":"TYPE1"},"Tmin":71053506,"TFirst":71053506,"TAll":[71053506,71118591],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test38","Timestamp":1678401593739,"Pass":"DONE","N":2350,"TC_PROPS":{"Type":"TYPE1"},"Tmin":76945887,"TFirst":77126313,"TAll":[77126313,76945887],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test39","Timestamp":1678401849174,"Pass":"DONE","N":2400,"TC_PROPS":{"Type":"TYPE1"},"Tmin":82345765,"TFirst":89272962,"TAll":[89272962,82345765],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test40","Timestamp":1678402121973,"Pass":"DONE","N":2450,"TC_PROPS":{"Type":"TYPE1"},"Tmin":88447337,"TFirst":94488322,"TAll":[94488322,88447337],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test41","Timestamp":1678402406035,"Pass":"DONE","N":2500,"TC_PROPS":{"Type":"TYPE1"},"Tmin":94116968,"TFirst":94131969,"TAll":[94131969,94116968],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test42","Timestamp":1678402716886,"Pass":"DONE","N":2550,"TC_PROPS":{"Type":"TYPE1"},"Tmin":101094641,"TFirst":101265716,"TAll":[101265716,101094641],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test43","Timestamp":1678403040652,"Pass":"DONE","N":2600,"TC_PROPS":{"Type":"TYPE1"},"Tmin":107017485,"TFirst":107055925,"TAll":[107055925,107017485],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test44","Timestamp":1678403385504,"Pass":"DONE","N":2650,"TC_PROPS":{"Type":"TYPE1"},"Tmin":113982505,"TFirst":113982505,"TAll":[113982505,114071681],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test45","Timestamp":1678403782335,"Pass":"DONE","N":2700,"TC_PROPS":{"Type":"TYPE1"},"Tmin":120847773,"TFirst":152312916,"TAll":[152312916,120847773],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test46","Timestamp":1678404195804,"Pass":"DONE","N":2750,"TC_PROPS":{"Type":"TYPE1"},"Tmin":129157466,"TFirst":129275278,"TAll":[129275278,129157466],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test47","Timestamp":1678404627478,"Pass":"DONE","N":2800,"TC_PROPS":{"Type":"TYPE1"},"Tmin":136864933,"TFirst":136864933,"TAll":[136864933,154845191],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test48","Timestamp":1678405094945,"Pass":"DONE","N":2850,"TC_PROPS":{"Type":"TYPE1"},"Tmin":145292583,"TFirst":173614248,"TAll":[173614248,145292583],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test49","Timestamp":1678405576366,"Pass":"DONE","N":2900,"TC_PROPS":{"Type":"TYPE1"},"Tmin":152821936,"TFirst":152821936,"TAll":[152821936,153272311],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test50","Timestamp":1678406084510,"Pass":"DONE","N":2950,"TC_PROPS":{"Type":"TYPE1"},"Tmin":162276174,"TFirst":162276174,"TAll":[162276174,178659538],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet3","InstanceID":"test51","Timestamp":1678406623436,"Pass":"DONE","N":3000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":170908478,"TFirst":193142073,"TAll":[193142073,170908478],"Check":"OK"}

@@ -1,52 +1,52 @@
-Strassen;TestSet3;test00;1574930220349;DONE;500;73990;95753;95753,73990;OK
-Strassen;TestSet3;test01;1574930222142;DONE;550;481860;559773;559773,481860;OK
-Strassen;TestSet3;test02;1574930224015;DONE;600;484103;557838;557838,484103;OK
-Strassen;TestSet3;test03;1574930225982;DONE;650;486897;554125;554125,486897;OK
-Strassen;TestSet3;test04;1574930228117;DONE;700;485194;558916;558916,485194;OK
-Strassen;TestSet3;test05;1574930230361;DONE;750;490552;566257;566257,490552;OK
-Strassen;TestSet3;test06;1574930232781;DONE;800;491098;560851;560851,491098;OK
-Strassen;TestSet3;test07;1574930235425;DONE;850;481629;560211;560211,481629;OK
-Strassen;TestSet3;test08;1574930238317;DONE;900;484791;557961;557961,484791;OK
-Strassen;TestSet3;test09;1574930241591;DONE;950;483329;567642;567642,483329;OK
-Strassen;TestSet3;test10;1574930246041;DONE;1000;483745;559924;559924,483745;OK
-Strassen;TestSet3;test11;1574930256034;DONE;1050;3472803;3555493;3555493,3472803;OK
-Strassen;TestSet3;test12;1574930266521;DONE;1100;3560052;3560052;3560052,3656935;OK
-Strassen;TestSet3;test13;1574930278537;DONE;1150;3554275;3657370;3657370,3554275;OK
-Strassen;TestSet3;test14;1574930291256;DONE;1200;3761150;3853210;3853210,3761150;OK
-Strassen;TestSet3;test15;1574930306793;DONE;1250;3684344;3692833;3692833,3684344;OK
-Strassen;TestSet3;test16;1574930324611;DONE;1300;3625972;4334764;4334764,3625972;OK
-Strassen;TestSet3;test17;1574930346147;DONE;1350;3625101;3715105;3715105,3625101;OK
-Strassen;TestSet3;test18;1574930368628;DONE;1400;3476338;4030542;4030542,3476338;OK
-Strassen;TestSet3;test19;1574930394537;DONE;1450;3577855;3680641;3680641,3577855;OK
-Strassen;TestSet3;test20;1574930419613;DONE;1500;3443680;3564097;3564097,3443680;OK
-Strassen;TestSet3;test21;1574930449174;DONE;1550;3434204;3551796;3551796,3434204;OK
-Strassen;TestSet3;test22;1574930481311;DONE;1600;3852364;4180815;4180815,3852364;OK
-Strassen;TestSet3;test23;1574930518318;DONE;1650;3507907;3592277;3592277,3507907;OK
-Strassen;TestSet3;test24;1574930562027;DONE;1700;3432498;3566916;3566916,3432498;OK
-Strassen;TestSet3;test25;1574930603000;DONE;1750;3507703;3585081;3585081,3507703;OK
-Strassen;TestSet3;test26;1574930647161;DONE;1800;3460089;3567406;3567406,3460089;OK
-Strassen;TestSet3;test27;1574930696694;DONE;1850;3453538;3576143;3576143,3453538;OK
-Strassen;TestSet3;test28;1574930750245;DONE;1900;3458980;3558137;3558137,3458980;OK
-Strassen;TestSet3;test29;1574930817229;DONE;1950;3619702;3619702;3619702,4092150;OK
-Strassen;TestSet3;test30;1574930886351;DONE;2000;3493206;3892724;3892724,3493206;OK
-Strassen;TestSet3;test31;1574930946907;DONE;2000;3468771;3573738;3573738,3468771;OK
-Strassen;TestSet3;test32;1574931017027;KILLED;2050;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test33;1574931107772;KILLED;2100;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test34;1574931584194;KILLED;2150;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test35;1574931671914;KILLED;2200;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test36;1574931766677;KILLED;2250;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test37;1574931857457;KILLED;2300;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test38;1574931962936;KILLED;2350;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test39;1574932099762;KILLED;2400;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test40;1574932220539;KILLED;2450;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test41;1574932347829;KILLED;2500;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test42;1574932492514;KILLED;2550;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test43;1574932640232;KILLED;2600;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test44;1574932796551;KILLED;2650;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test45;1574932958906;KILLED;2700;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test46;1574933135332;KILLED;2750;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test47;1574933307523;KILLED;2800;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test48;1574933592253;KILLED;2850;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test49;1574933812801;KILLED;2900;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test50;1574934101179;KILLED;2950;?;?;?;?;Process killed after 10 seconds.
-Strassen;TestSet3;test51;1574934467196;KILLED;3000;?;?;?;?;Process killed after 10 seconds.
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test00","Timestamp":1678406879668,"Pass":"DONE","N":500,"TC_PROPS":{"Type":"TYPE1"},"Tmin":86206,"TFirst":88684,"TAll":[88684,86206],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test01","Timestamp":1678406881097,"Pass":"DONE","N":550,"TC_PROPS":{"Type":"TYPE1"},"Tmin":480788,"TFirst":483419,"TAll":[483419,480788],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test02","Timestamp":1678406882599,"Pass":"DONE","N":600,"TC_PROPS":{"Type":"TYPE1"},"Tmin":481397,"TFirst":481397,"TAll":[481397,491229],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test03","Timestamp":1678406884181,"Pass":"DONE","N":650,"TC_PROPS":{"Type":"TYPE1"},"Tmin":478266,"TFirst":478266,"TAll":[478266,481527],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test04","Timestamp":1678406886012,"Pass":"DONE","N":700,"TC_PROPS":{"Type":"TYPE1"},"Tmin":481620,"TFirst":481620,"TAll":[481620,490125],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test05","Timestamp":1678406887859,"Pass":"DONE","N":750,"TC_PROPS":{"Type":"TYPE1"},"Tmin":480406,"TFirst":480406,"TAll":[480406,486548],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test06","Timestamp":1678406889867,"Pass":"DONE","N":800,"TC_PROPS":{"Type":"TYPE1"},"Tmin":481449,"TFirst":481449,"TAll":[481449,482223],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test07","Timestamp":1678406892143,"Pass":"DONE","N":850,"TC_PROPS":{"Type":"TYPE1"},"Tmin":492901,"TFirst":493199,"TAll":[493199,492901],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test08","Timestamp":1678406894611,"Pass":"DONE","N":900,"TC_PROPS":{"Type":"TYPE1"},"Tmin":492797,"TFirst":492797,"TAll":[492797,494248],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test09","Timestamp":1678406897315,"Pass":"DONE","N":950,"TC_PROPS":{"Type":"TYPE1"},"Tmin":482722,"TFirst":484093,"TAll":[484093,482722],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test10","Timestamp":1678406900282,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":484091,"TFirst":484091,"TAll":[484091,485107],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test11","Timestamp":1678406908901,"Pass":"DONE","N":1050,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3149550,"TFirst":3150139,"TAll":[3150139,3149550],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test12","Timestamp":1678406917856,"Pass":"DONE","N":1100,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3129523,"TFirst":3149647,"TAll":[3149647,3129523],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test13","Timestamp":1678406927259,"Pass":"DONE","N":1150,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3129383,"TFirst":3129383,"TAll":[3129383,3161755],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test14","Timestamp":1678406936991,"Pass":"DONE","N":1200,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3146175,"TFirst":3146175,"TAll":[3146175,3150421],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test15","Timestamp":1678406947343,"Pass":"DONE","N":1250,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3132558,"TFirst":3132558,"TAll":[3132558,3153175],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test16","Timestamp":1678406961764,"Pass":"DONE","N":1300,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3164857,"TFirst":3164857,"TAll":[3164857,3168568],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test17","Timestamp":1678406978049,"Pass":"DONE","N":1350,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3141055,"TFirst":3142754,"TAll":[3142754,3141055],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test18","Timestamp":1678406996153,"Pass":"DONE","N":1400,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3152865,"TFirst":3152865,"TAll":[3152865,3158145],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test19","Timestamp":1678407016275,"Pass":"DONE","N":1450,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3141731,"TFirst":3153507,"TAll":[3153507,3141731],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test20","Timestamp":1678407038529,"Pass":"DONE","N":1500,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3152219,"TFirst":3152219,"TAll":[3152219,3153644],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test21","Timestamp":1678407062744,"Pass":"DONE","N":1550,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3147407,"TFirst":3147407,"TAll":[3147407,3156075],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test22","Timestamp":1678407089825,"Pass":"DONE","N":1600,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3152711,"TFirst":3152711,"TAll":[3152711,3160609],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test23","Timestamp":1678407119712,"Pass":"DONE","N":1650,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3159143,"TFirst":3159143,"TAll":[3159143,3211390],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test24","Timestamp":1678407151925,"Pass":"DONE","N":1700,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3164600,"TFirst":3168199,"TAll":[3168199,3164600],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test25","Timestamp":1678407187293,"Pass":"DONE","N":1750,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3139910,"TFirst":3139910,"TAll":[3139910,3159885],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test26","Timestamp":1678407226092,"Pass":"DONE","N":1800,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3138775,"TFirst":3186871,"TAll":[3186871,3138775],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test27","Timestamp":1678407267311,"Pass":"DONE","N":1850,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3160785,"TFirst":3163239,"TAll":[3163239,3160785],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test28","Timestamp":1678407311677,"Pass":"DONE","N":1900,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3158075,"TFirst":3162580,"TAll":[3162580,3158075],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test29","Timestamp":1678407360198,"Pass":"DONE","N":1950,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3177578,"TFirst":3177578,"TAll":[3177578,3210921],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test30","Timestamp":1678407412221,"Pass":"DONE","N":2000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3169220,"TFirst":3169220,"TAll":[3169220,3183536],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test31","Timestamp":1678407464418,"Pass":"DONE","N":2000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3147495,"TFirst":3183829,"TAll":[3183829,3147495],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test32","Timestamp":1678407558332,"Pass":"DONE","N":2050,"TC_PROPS":{"Type":"TYPE1"},"Tmin":21910068,"TFirst":21910068,"TAll":[21910068,21958486],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test33","Timestamp":1678407657393,"Pass":"DONE","N":2100,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22008950,"TFirst":22048200,"TAll":[22048200,22008950],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test34","Timestamp":1678407759664,"Pass":"DONE","N":2150,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22027186,"TFirst":22044777,"TAll":[22044777,22027186],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test35","Timestamp":1678407867600,"Pass":"DONE","N":2200,"TC_PROPS":{"Type":"TYPE1"},"Tmin":21900041,"TFirst":21993169,"TAll":[21993169,21900041],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test36","Timestamp":1678407979338,"Pass":"DONE","N":2250,"TC_PROPS":{"Type":"TYPE1"},"Tmin":21993966,"TFirst":22005495,"TAll":[22005495,21993966],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test37","Timestamp":1678408095787,"Pass":"DONE","N":2300,"TC_PROPS":{"Type":"TYPE1"},"Tmin":21975699,"TFirst":21975699,"TAll":[21975699,22001561],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test38","Timestamp":1678408218063,"Pass":"DONE","N":2350,"TC_PROPS":{"Type":"TYPE1"},"Tmin":21993565,"TFirst":21993565,"TAll":[21993565,22062797],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test39","Timestamp":1678408346170,"Pass":"DONE","N":2400,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22015424,"TFirst":22043656,"TAll":[22043656,22015424],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test40","Timestamp":1678408480151,"Pass":"DONE","N":2450,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22022668,"TFirst":22022668,"TAll":[22022668,22026871],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test41","Timestamp":1678408620200,"Pass":"DONE","N":2500,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22018939,"TFirst":22019815,"TAll":[22019815,22018939],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test42","Timestamp":1678408767599,"Pass":"DONE","N":2550,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22009340,"TFirst":22041475,"TAll":[22041475,22009340],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test43","Timestamp":1678408921176,"Pass":"DONE","N":2600,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22021992,"TFirst":22021992,"TAll":[22021992,22027134],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test44","Timestamp":1678409081368,"Pass":"DONE","N":2650,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22014449,"TFirst":22046424,"TAll":[22046424,22014449],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test45","Timestamp":1678409249324,"Pass":"DONE","N":2700,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22036824,"TFirst":22071254,"TAll":[22071254,22036824],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test46","Timestamp":1678409425590,"Pass":"DONE","N":2750,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22069971,"TFirst":22069971,"TAll":[22069971,22132504],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test47","Timestamp":1678409610023,"Pass":"DONE","N":2800,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22087872,"TFirst":22119271,"TAll":[22119271,22087872],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test48","Timestamp":1678409803009,"Pass":"DONE","N":2850,"TC_PROPS":{"Type":"TYPE1"},"Tmin":21998497,"TFirst":22412629,"TAll":[22412629,21998497],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test49","Timestamp":1678410005216,"Pass":"DONE","N":2900,"TC_PROPS":{"Type":"TYPE1"},"Tmin":21957216,"TFirst":22140681,"TAll":[22140681,21957216],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test50","Timestamp":1678410217194,"Pass":"DONE","N":2950,"TC_PROPS":{"Type":"TYPE1"},"Tmin":22094466,"TFirst":22094466,"TAll":[22094466,22110032],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet3","InstanceID":"test51","Timestamp":1678410438167,"Pass":"DONE","N":3000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":21928956,"TFirst":21990855,"TAll":[21990855,21928956],"Check":"OK"}

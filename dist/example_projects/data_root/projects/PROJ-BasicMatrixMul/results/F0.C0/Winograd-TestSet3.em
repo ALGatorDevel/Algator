@@ -1,52 +1,52 @@
-Winograd;TestSet3;test00;1574934816211;DONE;500;198802;229975;229975,198802;OK
-Winograd;TestSet3;test01;1574934817544;DONE;550;292368;303077;303077,292368;OK
-Winograd;TestSet3;test02;1574934819138;DONE;600;372024;376185;376185,372024;OK
-Winograd;TestSet3;test03;1574934821177;DONE;650;494674;507074;507074,494674;OK
-Winograd;TestSet3;test04;1574934823510;DONE;700;586347;610599;610599,586347;OK
-Winograd;TestSet3;test05;1574934825971;DONE;750;625342;657992;657992,625342;OK
-Winograd;TestSet3;test06;1574934829053;DONE;800;792259;863941;863941,792259;OK
-Winograd;TestSet3;test07;1574934833251;DONE;850;993415;1059153;1059153,993415;OK
-Winograd;TestSet3;test08;1574934837492;DONE;900;1188665;1203481;1203481,1188665;OK
-Winograd;TestSet3;test09;1574934842653;DONE;950;1428573;1428573;1428573,1497306;OK
-Winograd;TestSet3;test10;1574934849779;DONE;1000;2254957;2254957;2254957,2258325;OK
-Winograd;TestSet3;test11;1574934859402;DONE;1050;3016752;3016752;3016752,3122685;OK
-Winograd;TestSet3;test12;1574934868423;DONE;1100;2801444;2881771;2881771,2801444;OK
-Winograd;TestSet3;test13;1574934883185;DONE;1150;4557405;4592362;4592362,4557405;OK
-Winograd;TestSet3;test14;1574934898621;DONE;1200;4660198;4660198;4660198,5234413;OK
-Winograd;TestSet3;test15;1574934923558;DONE;1250;7298705;8796548;8796548,7298705;OK
-Winograd;TestSet3;test16;1574934953717;DONE;1300;9053435;9053435;9053435,10170477;OK
-Winograd;TestSet3;test17;1574934975997;KILLED;1350;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test18;1574935001932;KILLED;1400;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test19;1574935028872;KILLED;1450;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test20;1574935059248;KILLED;1500;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test21;1574935092563;KILLED;1550;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test22;1574935128901;KILLED;1600;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test23;1574935169815;KILLED;1650;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test24;1574935217508;KILLED;1700;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test25;1574935264233;KILLED;1750;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test26;1574935315666;KILLED;1800;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test27;1574935369199;KILLED;1850;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test28;1574935422595;KILLED;1900;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test29;1574935490102;KILLED;1950;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test30;1574935557376;KILLED;2000;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test31;1574935625038;KILLED;2000;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test32;1574935725586;KILLED;2050;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test33;1574935815764;KILLED;2100;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test34;1574936034078;KILLED;2150;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test35;1574936156738;KILLED;2200;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test36;1574936270403;KILLED;2250;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test37;1574936365507;KILLED;2300;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test38;1574936499837;KILLED;2350;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test39;1574936617199;KILLED;2400;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test40;1574936750531;KILLED;2450;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test41;1574936938555;KILLED;2500;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test42;1574937117238;KILLED;2550;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test43;1574937626785;KILLED;2600;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test44;1574937778352;KILLED;2650;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test45;1574938239562;KILLED;2700;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test46;1574938907250;KILLED;2750;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test47;1574939103918;KILLED;2800;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test48;1574939304118;KILLED;2850;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test49;1574939503390;KILLED;2900;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test50;1574939716097;KILLED;2950;?;?;?;?;Process killed after 10 seconds.
-Winograd;TestSet3;test51;1574940061476;KILLED;3000;?;?;?;?;Process killed after 10 seconds.
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test00","Timestamp":1678410846315,"Pass":"DONE","N":500,"TC_PROPS":{"Type":"TYPE1"},"Tmin":174465,"TFirst":174465,"TAll":[174465,175676],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test01","Timestamp":1678410847223,"Pass":"DONE","N":550,"TC_PROPS":{"Type":"TYPE1"},"Tmin":233696,"TFirst":233696,"TAll":[233696,234796],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test02","Timestamp":1678410848462,"Pass":"DONE","N":600,"TC_PROPS":{"Type":"TYPE1"},"Tmin":302896,"TFirst":302896,"TAll":[302896,305853],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test03","Timestamp":1678410849911,"Pass":"DONE","N":650,"TC_PROPS":{"Type":"TYPE1"},"Tmin":396034,"TFirst":417769,"TAll":[417769,396034],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test04","Timestamp":1678410851905,"Pass":"DONE","N":700,"TC_PROPS":{"Type":"TYPE1"},"Tmin":535279,"TFirst":594740,"TAll":[594740,535279],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test05","Timestamp":1678410853989,"Pass":"DONE","N":750,"TC_PROPS":{"Type":"TYPE1"},"Tmin":581796,"TFirst":601608,"TAll":[601608,581796],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test06","Timestamp":1678410856475,"Pass":"DONE","N":800,"TC_PROPS":{"Type":"TYPE1"},"Tmin":709569,"TFirst":729490,"TAll":[729490,709569],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test07","Timestamp":1678410859513,"Pass":"DONE","N":850,"TC_PROPS":{"Type":"TYPE1"},"Tmin":876564,"TFirst":876564,"TAll":[876564,880768],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test08","Timestamp":1678410863189,"Pass":"DONE","N":900,"TC_PROPS":{"Type":"TYPE1"},"Tmin":1083622,"TFirst":1083622,"TAll":[1083622,1083727],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test09","Timestamp":1678410867527,"Pass":"DONE","N":950,"TC_PROPS":{"Type":"TYPE1"},"Tmin":1285121,"TFirst":1285121,"TAll":[1285121,1294352],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test10","Timestamp":1678410872520,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":1486699,"TFirst":1486699,"TAll":[1486699,1518161],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test11","Timestamp":1678410878258,"Pass":"DONE","N":1050,"TC_PROPS":{"Type":"TYPE1"},"Tmin":1731421,"TFirst":1739016,"TAll":[1739016,1731421],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test12","Timestamp":1678410885080,"Pass":"DONE","N":1100,"TC_PROPS":{"Type":"TYPE1"},"Tmin":2057025,"TFirst":2057025,"TAll":[2057025,2090869],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test13","Timestamp":1678410893008,"Pass":"DONE","N":1150,"TC_PROPS":{"Type":"TYPE1"},"Tmin":2430399,"TFirst":2437124,"TAll":[2437124,2430399],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test14","Timestamp":1678410902078,"Pass":"DONE","N":1200,"TC_PROPS":{"Type":"TYPE1"},"Tmin":2783797,"TFirst":2783797,"TAll":[2783797,2793395],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test15","Timestamp":1678410914216,"Pass":"DONE","N":1250,"TC_PROPS":{"Type":"TYPE1"},"Tmin":3329933,"TFirst":3329933,"TAll":[3329933,3754040],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test16","Timestamp":1678410937420,"Pass":"DONE","N":1300,"TC_PROPS":{"Type":"TYPE1"},"Tmin":7630135,"TFirst":7630135,"TAll":[7630135,7695803],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test17","Timestamp":1678410967312,"Pass":"DONE","N":1350,"TC_PROPS":{"Type":"TYPE1"},"Tmin":9863696,"TFirst":9863696,"TAll":[9863696,9998025],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test18","Timestamp":1678411002617,"Pass":"DONE","N":1400,"TC_PROPS":{"Type":"TYPE1"},"Tmin":11694989,"TFirst":11771745,"TAll":[11771745,11694989],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test19","Timestamp":1678411044185,"Pass":"DONE","N":1450,"TC_PROPS":{"Type":"TYPE1"},"Tmin":13847733,"TFirst":13926184,"TAll":[13926184,13847733],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test20","Timestamp":1678411092177,"Pass":"DONE","N":1500,"TC_PROPS":{"Type":"TYPE1"},"Tmin":15926649,"TFirst":15926649,"TAll":[15926649,16019761],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test21","Timestamp":1678411147072,"Pass":"DONE","N":1550,"TC_PROPS":{"Type":"TYPE1"},"Tmin":18317858,"TFirst":18571090,"TAll":[18571090,18317858],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test22","Timestamp":1678411210079,"Pass":"DONE","N":1600,"TC_PROPS":{"Type":"TYPE1"},"Tmin":21093710,"TFirst":21093710,"TAll":[21093710,21234693],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test23","Timestamp":1678411281831,"Pass":"DONE","N":1650,"TC_PROPS":{"Type":"TYPE1"},"Tmin":24114351,"TFirst":24114351,"TAll":[24114351,24150888],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test24","Timestamp":1678411360036,"Pass":"DONE","N":1700,"TC_PROPS":{"Type":"TYPE1"},"Tmin":26176469,"TFirst":26260272,"TAll":[26260272,26176469],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test25","Timestamp":1678411448349,"Pass":"DONE","N":1750,"TC_PROPS":{"Type":"TYPE1"},"Tmin":29713995,"TFirst":29725571,"TAll":[29725571,29713995],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test26","Timestamp":1678411545223,"Pass":"DONE","N":1800,"TC_PROPS":{"Type":"TYPE1"},"Tmin":32511581,"TFirst":32511581,"TAll":[32511581,32612215],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test27","Timestamp":1678411651900,"Pass":"DONE","N":1850,"TC_PROPS":{"Type":"TYPE1"},"Tmin":35881497,"TFirst":35973018,"TAll":[35973018,35881497],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test28","Timestamp":1678411767660,"Pass":"DONE","N":1900,"TC_PROPS":{"Type":"TYPE1"},"Tmin":38793453,"TFirst":38793453,"TAll":[38793453,38927208],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test29","Timestamp":1678411896628,"Pass":"DONE","N":1950,"TC_PROPS":{"Type":"TYPE1"},"Tmin":43401547,"TFirst":43401547,"TAll":[43401547,43556750],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test30","Timestamp":1678412036590,"Pass":"DONE","N":2000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":47130498,"TFirst":47182328,"TAll":[47182328,47130498],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test31","Timestamp":1678412176578,"Pass":"DONE","N":2000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":47165533,"TFirst":47190762,"TAll":[47190762,47165533],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test32","Timestamp":1678412329340,"Pass":"DONE","N":2050,"TC_PROPS":{"Type":"TYPE1"},"Tmin":51398672,"TFirst":51398672,"TAll":[51398672,51481719],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test33","Timestamp":1678412494724,"Pass":"DONE","N":2100,"TC_PROPS":{"Type":"TYPE1"},"Tmin":55265427,"TFirst":55412336,"TAll":[55412336,55265427],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test34","Timestamp":1678412673817,"Pass":"DONE","N":2150,"TC_PROPS":{"Type":"TYPE1"},"Tmin":60390512,"TFirst":60463593,"TAll":[60463593,60390512],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test35","Timestamp":1678412864831,"Pass":"DONE","N":2200,"TC_PROPS":{"Type":"TYPE1"},"Tmin":64218885,"TFirst":64600170,"TAll":[64600170,64218885],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test36","Timestamp":1678413073159,"Pass":"DONE","N":2250,"TC_PROPS":{"Type":"TYPE1"},"Tmin":70216331,"TFirst":70235479,"TAll":[70235479,70216331],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test37","Timestamp":1678413301269,"Pass":"DONE","N":2300,"TC_PROPS":{"Type":"TYPE1"},"Tmin":73946861,"TFirst":81225835,"TAll":[81225835,73946861],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test38","Timestamp":1678413540946,"Pass":"DONE","N":2350,"TC_PROPS":{"Type":"TYPE1"},"Tmin":80456827,"TFirst":80456827,"TAll":[80456827,80665478],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test39","Timestamp":1678413797800,"Pass":"DONE","N":2400,"TC_PROPS":{"Type":"TYPE1"},"Tmin":86380008,"TFirst":86380008,"TAll":[86380008,86512348],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test40","Timestamp":1678414073025,"Pass":"DONE","N":2450,"TC_PROPS":{"Type":"TYPE1"},"Tmin":92536746,"TFirst":92678863,"TAll":[92678863,92536746],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test41","Timestamp":1678414365032,"Pass":"DONE","N":2500,"TC_PROPS":{"Type":"TYPE1"},"Tmin":98082197,"TFirst":98082197,"TAll":[98082197,98134543],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test42","Timestamp":1678414680524,"Pass":"DONE","N":2550,"TC_PROPS":{"Type":"TYPE1"},"Tmin":106066323,"TFirst":106108882,"TAll":[106108882,106066323],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test43","Timestamp":1678415016491,"Pass":"DONE","N":2600,"TC_PROPS":{"Type":"TYPE1"},"Tmin":112395303,"TFirst":112447235,"TAll":[112447235,112395303],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test44","Timestamp":1678415372210,"Pass":"DONE","N":2650,"TC_PROPS":{"Type":"TYPE1"},"Tmin":119617993,"TFirst":119713328,"TAll":[119713328,119617993],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test45","Timestamp":1678415748814,"Pass":"DONE","N":2700,"TC_PROPS":{"Type":"TYPE1"},"Tmin":126466878,"TFirst":126661450,"TAll":[126661450,126466878],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test46","Timestamp":1678416152259,"Pass":"DONE","N":2750,"TC_PROPS":{"Type":"TYPE1"},"Tmin":135556565,"TFirst":135556565,"TAll":[135556565,135703258],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test47","Timestamp":1678416578216,"Pass":"DONE","N":2800,"TC_PROPS":{"Type":"TYPE1"},"Tmin":143044668,"TFirst":143102055,"TAll":[143102055,143044668],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test48","Timestamp":1678417031963,"Pass":"DONE","N":2850,"TC_PROPS":{"Type":"TYPE1"},"Tmin":152474950,"TFirst":152474950,"TAll":[152474950,152641361],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test49","Timestamp":1678417508726,"Pass":"DONE","N":2900,"TC_PROPS":{"Type":"TYPE1"},"Tmin":160086248,"TFirst":160086248,"TAll":[160086248,160101201],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test50","Timestamp":1678418016423,"Pass":"DONE","N":2950,"TC_PROPS":{"Type":"TYPE1"},"Tmin":170456033,"TFirst":170456033,"TAll":[170456033,170712863],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet3","InstanceID":"test51","Timestamp":1678418551340,"Pass":"DONE","N":3000,"TC_PROPS":{"Type":"TYPE1"},"Tmin":179619687,"TFirst":179786528,"TAll":[179786528,179619687],"Check":"OK"}

@@ -1,0 +1,10 @@
+{"Algorithm":"Winograd","Testset":"TestSet10","InstanceID":"test01","Timestamp":1678427075571,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE2"},"CNT1":0}
+{"Algorithm":"Winograd","Testset":"TestSet10","InstanceID":"test02","Timestamp":1678427077441,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE2"},"CNT1":0}
+{"Algorithm":"Winograd","Testset":"TestSet10","InstanceID":"test03","Timestamp":1678427079280,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE2"},"CNT1":0}
+{"Algorithm":"Winograd","Testset":"TestSet10","InstanceID":"test04","Timestamp":1678427081078,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE2"},"CNT1":0}
+{"Algorithm":"Winograd","Testset":"TestSet10","InstanceID":"test05","Timestamp":1678427082905,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE2"},"CNT1":0}
+{"Algorithm":"Winograd","Testset":"TestSet10","InstanceID":"test06","Timestamp":1678427084807,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE2"},"CNT1":0}
+{"Algorithm":"Winograd","Testset":"TestSet10","InstanceID":"test07","Timestamp":1678427086576,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE2"},"CNT1":0}
+{"Algorithm":"Winograd","Testset":"TestSet10","InstanceID":"test08","Timestamp":1678427088313,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE2"},"CNT1":0}
+{"Algorithm":"Winograd","Testset":"TestSet10","InstanceID":"test09","Timestamp":1678427090067,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE2"},"CNT1":0}
+{"Algorithm":"Winograd","Testset":"TestSet10","InstanceID":"test10","Timestamp":1678427091856,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"TYPE2"},"CNT1":0}
