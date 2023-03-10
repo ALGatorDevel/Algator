@@ -663,7 +663,7 @@ public class ADETaskServer implements Runnable {
     if (answer.isEmpty())
       return sAnswer(2,String.format("Invalid project name ´%s´.", projName), "Project "+projName+" does not exist.");
       
-    return sAnswer(OK_STATUS, "Project files", answer); 
+    return sAnswer(OK_STATUS, "Project files", Base64.getEncoder().encodeToString(answer.getBytes())); 
   }
 
   private String processRequest(String request) {
