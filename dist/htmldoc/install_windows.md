@@ -32,18 +32,25 @@
     Download the instalation script from GitHub ...
     <br>
     ```
-    D:\ALGATOR_ROOT> curl -L -O https://raw.github.com/ALGatorDevel/Algator/master/dist/bin/windows/ALGator_start.bat
+    D:\ALGATOR_ROOT> curl -L -O https://raw.github.com/ALGatorDevel/Algator/master/dist/bin/windows/ALGator_init.bat
     ```   
     ... and execute
     <br>
     ```
-    D:\ALGATOR_ROOT> ALGator_start.bat
+    D:\ALGATOR_ROOT> ALGator_init.bat
     ```
     This script will download and execute the Docker image and perform initialization of ALGator system. 
-    <!--p align=right><a href="/dist/htmldoc/images/linux_install.png">Screenshot</a-->
     <br>
 
-6. **Test the correctness of the instalation**
+
+6. **Install cygwin**
+    To execute scripts and maintain the shell environment, ALGator uses some of the standard POSIX programs (cat, grep, find, rsync). If these programs are not already installed on your computer, add `cw` folder to the path with 
+    ``` 
+    C:\> setx PATH %PATH%;%ALGATOR_ROOT%\data_root\bin\cw
+    ```
+
+
+7. **Test the correctness of the instalation**
 
     After the initialization, you can use the ALGator with the scripts that are located in `%ALGATOR_ROOT%\data_root\bin` folder. But first, add this folder to the PATH ...
     <br>

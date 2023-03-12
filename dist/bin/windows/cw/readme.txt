@@ -1,0 +1,1 @@
+The programs in this folder are a part of a Cygwin™ project. Most of the tools are covered by the GNU GPL, some are public domain, and others have a X11 style license.  Sources of the project are available at https://www.cygwin.com/.
