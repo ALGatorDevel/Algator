@@ -44,7 +44,8 @@
 
 
 6. **Install cygwin**
-    To execute scripts and maintain the shell environment, ALGator uses some of the standard POSIX programs (cat, grep, find, rsync). If these programs are not already installed on your computer, add `cw` folder to the path with 
+
+    To execute scripts and maintain the shell environment, ALGator uses some of the standard POSIX programs (cat, grep, find, rsync). Install these programs (via cygwin, for example) OR simply add a preinstalled folder to the PATH:
     ``` 
     C:\> setx PATH %PATH%;%ALGATOR_ROOT%\data_root\bin\cw
     ```
@@ -63,3 +64,14 @@
     C:\> ALGator_version.bat
     ```
     <br>
+
+    If the result of this progrma look like this
+
+    ``` 
+    ALGator, version 0.985 (December 2022), build 10.139
+
+    ALGATOR_ROOT:       /home/algator/ALGATOR_ROOT
+    ALGATOR_DATA_ROOT:  /home/algator/ALGATOR_ROOT/data_root
+    ```
+    
+    ALGator is ready to go!    
