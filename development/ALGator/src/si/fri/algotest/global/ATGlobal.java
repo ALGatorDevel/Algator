@@ -170,6 +170,7 @@ public class ATGlobal {
     return (pos != -1 ? projRoot.substring(0, pos) : projRoot);
   }
   
+  
   /**
    * Returns the root of the project
    *
@@ -178,7 +179,7 @@ public class ATGlobal {
    * @return
    */
   public static String getPROJECTroot(String data_root, String projName) {
-    return data_root + File.separator + ATDIR_projects + File.separator + getProjectDirName(projName); 
+    return getPROJECTSfolder(data_root) + File.separator + getProjectDirName(projName); 
   }
 
   /**
@@ -309,8 +310,11 @@ public class ATGlobal {
     return projectRoot + File.separator + ATDIR_projConfDir + File.separator + projName + "-" + measurementType.getExtension() + "." + AT_FILEEXT_resultdesc;
   }
 
+  public static String getRESULTSrootroot(String projectRoot) {
+    return projectRoot + File.separator + ATDIR_resultsDir;
+  }    
   public static String getRESULTSroot(String projectRoot, String computerID) {
-    return projectRoot + File.separator + ATDIR_resultsDir + File.separator + computerID;
+    return getRESULTSrootroot(projectRoot) + File.separator + computerID;
   }    
 
   /**

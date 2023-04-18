@@ -277,8 +277,6 @@ public class Execute {
       if (line.hasOption("p")) {
 	password = line.getOptionValue("p");
       }           
-
-      if (!Database.databaseAccessGranted(username, password)) return;
       
       // dva možna izpisa: csv ali json
       boolean asJSON = true;
@@ -294,6 +292,13 @@ public class Execute {
         String task_desc = line.getOptionValue("task");
         try {task = new STask(task_desc);} catch (Exception e) {}
       }      
+      
+      if (!Database.databaseAccessGranted(username, password)) {
+        if (task != null)
+          System.exit(215);
+        return;
+      }      
+      
       // Check if task.computerID equals my computerID. If not -> don't execute, return!
       if (task != null) {
         String compUID = ELocalConfig.getConfig().getComputerUID();          

@@ -46,12 +46,11 @@ public class ADEGlobal {
   public static final String REQ_ADDCOMPUTER      = "ADDCOMPUTER";    // paremater: json object
   
   public static final String REQ_GETTIMESTAMP     = "GETTIMESTAMP";   // no parametes
-  
+   
   public static final String REQ_GETPFILES        = "GETPFILES";      // String (projectName)
-  
-  
-  
-  
+  public static final String REQ_GETPROJECTLIST   = "GETPROJECTLIST"; // no parametes
+  public static final String REQ_GETRESULTSTATUS  = "GETRESULTSTATUS"; // json (Project, mType)
+  public static final String REQ_GETRESULTUPDATE  = "GETRESULTUPDATE"; // json (ID)
   
   // dodana funkcionalnost za poganjanje ALGator ukazov (execute, analyse, ...) v svojem procesu. Za podrobnosti glej komentar v ADECommand
   public static final String COMMAND              = "COMMAND";        // parameters: run / status / output / stop + params

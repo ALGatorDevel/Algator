@@ -304,8 +304,12 @@ public class AEETaskClient {
     // Always execute
     cmdLine.addArgument("-e");
     // log into file
-    cmdLine.addArgument("-log");
+    //cmdLine.addArgument("-log");
+    //cmdLine.addArgument("2");
+    // be verbosive
+    cmdLine.addArgument("-v");
     cmdLine.addArgument("2");
+
     
     // task info
     STask taskInfo = new STask();
@@ -405,17 +409,19 @@ public class AEETaskClient {
                   case 207: exitMsg = "Invalid measurement type."; break;
                   case 208: exitMsg = "Problems with vmep configuration."; break;
                   case 214: exitMsg = "Problems with project synchronization."; break;
+                  case 215: exitMsg = "The database is not initialized."; break;
                 }
                 JSONObject answer = new JSONObject();
                 answer.put("ExitCode", exitCode); 
                 answer.put(STask.ID_TaskID, task.getFieldAsInt(STask.ID_TaskID));
                 answer.put("Message", exitMsg);
                 
-                String closeTaskRequest = ADEGlobal.REQ_CLOSE_TASK + ADEGlobal.STRING_DELIMITER + answer.toString();
+                String doneTaskRequest = (exitCode == 0 ? ADEGlobal.REQ_CLOSE_TASK : ADEGlobal.REQ_CANCEL_TASK)
+                        + ADEGlobal.STRING_DELIMITER + answer.toString();
                 try {
-                  closeTaskRequest = Base64.getEncoder().encodeToString(closeTaskRequest.getBytes());
-                } catch (Exception e) {closeTaskRequest = "";}
-                toServer.println(closeTaskRequest);                
+                  doneTaskRequest = Base64.getEncoder().encodeToString(doneTaskRequest.getBytes());
+                } catch (Exception e) {doneTaskRequest = "";}
+                toServer.println(doneTaskRequest);                
                 fromServer.readLine();
 
               }

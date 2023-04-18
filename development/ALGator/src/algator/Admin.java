@@ -639,14 +639,7 @@ public class Admin {
    */
   public static String getInfo(String projectName, String algorithmName, boolean extended) {
     if (projectName.isEmpty()) {             // list of projects
-      JSONObject projInfo = new JSONObject();
-
-      ArrayList<DBEntity> projects = UsersTools.listProjects();   
-      JSONArray ja = new JSONArray();
-      for (DBEntity project : projects) {
-        ja.put(project.toString());
-      }
-      projInfo.put("Projects", ja);
+      JSONObject projInfo = Project.getProjectsAsJSON();
       
       return projInfo.toString(2);
     } else if (algorithmName.isEmpty()) {    // project info

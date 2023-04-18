@@ -1,10 +1,13 @@
 package si.fri.algotest.entities;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.TreeMap;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ATLog;
 import si.fri.algotest.global.ErrorStatus;
@@ -191,5 +194,24 @@ public class Project {
       }
     }
   }
-
+  
+  /**
+   * Method returns list of all projects in data_root/projects folder
+   */
+  public static String[] getProjects() {
+    String projRoot = ATGlobal.getPROJECTSfolder(ATGlobal.getALGatorDataRoot());
+    return new File(projRoot).list(new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        return name.startsWith(ATGlobal.ATDIR_projRootDir.replace("%s","")) && new File(dir,name).isDirectory();
+      }
+    });
+  }
+  
+  public static JSONObject getProjectsAsJSON() {
+      JSONArray ja = new JSONArray();
+      for (String project : getProjects()) {
+        ja.put(project.replaceAll("^PROJ-", ""));
+      }     
+      return new JSONObject().put("Projects", ja);    
+  } 
 }

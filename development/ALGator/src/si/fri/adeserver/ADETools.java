@@ -3,10 +3,14 @@ package si.fri.adeserver;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,6 +20,9 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.TreeSet;
+import java.util.stream.IntStream;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import si.fri.algotest.entities.CompCap;
 import si.fri.algotest.entities.EAlgatorConfig;
 import si.fri.algotest.entities.EAlgorithm;
@@ -30,6 +37,8 @@ import si.fri.algotest.tools.SortedArray;
 import static si.fri.adeserver.ADETaskServer.activeTasks;
 import static si.fri.adeserver.ADETaskServer.closedTasks;
 import si.fri.algotest.entities.Entity;
+import si.fri.algotest.tools.ATTools;
+import si.fri.algotest.tools.UniqueIDGenerator;
 
 /**
  *
@@ -452,7 +461,97 @@ public class ADETools {
     return "OK";
   }
   
+  public static String getMyIPAddress() {
+    try(final DatagramSocket socket = new DatagramSocket()){
+      socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+      return socket.getLocalAddress().getHostAddress();
+    } catch (Exception e) {return "0.0.0.0";}
+  }
+
+  /**
+   * Returns all folders with result files (e.g. F0.C0, F1.C0, ...)
+   */  
+  private static String[] getResultFolders(String projName) {
+    File f = new File(ATGlobal.getRESULTSrootroot(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projName)));
+    
+    File[] resultFolders = f.listFiles(path -> {return path.isDirectory() && path.getName().contains(".");});
+    if (resultFolders==null) return new String[]{};
+    
+    String[] result = new String[resultFolders.length];
+    for (int i = 0; i < resultFolders.length; i++) 
+     result[i]=resultFolders[i].getName();
+    return result;
+  }
+
+  /**
+   * Returns all files that contain results for given (proj, alg, tst, mtype).
+   * First file is always the default file, other files are files form other 
+   * folders (e.g. F0.C1, F5.C2, ...)
+   */
+  private static ArrayList<String> getAllResultFiles(Project projekt, String algName, String tstName, String mType, String[] compIDs) {
+    String defaultResultFile = ATTools.getTaskResultFileName(projekt, algName, tstName, mType);
+    
+    ArrayList<String> files = new ArrayList<>();
+    files.add(defaultResultFile);
+    
+    String projRoot = projekt.getProjectRoot(); MeasurementType mt = MeasurementType.mtOf(mType);
+    for (String compID : compIDs) {
+      String folder = ATGlobal.getRESULTSroot(projRoot, compID);
+      if (defaultResultFile.startsWith(folder)) continue;
+      files.add(ATGlobal.getRESULTfilename(projRoot, algName, tstName, mt, compID));
+    }
+    return files;
+  }
+  /**
+   * Returns the status of projects results
+   */
+  public static JSONObject getResultStatus(String projName, String mType) {
+      Project projekt = new Project(ATGlobal.getALGatorDataRoot(), projName);
+      ArrayList<EAlgorithm>  eAlgs = new ArrayList(projekt.getAlgorithms().values());
+      ArrayList<ETestSet> eTests = new ArrayList(projekt.getTestSets().values());
+
+      // IDs of comupters that contributed results for this project
+      String[] compIDs = getResultFolders(projName);
+      
+      JSONArray results = new JSONArray();
+      String[] mTypes = mType.isEmpty() ? (new String[] {"em", "cnt", "jvm"}) : (new String[] {mType});
+      for (EAlgorithm eAlg : eAlgs) {      
+        for (ETestSet eTestSet : eTests) {
+          for (String mtype : mTypes) {            
+            int expectedNumberOfInstances = eTestSet.getFieldAsInt(ETestSet.ID_N, 0);            
+            
+            JSONArray jResFiles = new JSONArray();
+            ArrayList<String> resultFiles = getAllResultFiles(projekt, eAlg.getName(), eTestSet.getName(), mtype, compIDs);
+            for (String resultFile : resultFiles) {
+              if (resultFile.isEmpty()) continue;
+              
+              Path resFileFolder = Paths.get(resultFile).getParent();
+              String cID = resFileFolder.getName(resFileFolder.getNameCount()-1).toString();
+              
+              boolean uptodate = ATTools.resultsAreUpToDate(projekt, eAlg.getName(), eTestSet.getName(), mtype, resultFile);
+              int numberOfCompletedTests = ATTools.getNumberOfTests(resultFile);   
+              boolean complete = numberOfCompletedTests == expectedNumberOfInstances;	              
+              
+              JSONObject jResFile = new JSONObject(
+                String.format("{'F':'%s', 'N':'%d/%d', U':%s, 'C':%s}", cID, numberOfCompletedTests, expectedNumberOfInstances, uptodate?"true":"false", complete?"true":"false"));
+	      jResFiles.put(jResFile);              
+            }
+            
+            JSONObject jObj = new JSONObject(String.format("{'Algorithm':'%s', 'TestSet':'%s', 'MType':'%s', 'Status':%s}", eAlg.getName(), eTestSet.getName(), mtype, jResFiles));
+	    results.put(jObj);
+	  }
+        }
+      }
+      JSONObject result = new JSONObject();
+      result.put("Results", results);
+      result.put("MType", mTypes);
+      result.put("Project", projName);
+      result.put("AnswerID", UniqueIDGenerator.getNextID());
+      
+      return result;  
+  }   
+  
   public static void main(String[] args) {
-    System.out.println(getProjectFiles("BasicSort"));
+    System.out.println(getResultStatus("BasicSort", "em"));
   }
 }

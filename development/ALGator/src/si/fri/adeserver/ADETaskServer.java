@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +23,8 @@ import si.fri.algotest.entities.EAlgatorConfig;
 import si.fri.algotest.entities.EComputer;
 import si.fri.algotest.entities.EComputerFamily;
 import si.fri.algotest.entities.Entity;
+import si.fri.algotest.entities.MeasurementType;
+import si.fri.algotest.entities.Project;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ErrorStatus;
 import si.fri.algotest.tools.ATTools;
@@ -101,6 +104,8 @@ public class ADETaskServer implements Runnable {
   // (with taskResult, closeTask or getTask request)
   private static TreeMap<Integer, TaskStatus> pausedAndCanceledTasks;
 
+  private static Hashtable<String, JSONObject> statusResults;
+  
   private Socket connection;
   private int ID;  // server ID
 
@@ -117,6 +122,9 @@ public class ADETaskServer implements Runnable {
       pausedAndCanceledTasks = new TreeMap();
     }
 
+    if (statusResults == null)
+      statusResults = new Hashtable<>();
+    
     this.connection = connection;
     this.ID = count;
   }
@@ -283,7 +291,7 @@ public class ADETaskServer implements Runnable {
   }
 
   /**
-   * Removes task from activeTasks list and writes status to the file Call:
+   * Removes task from activeTasks list and writes status to the file. Call:
    * closeTask json(ExitCode, TaskID, Message) Return: "OK" or error message
    */
   private String closeTask(JSONObject jObj) {
@@ -339,6 +347,8 @@ public class ADETaskServer implements Runnable {
     } catch (Exception e) {
       return errorAnswer;
     }
+    int exitCode = 0;
+    try {exitCode = jObj.getInt(STask.ID_TaskID);} catch (Exception e) {}
 
     // find a task with a given ID in activeTasks queue    
     STask task = ADETools.findTask(activeTasks, taskID);
@@ -356,7 +366,11 @@ public class ADETaskServer implements Runnable {
         }
       } else { // newStatus == CANCELED or PAUSED
         if (task.getTaskStatus().equals(TaskStatus.INPROGRESS)) {
-          pausedAndCanceledTasks.put(task.getTaskID(), newStatus);
+          if (exitCode == 0) // normal "cancelTask" 
+            pausedAndCanceledTasks.put(task.getTaskID(), newStatus);
+          else { // "cancelTask"  invoked by TaskClient due to execution error 
+            ADETools.setTaskStatus(task, newStatus, jObj.getString("Message"), null);
+          } 
         } else {
           ADETools.setTaskStatus(task, newStatus, null, null);
         }
@@ -456,7 +470,9 @@ public class ADETaskServer implements Runnable {
       }
     }
 
-    return String.format("Server on for %s. Tasks: %d running, %d pending, %d queued, %d paused\n", getServerRunningTime(), r, p, q, pa);
+    String ip = ADETools.getMyIPAddress();
+    
+    return String.format("Server at %s on for %s Tasks: %d running, %d pending, %d queued, %d paused\n", ip, getServerRunningTime(), r, p, q, pa);
   }
 
   private String getServerPaths() {
@@ -623,11 +639,16 @@ public class ADETaskServer implements Runnable {
       EAlgatorConfig config = EAlgatorConfig.getConfig();
       JSONArray ja = config.getField(si.fri.algotest.entities.EAlgatorConfig.ID_Computers);
       // preglej, ali id računalnika že obstaja - potem ga ne moreš dodati
-      for (int i = 0; i < ja.length(); i++) {
-        if (thisFamilyID.equals(((JSONObject) ja.get(i)).get(EComputer.ID_FamilyID))
+      if (ja != null)
+        for (int i = 0; i < ja.length(); i++) {
+          if (thisFamilyID.equals(((JSONObject) ja.get(i)).get(EComputer.ID_FamilyID))
                 && thisComputerID.equals(((JSONObject) ja.get(i)).get(EComputer.ID_ComputerID))) {
-          return sAnswer(2, "Error - computer with this ID already exists.", "");
+            return sAnswer(2, "Error - computer with this ID already exists.", "");
+          }
         }
+      else {
+        ja = new JSONArray();
+        config.set(si.fri.algotest.entities.EAlgatorConfig.ID_Computers, ja); 
       }
 
       // set the unique id for this computer (this wil be the identifier in requests)
@@ -665,7 +686,69 @@ public class ADETaskServer implements Runnable {
       
     return sAnswer(OK_STATUS, "Project files", Base64.getEncoder().encodeToString(answer.getBytes())); 
   }
+  
+  private String getProjectList() {
+    return sAnswer(OK_STATUS, "Project list", Base64.getEncoder().encodeToString(Project.getProjectsAsJSON().toString().getBytes()));
+  }
+  
+  private String getResultStatus(JSONObject jObj) {
+    String errorAnswer = sAnswer(1, ADEGlobal.ERROR_INVALID_NPARS, "Expecting JSON with \"Project\" and \"MType\" (optional) property.");
 
+    String mType="", project;
+    try {
+      project = jObj.getString("Project");
+    } catch (Exception e) {
+      return errorAnswer;
+    }
+    if (jObj.has("MType")) 
+      mType = jObj.getString("MType");
+    
+    JSONObject resultStatus = ADETools.getResultStatus(project, mType);
+    resultStatus.put("Timestamp", System.currentTimeMillis());
+    statusResults.put(resultStatus.optString("AnswerID", "0"), resultStatus);
+    
+    String answer = resultStatus.toString();             
+    return sAnswer(OK_STATUS, "Result status", Base64.getEncoder().encodeToString(answer.getBytes()));
+  }
+  
+  private String getResultUpdate(JSONObject jObj) {
+    String errorAnswer = sAnswer(1, ADEGlobal.ERROR_INVALID_NPARS, "Expecting JSON with \"ID\" property.");
+
+    String id;
+    try {
+      id = jObj.getString("ID");
+    } catch (Exception e) {
+      return errorAnswer;
+    }
+    
+    JSONObject prevStatus = statusResults.get(id);
+    if (prevStatus == null)
+      return sAnswer(2, "No results", "Results for this id do not exist.");
+    
+    String project = prevStatus.optString("Project", "");
+    JSONArray mTypes = prevStatus.optJSONArray("MType");
+    String mType     = mTypes== null ? "em" : mTypes.optString(0, "em");
+    
+    JSONObject currStatus = ADETools.getResultStatus(project, mType);
+    
+    
+    JSONArray prevResults = prevStatus.getJSONArray("Results");
+    JSONArray currResults = currStatus.getJSONArray("Results");
+    if (prevResults.length() != currResults.length())
+      return sAnswer(3, "Major change", "Significant difference in results.");    
+    
+    JSONArray diff = new JSONArray();
+    for (int i=0; i < prevStatus.length(); i++) {
+      if (!prevResults.get(i).toString().equals(currResults.get(i).toString()))
+        diff.put(prevResults.get(i));
+    }
+    
+    String answer = diff.toString();             
+//    return sAnswer(OK_STATUS, "Result status", Base64.getEncoder().encodeToString(answer.getBytes()));
+    return sAnswer(OK_STATUS, "Result status", answer);
+
+  }  
+  
   private String processRequest(String request) {
     // najprej pocistim morebitne pozabljene ukaze in datoteke
     ADECommandManager.sanitize();
@@ -781,7 +864,17 @@ public class ADETaskServer implements Runnable {
 
       case ADEGlobal.REQ_GETPFILES:
         return getProjectFiles(jObj);
+        
+      case ADEGlobal.REQ_GETPROJECTLIST:
+        return getProjectList();
 
+      case ADEGlobal.REQ_GETRESULTSTATUS:
+        return getResultStatus(jObj);
+        
+      case ADEGlobal.REQ_GETRESULTUPDATE:
+        return getResultUpdate(jObj);
+        
+        
       default:
         return ADEGlobal.getErrorString("Unknown request");
     }
