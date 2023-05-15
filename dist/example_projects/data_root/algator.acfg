@@ -9,8 +9,8 @@
     },
     "ComputerFamilies": [
       {
-        "Name": "Family-F1",
-        "FamilyID": "F1",
+        "Name": "Family-F0",
+        "FamilyID": "F0",
         "Description": "Family for local computer",
         "Platform": "local computer",
         "Hardware": "local computer"
@@ -19,7 +19,7 @@
     "Computers": [
       {
         "Name": "Computer-C0",
-        "FamilyID": "F1",
+        "FamilyID": "F0",
         "ComputerID": "C0",
         "Description": "Local computer",
         "IP": "",
