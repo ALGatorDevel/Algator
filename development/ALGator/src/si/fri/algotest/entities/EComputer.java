@@ -29,7 +29,7 @@ public class EComputer extends Entity  implements Serializable {
   public EComputer() {  
    super(ID_ResultParameter, 
 	 new String [] {ID_Name,       ID_ComputerUID, ID_FamilyID,   ID_ComputerID,  ID_Desc, ID_IP, ID_Capabilities}, 
-         new Object [] {"Computer-C0", "",             "F0",          "C0",           "",      "",    new JSONArray("['"+CompCap.QUICK+"']")});
+         new Object [] {"Computer-C0", "0",             "F0",          "C0",           "",      "",    new JSONArray("['" + CompCap.EM + "," + CompCap.CNT + ","+ CompCap.QUICK +"']")});
   
    setRepresentatives(ID_ComputerUID, ID_Name, ID_ComputerID, ID_FamilyID, ID_Desc, ID_IP, ID_Capabilities);
   }

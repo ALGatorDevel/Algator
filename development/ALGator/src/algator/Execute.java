@@ -13,7 +13,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import si.fri.adeserver.STask;
 import si.fri.algotest.database.Database;
-import si.fri.algotest.entities.EAlgatorConfig;
 import si.fri.algotest.entities.EAlgorithm;
 import si.fri.algotest.entities.ELocalConfig;
 import si.fri.algotest.entities.EResult;

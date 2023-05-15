@@ -349,8 +349,13 @@ public class AEETaskClient {
   }
 
   public static void runClient(String hostName)  {
+    String thisComputerID = ELocalConfig.getConfig().getComputerID();
+    System.out.println("TaskClient: " + thisComputerID);
+    AEELog.log("TaskClient: " + thisComputerID);
+    
     if (hostName == null)
       hostName   = ELocalConfig.getConfig().getTaskServerName();
+    
     
     int    portNumber = ELocalConfig.getConfig().getTaskServerPort();
     
@@ -365,8 +370,9 @@ public class AEETaskClient {
               BufferedReader fromServer  = new BufferedReader(new InputStreamReader(kkSocket.getInputStream()));) 
       {
         logTaskServerProblem = true;
-        AEELog.log(        "Task client connected to server - " + hostName);
-        System.out.println("Task client connected to server - " + hostName);
+        String msg = String.format("Task client connected to server %s.", hostName);
+        AEELog.log(        msg);
+        System.out.println(msg);
         while (true) {
           JSONObject reqJsno = new JSONObject(); reqJsno.put(EComputer.ID_ComputerUID, compID);
           String taskRequset = ADEGlobal.REQ_GET_TASK + ADEGlobal.STRING_DELIMITER + reqJsno.toString();

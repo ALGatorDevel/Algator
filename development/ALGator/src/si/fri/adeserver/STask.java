@@ -113,8 +113,15 @@ public class STask extends Entity implements Comparable<STask> {
     return getFieldAsInt(ID_Progress); 
   }
   public String getComputerUID() {
-    return getString(ID_ComputerUID); 
+    String computerUID = getString(ID_ComputerUID);
+    return computerUID == null ? "" : computerUID; 
   }
+  public String getFamily() {
+    String family = getString(ID_Family);
+    return family == null ? "" : family; 
+  }
+
+  
   
   public void setProgress(int progress) {
     set(ID_Progress, progress); 

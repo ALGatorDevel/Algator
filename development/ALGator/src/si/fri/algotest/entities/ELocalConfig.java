@@ -1,7 +1,6 @@
 package si.fri.algotest.entities;
 
 import java.io.File;
-import java.util.HashMap;
 import org.json.JSONObject;
 import si.fri.adeserver.ADEGlobal;
 import si.fri.algotest.global.ATGlobal;

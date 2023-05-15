@@ -23,7 +23,6 @@ import si.fri.algotest.entities.EAlgatorConfig;
 import si.fri.algotest.entities.EComputer;
 import si.fri.algotest.entities.EComputerFamily;
 import si.fri.algotest.entities.Entity;
-import si.fri.algotest.entities.MeasurementType;
 import si.fri.algotest.entities.Project;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ErrorStatus;
@@ -369,7 +368,7 @@ public class ADETaskServer implements Runnable {
           if (exitCode == 0) // normal "cancelTask" 
             pausedAndCanceledTasks.put(task.getTaskID(), newStatus);
           else { // "cancelTask"  invoked by TaskClient due to execution error 
-            ADETools.setTaskStatus(task, newStatus, jObj.getString("Message"), null);
+            ADETools.setTaskStatus(task, newStatus, jObj.optString("Message", ""), null);
           } 
         } else {
           ADETools.setTaskStatus(task, newStatus, null, null);
@@ -592,6 +591,9 @@ public class ADETaskServer implements Runnable {
 
       EAlgatorConfig config = EAlgatorConfig.getConfig();
       JSONArray ja = config.getField(si.fri.algotest.entities.EAlgatorConfig.ID_Families);
+      if (ja==null) { 
+        ja=new JSONArray();config.set(si.fri.algotest.entities.EAlgatorConfig.ID_Families, ja);
+      }
       // preglej, ali id družine že obstaja - potem je ne moreš dodati
       for (int i = 0; i < ja.length(); i++) {
         if (thisFamilyID.equals(((JSONObject) ja.get(i)).get(EComputerFamily.ID_FamilyID))) {
@@ -604,6 +606,7 @@ public class ADETaskServer implements Runnable {
 
       return sAnswer(OK_STATUS, "Family added", family.getString(EComputerFamily.ID_FamilyID));
     } catch (Exception e) {
+      System.out.println(e);
     }
 
     return sAnswer(1, result, "");
@@ -704,7 +707,6 @@ public class ADETaskServer implements Runnable {
       mType = jObj.getString("MType");
     
     JSONObject resultStatus = ADETools.getResultStatus(project, mType);
-    resultStatus.put("Timestamp", System.currentTimeMillis());
     statusResults.put(resultStatus.optString("AnswerID", "0"), resultStatus);
     
     String answer = resultStatus.toString();             
@@ -726,27 +728,31 @@ public class ADETaskServer implements Runnable {
       return sAnswer(2, "No results", "Results for this id do not exist.");
     
     String project = prevStatus.optString("Project", "");
-    JSONArray mTypes = prevStatus.optJSONArray("MType");
-    String mType     = mTypes== null ? "em" : mTypes.optString(0, "em");
+    JSONArray mTypes = null; try {mTypes = new JSONArray(prevStatus.get("MType"));} catch (Exception e) {}
+    String mType     = mTypes != null && mTypes.length() == 1 ? mTypes.getString(0) : "";
     
     JSONObject currStatus = ADETools.getResultStatus(project, mType);
-    
+    currStatus.put("AnswerID", id);
+    statusResults.put(id, currStatus);
     
     JSONArray prevResults = prevStatus.getJSONArray("Results");
     JSONArray currResults = currStatus.getJSONArray("Results");
-    if (prevResults.length() != currResults.length())
-      return sAnswer(3, "Major change", "Significant difference in results.");    
-    
+    if (prevResults.length() != currResults.length()) {    
+      // major change -- all data is sent
+      return sAnswer(OK_STATUS, "Major", currStatus.toString());      
+    }      
+        
     JSONArray diff = new JSONArray();
-    for (int i=0; i < prevStatus.length(); i++) {
-      if (!prevResults.get(i).toString().equals(currResults.get(i).toString()))
-        diff.put(prevResults.get(i));
+    for (int i=0; i < prevResults.length(); i++) {
+      if (!prevResults.get(i).toString().equals(currResults.get(i).toString())) {
+        JSONObject jLine = new JSONObject();
+        jLine.put("Line", i);
+        jLine.put("Value", currResults.get(i));
+        diff.put(jLine);
+      }
     }
-    
-    String answer = diff.toString();             
-//    return sAnswer(OK_STATUS, "Result status", Base64.getEncoder().encodeToString(answer.getBytes()));
-    return sAnswer(OK_STATUS, "Result status", answer);
-
+    // minor change -- only some lines of data is sent
+    return sAnswer(OK_STATUS, "Minor", diff.toString());
   }  
   
   private String processRequest(String request) {

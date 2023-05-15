@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import si.fri.algotest.database.Database;
+import si.fri.algotest.entities.ELocalConfig;
 import si.fri.algotest.global.ATGlobal;
 import si.fri.algotest.global.ATLog;
 import si.fri.algotest.users.UsersDatabase;
@@ -57,8 +58,8 @@ public class Version {
     System.out.println();
     System.out.println("ALGATOR_ROOT:       " + ATGlobal.getALGatorRoot());
     System.out.println("ALGATOR_DATA_ROOT:  " + ATGlobal.getALGatorDataRoot());
-    System.out.println("ALGATOR_DATA_LOCAL: " + ATGlobal.getALGatorDataLocal());
-            
+    System.out.println("ALGATOR_DATA_LOCAL: " + ATGlobal.getALGatorDataLocal());         
+    
     if (Database.isDatabaseMode() && !UsersDatabase.databaseAndTablesExist()) {
       ATLog.log("The database is not initialized. Use 'java algator.Admin -init' before the first usage of ALGator.",0  );
       return;

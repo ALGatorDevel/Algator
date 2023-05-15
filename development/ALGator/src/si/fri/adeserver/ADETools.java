@@ -3,7 +3,6 @@ package si.fri.adeserver;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
@@ -15,12 +14,11 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.TreeSet;
-import java.util.stream.IntStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import si.fri.algotest.entities.CompCap;
@@ -109,10 +107,27 @@ public class ADETools {
   }
 
   /**
+   * Get the computerUID of a computer with given familyID and computerID
+   */
+  private static String getComputerUID(String famX, String compX) {
+    ArrayList<EComputer> computers = EAlgatorConfig.getConfig().getComputers();
+    for (EComputer computer : computers) {
+      String fam = computer.getField(EComputer.ID_FamilyID);
+      String com = computer.getField(EComputer.ID_ComputerID);
+      if (famX.equals(fam) && compX.equals(com))
+        return computer.getField(EComputer.ID_ComputerUID);
+    }
+    return "";
+  }
+  
+  /**
    *  Among all the registered computers, find and return the one with a given uid.
    *  If no computer has that uid, method returns null.
    */
   private static EComputer getComputer(String uid) {
+    // default computer (with uid=0) is F0.C0 (local computer)
+    if ("0".equals(uid)) return new EComputer();
+    
     ArrayList<EComputer> computers = EAlgatorConfig.getConfig().getComputers();
     for (EComputer computer : computers) {
       if (uid.equals(computer.getField(EComputer.ID_ComputerUID)))
@@ -120,6 +135,16 @@ public class ADETools {
      }
     return null;    
   }
+  
+  /**
+   * Among all the registered computers, find the one with a given uid 
+   * and return its ID. If no computer has that uid, method returns "/".
+   */
+  private static String getComputerID(String uid) {
+    EComputer eC = getComputer(uid);
+    return (eC!=null && eC.getField(EComputer.ID_ComputerID)!=null) ? eC.getField(EComputer.ID_ComputerID) : "/";
+  }
+  
   
     
   public static String familyOfComputer(String uid) {
@@ -289,6 +314,18 @@ public class ADETools {
     }
     return null;
   }
+  
+  // returns tasks in a queue for given (project, alg, tsts, mytpe); tasks might differ in family and computer
+  public static ArrayList<STask> getTasks(SortedArray<STask> tasks, String project, String alg, String tst, String mType) {
+    ArrayList<STask> rTasks = new ArrayList<>();
+    for (STask task : tasks) {
+      if (project.equals(task.getField(STask.ID_Project)) && alg.  equals(task.getField(STask.ID_Algorithm)) &&
+          tst.    equals(task.getField(STask.ID_Testset)) && mType.equals(task.getField(STask.ID_MType))) 
+        rTasks.add(task);
+    }
+    return rTasks;
+  }
+  
     /**
      * Method returns the last non-empty line from task status file.
      */
@@ -502,6 +539,88 @@ public class ADETools {
     }
     return files;
   }
+  
+  /**
+   * filename: /algator_root/data_root/projects/PROJ-X/results/FX.Cx/resfile.mtype)
+   * result: FX
+   * @return 
+   */
+  private static String getFamilyFromFilename(String filename) {
+    try {
+      Path resFileFolder = Paths.get(filename).getParent();
+      String famComp   = resFileFolder.getName(resFileFolder.getNameCount()-1).toString();
+    
+      String[]      fc = famComp.split("[.]");
+      return fc[0];
+    } catch (Exception e) {
+      return "";
+    }
+  }
+  /**
+   * filename: /algator_root/data_root/projects/PROJ-X/results/FX.Cx/resfile.mtype)
+   * result: CX
+   */
+  private static String getComputerFromFilename(String filename) {
+    try {
+      Path resFileFolder = Paths.get(filename).getParent();
+      String famComp   = resFileFolder.getName(resFileFolder.getNameCount()-1).toString();
+    
+      String[] fc = famComp.split("[.]");
+      return fc.length > 1 ? fc[1] : "";
+    } catch (Exception e) {
+      return "";
+    }
+  }
+  
+  /**
+   * Gets the filename (i.e. /algator_root/data_root/projects/PROJ-X/results/resfile.mtype) and
+   * appends to given JSON object the following properties; 
+   *   Fmy (familyID) Cmp (computerID),  CID (ComputerUID),  RS (ResultStatus), FS (FileStatus)
+   */
+  private static void resultFileStatus(JSONObject resTaskStatus, String fileName, Project projekt, String algName, String tstName, String mtype, int eNI) {                  
+    // get family and computer name of result
+    String comp      = getComputerFromFilename(fileName);
+    String family    = getFamilyFromFilename(fileName);
+    
+    boolean uptodate = ATTools.resultsAreUpToDate(projekt, algName, tstName, mtype, fileName);
+    int numberOfCompletedTests = ATTools.getNumberOfTests(fileName);   
+    boolean complete = numberOfCompletedTests == eNI;	              
+                      
+    // Result status: 0 ... result file does not exist, 
+    //                1 ...  some, but not all results exist
+    //                2 ... all results exist, but they are outdated 
+    //                4 ... all results exist and they are up-to-date
+    int rs = 0;
+    if (numberOfCompletedTests > 0 && numberOfCompletedTests < eNI) rs = 1;
+    if (complete && !uptodate) rs = 2;
+    if (complete && uptodate)  rs = 3;
+    
+    String fs  = String.format("(%d/%d)", numberOfCompletedTests, eNI);
+    String cid = getComputerUID(family, comp);    
+
+    resTaskStatus.put("Fmy", family);
+    resTaskStatus.put("Cmp", comp);
+    resTaskStatus.put("CID", cid);
+    resTaskStatus.put("RS", rs);
+    resTaskStatus.put("FS", fs);
+  }
+  
+  /**
+   * Appends to given JSON the following properties:  
+   *   TS (task status: "PENDING" or IN "PROGRESS (x/y)"), TID (task id number)
+   */
+  private static void jsonTaskStatus(JSONObject resTaskStatus, STask task, int eNI) {
+    String ts = ""; int tId = 0;
+    if (task != null) {
+      String taskStatus = task.getTaskStatus().toString();
+    
+      ts = task==null  ? "" : !task.getTaskStatus().equals(TaskStatus.INPROGRESS) ? taskStatus :
+           String.format("%s (%d/%d)", taskStatus, task.getProgress(), eNI);    
+    }
+    resTaskStatus.put("TS", ts);
+    resTaskStatus.put("TID", tId);
+  }
+
   /**
    * Returns the status of projects results
    */
@@ -513,41 +632,80 @@ public class ADETools {
       // IDs of comupters that contributed results for this project
       String[] compIDs = getResultFolders(projName);
       
-      JSONArray results = new JSONArray();
+      String defaultProjectFamily = projekt.getEProject().getProjectFamily(mType);
+      
+      JSONArray results = new JSONArray();      
       String[] mTypes = mType.isEmpty() ? (new String[] {"em", "cnt", "jvm"}) : (new String[] {mType});
       for (EAlgorithm eAlg : eAlgs) {      
         for (ETestSet eTestSet : eTests) {
           for (String mtype : mTypes) {            
             int expectedNumberOfInstances = eTestSet.getFieldAsInt(ETestSet.ID_N, 0);            
-            
-            JSONArray jResFiles = new JSONArray();
+                
+            // all tasks for the triple (alg-tst-mtype) ...
+            ArrayList<STask> tasks = getTasks(activeTasks, projName, eAlg.getName(), eTestSet.getName(), mtype);
+            // ... and the default one (the one with empty or defaultFamily) 
+
             ArrayList<String> resultFiles = getAllResultFiles(projekt, eAlg.getName(), eTestSet.getName(), mtype, compIDs);
+            HashMap<String, JSONArray> familyResults = new HashMap<>();      
             for (String resultFile : resultFiles) {
               if (resultFile.isEmpty()) continue;
               
-              Path resFileFolder = Paths.get(resultFile).getParent();
-              String cID = resFileFolder.getName(resFileFolder.getNameCount()-1).toString();
+              String family    = getFamilyFromFilename  (resultFile);
+              String comp      = getComputerFromFilename(resultFile);
               
-              boolean uptodate = ATTools.resultsAreUpToDate(projekt, eAlg.getName(), eTestSet.getName(), mtype, resultFile);
-              int numberOfCompletedTests = ATTools.getNumberOfTests(resultFile);   
-              boolean complete = numberOfCompletedTests == expectedNumberOfInstances;	              
+              // find the corresponding task
+              STask task = null;
+              for (STask cTask : tasks) {
+                if (comp.equals(getComputerID(cTask.getComputerUID()))) {
+                  task = cTask; break;
+                }
+              }
+                            
+              JSONObject resTaskStatus = new JSONObject();
+              resultFileStatus(resTaskStatus, resultFile, projekt, eAlg.getName(), eTestSet.getName(), mType, expectedNumberOfInstances);
+              jsonTaskStatus(resTaskStatus, task, expectedNumberOfInstances);
+                            
+              JSONArray fcArray = familyResults.get(family);
+              if (fcArray == null) {fcArray = new JSONArray(); familyResults.put(family, fcArray);}
               
-              JSONObject jResFile = new JSONObject(
-                String.format("{'F':'%s', 'N':'%d/%d', U':%s, 'C':%s}", cID, numberOfCompletedTests, expectedNumberOfInstances, uptodate?"true":"false", complete?"true":"false"));
-	      jResFiles.put(jResFile);              
+	      fcArray.put(resTaskStatus);
             }
+            JSONObject resByFamiles = new JSONObject();
+            for (String famKey : familyResults.keySet()) {
+              resByFamiles.put(famKey, familyResults.get(famKey));
+            }
+              
+            // default task and default result file status
+            STask defaultTask = null;
+            for (STask cTask : tasks) {
+              String cFamily = cTask.getFamily();
+              if (cFamily.equals(defaultProjectFamily)) {
+                defaultTask = cTask; break;
+              }
+              if (cFamily.isEmpty()) defaultTask = cTask;
+            }            
+            String defFileName = ATTools.getTaskResultFileName(projekt, eAlg.getName(), eTestSet.getName(), mType);
+            JSONObject defResTaskStatus = new JSONObject();
+            resultFileStatus(defResTaskStatus, defFileName, projekt, eAlg.getName(), eTestSet.getName(), mType, expectedNumberOfInstances);            
+            jsonTaskStatus(defResTaskStatus, defaultTask, expectedNumberOfInstances);
+            defResTaskStatus.put("DF", defaultProjectFamily);
+
             
-            JSONObject jObj = new JSONObject(String.format("{'Algorithm':'%s', 'TestSet':'%s', 'MType':'%s', 'Status':%s}", eAlg.getName(), eTestSet.getName(), mtype, jResFiles));
+            JSONObject jObj = new JSONObject(String.format("{'Algorithm':'%s', 'TestSet':'%s', 'MType':'%s', 'Status':%s}", eAlg.getName(), eTestSet.getName(), mtype,  resByFamiles));
+            jObj.put("DFTS", defResTaskStatus);
 	    results.put(jObj);
 	  }
         }
       }
+      
+      
       JSONObject result = new JSONObject();
       result.put("Results", results);
       result.put("MType", mTypes);
       result.put("Project", projName);
       result.put("AnswerID", UniqueIDGenerator.getNextID());
-      
+      result.put("Timestamp", System.currentTimeMillis());
+             
       return result;  
   }   
   

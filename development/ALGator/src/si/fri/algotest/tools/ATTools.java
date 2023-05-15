@@ -375,21 +375,25 @@ public class ATTools {
    * is the youngest.
    */
   public static boolean resultsAreUpToDate(HashSet<String> depFiles, String resultFileName) {
-    File curFile = new File(resultFileName);
-    if (!curFile.exists()) {
-      return false;
-    }
-
-    for (String file : depFiles) {
-      File f = new File(file);
-      if (!f.exists()) {
-        continue;
-      }
-      if (FileUtils.isFileNewer(f, curFile)) {
+    try {
+      File curFile = new File(resultFileName);
+      if (!curFile.exists()) {
         return false;
       }
+
+      for (String file : depFiles) {
+        File f = new File(file);
+        if (!f.exists()) {
+          continue;
+        }
+        if (FileUtils.isFileNewer(f, curFile)) {
+          return false;
+        }
+      }
+      return true;
+    } catch (Exception e) {
+      return false;
     }
-    return true;
   }
 
   /**

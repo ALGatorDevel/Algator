@@ -1,33 +1,31 @@
 {
   "Config" : {
     "TaskServerName"   : "localhost",
-
     "DatabaseServer"   : {
       "Connection"     : "jdbc:mysql://127.0.0.1:3306",
       "Database"       : "algator",
       "Username"       : "algator",
       "Password"       : "algator"
     },
-
-    "ComputerFamilies"  : [
+    "ComputerFamilies": [
       {
-      "FamilyID"    : "F0",
-      "Name"        : "TestComputer",
-      "Description" : "Computer used to run algorithms",
-      "Platform"    : "",
-      "Hardware"    : "",
-      "SystemType"  : "",
-      "Computers"   : [
-          {
-          "ComputerID"   : "C0",
-          "FamilyID"     : "F0",
-          "Name"         : "mycomp",
-          "Description"  : "My computer",
-          "IP"           : "",
-          "Capabilities" : []
-          }         
-        ]
+        "Name": "Family-F1",
+        "FamilyID": "F1",
+        "Description": "Family for local computer",
+        "Platform": "local computer",
+        "Hardware": "local computer"
       }
-    ]
+    ],
+    "Computers": [
+      {
+        "Name": "Computer-C0",
+        "FamilyID": "F1",
+        "ComputerID": "C0",
+        "Description": "Local computer",
+        "IP": "",
+        "Capabilities": ["em","cnt","quick"],
+        "ComputerUID": "0"
+      }
+    ]  
   }
 }
