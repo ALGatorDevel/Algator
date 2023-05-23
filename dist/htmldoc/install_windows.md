@@ -45,10 +45,7 @@
 
 6. **Install cygwin**
 
-    To execute scripts and maintain the shell environment, ALGator uses some of the standard POSIX programs (cat, grep, find, rsync). Install these programs (via cygwin, for example) OR simply add a preinstalled folder to the PATH:
-    ``` 
-    C:\> setx PATH %PATH%;%ALGATOR_ROOT%\data_root\bin\cw
-    ```
+    To execute scripts and maintain the shell environment, ALGator uses some of the standard POSIX programs (cat, grep, find, rsync). Install these programs (via cygwin, for example). 
 
 
 7. **Test the correctness of the instalation**
