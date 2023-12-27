@@ -1,5 +1,5 @@
 
-import si.fri.algotest.execute.AbstractAlgorithm;
+import si.fri.algator.execute.AbstractAlgorithm;
 
 /**
  *

@@ -1,6 +1,4 @@
-import java.util.Arrays;
-import si.fri.algotest.execute.AbstractOutput;
-import si.fri.algotest.execute.AbstractTestCase;
+import si.fri.algator.execute.AbstractOutput;
 
 /**
  * A sort-project specific Output
@@ -25,25 +23,4 @@ public class BasicSortOutput extends AbstractOutput {
   public String toString() {
     return super.toString() + ", Data: " + basicsort.Tools.intArrayToString(sortedArray);
   }
-  
-  
-  
-  @Override
-  protected Object getIndicatorValue(AbstractTestCase testCase, 
-          AbstractOutput algorithmOutput, String indicatorName) 
-  {
-    BasicSortTestCase basicSortTestCase        = (BasicSortTestCase) testCase;
-    BasicSortOutput   basicSortAlgorithmOutput = (BasicSortOutput) algorithmOutput;
-
-    switch (indicatorName) {
-      case "Check" :
-        boolean checkOK = 
-           Arrays.equals(basicSortAlgorithmOutput.sortedArray, 
-                         basicSortTestCase.getExpectedOutput().sortedArray);
-        return checkOK ? "OK" : "NOK";
-    }
-    
-    return null;
-  }
-
 }

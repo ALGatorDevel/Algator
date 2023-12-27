@@ -12,14 +12,14 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.asql.ASqlObject;
 import org.json.JSONObject;
-import si.fri.algotest.analysis.DataAnalyser;
-import si.fri.algotest.analysis.view.ChartPanels;
-import si.fri.algotest.analysis.TableData;
-import si.fri.algotest.entities.EPresenter;
-import si.fri.algotest.entities.EQuery;
-import si.fri.algotest.entities.Project;
-import si.fri.algotest.global.ATGlobal;
-import si.fri.algotest.global.ErrorStatus;
+import si.fri.algator.analysis.DataAnalyser;
+import si.fri.algator.analysis.view.ChartPanels;
+import si.fri.algator.analysis.TableData;
+import si.fri.algator.entities.EPresenter;
+import si.fri.algator.entities.EQuery;
+import si.fri.algator.entities.Project;
+import si.fri.algator.global.ATGlobal;
+import si.fri.algator.global.ErrorStatus;
 
 /**
  *

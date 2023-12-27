@@ -1,6 +1,6 @@
 package algator;
 
-import si.fri.aeeclient.Requester;
+import si.fri.algator.client.Requester;
 
 /**
  *

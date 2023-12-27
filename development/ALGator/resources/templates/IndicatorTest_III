@@ -1,0 +1,17 @@
+import si.fri.algator.execute.AbstractIndicatorTest;
+
+/**
+ * IndicatorTest for "<III>" indicator of <PPP> project.
+ * 
+ * @author ...
+ */
+public class IndicatorTest_<III> extends AbstractIndicatorTest<TestCase, Output> {
+
+  @Override
+  public Object getValue(TestCase testCase, Output algorithmOutput) {
+    // TODO: write a code that checks algorithmOutput (e.g. compares it 
+    // with testCase.getExpectedOutput()) and generates appropriate value
+    // for the "<III>" indicator.
+    return "?";
+  }
+}

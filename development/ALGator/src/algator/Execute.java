@@ -11,22 +11,22 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import si.fri.adeserver.STask;
-import si.fri.algotest.database.Database;
-import si.fri.algotest.entities.EAlgorithm;
-import si.fri.algotest.entities.ELocalConfig;
-import si.fri.algotest.entities.EResult;
-import si.fri.algotest.entities.ETestSet;
-import si.fri.algotest.entities.MeasurementType;
-import si.fri.algotest.entities.Project;
-import si.fri.algotest.execute.Executor;
-import si.fri.algotest.execute.Notificator;
-import si.fri.algotest.global.ATGlobal;
-import si.fri.algotest.global.ATLog;
-import si.fri.algotest.tools.ATTools;
-import si.fri.algotest.global.ErrorStatus;
-import static si.fri.algotest.tools.ATTools.getTaskResultFileName;
-import si.fri.algotest.tools.RSync;
+import si.fri.algator.server.ASTask;
+import si.fri.algator.database.Database;
+import si.fri.algator.entities.EAlgorithm;
+import si.fri.algator.entities.ELocalConfig;
+import si.fri.algator.entities.EResult;
+import si.fri.algator.entities.ETestSet;
+import si.fri.algator.entities.MeasurementType;
+import si.fri.algator.entities.Project;
+import si.fri.algator.execute.Executor;
+import si.fri.algator.execute.Notificator;
+import si.fri.algator.global.ATGlobal;
+import si.fri.algator.global.ATLog;
+import si.fri.algator.tools.ATTools;
+import si.fri.algator.global.ErrorStatus;
+import static si.fri.algator.tools.ATTools.getTaskResultFileName;
+import si.fri.algator.tools.RSync;
 
 /**
  *
@@ -286,10 +286,10 @@ public class Execute {
       // Ta parameter bom dobil le v primeru, da sem bil pognan iz TaskClienta
       // podatki taska, ki se bodo kasneje uporabili: TaskID, ComputerUID, Progress
       // (morebitni ostali podatki taska se ignorirajo)
-      STask task = null;
+      ASTask task = null;
       if (line.hasOption("task")) {
         String task_desc = line.getOptionValue("task");
-        try {task = new STask(task_desc);} catch (Exception e) {}
+        try {task = new ASTask(task_desc);} catch (Exception e) {}
       }      
       
       if (!Database.databaseAccessGranted(username, password)) {
@@ -321,7 +321,7 @@ public class Execute {
   public static boolean syncProject(String projName) {
     ELocalConfig config = ELocalConfig.getConfig();
     String source = String.format("rsync://%s:%d/algator/%s", 
-       config.getTaskServerName(), config.getRSyncServerPort(), ATGlobal.getProjectDirName(projName));
+       config.getALGatorServerName(), config.getRSyncServerPort(), ATGlobal.getProjectDirName(projName));
     
     String destinatoin = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(),  projName);
     
@@ -356,7 +356,7 @@ public class Execute {
   
   private static void runAlgorithms(String dataRoot, String projName, String algName,
 	  String testsetName, MeasurementType mType, boolean alwaysCompile, 
-          boolean alwaysRun, boolean printOnly, int whereToPrint, boolean asJSON, STask task) {
+          boolean alwaysRun, boolean printOnly, int whereToPrint, boolean asJSON, ASTask task) {
     
     // če je podan task (to pomeni, da sem bil pognan iz TaskClienta), potem 
     // moram pred izvajanje vse projektne datoteke sinhronizirati, da bo 

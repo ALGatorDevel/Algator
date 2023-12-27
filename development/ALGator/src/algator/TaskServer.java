@@ -15,10 +15,10 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import si.fri.adeserver.ADEGlobal;
-import si.fri.adeserver.ADELog;
-import si.fri.algotest.entities.EAlgatorConfig;
-import si.fri.algotest.global.ATGlobal;
+import si.fri.algator.entities.EAlgatorConfig;
+import si.fri.algator.global.ATGlobal;
+import si.fri.algator.server.ASGlobal;
+import si.fri.algator.server.ASLog;
 
 /**
  *
@@ -93,13 +93,13 @@ public class TaskServer {
 	statusOnly = true;
       }
       
-      boolean serverIsAlive = askServer(ADEGlobal.REQ_CHECK_Q).equals(ADEGlobal.REQ_CHECK_A);
+      boolean serverIsAlive = askServer(ASGlobal.REQ_CHECK_Q).equals(ASGlobal.REQ_CHECK_A);
       
-      ADELog.doVerbose = true;
+      ASLog.doVerbose = true;
       
       if (statusOnly) {
         if (serverIsAlive) {
-          System.out.println(askServer(ADEGlobal.REQ_STATUS));
+          System.out.println(askServer(ASGlobal.REQ_STATUS));
         } else {
           System.out.println("Task server is not running.");
         }        
@@ -107,7 +107,7 @@ public class TaskServer {
         if (serverIsAlive) {
           System.out.println("Task server is already running.");
         } else {
-          si.fri.adeserver.ADETaskServer.runServer();
+          //si.fri.algator.server.askServer.runServer();
         }
       }
     } catch (ParseException ex) {
@@ -118,7 +118,7 @@ public class TaskServer {
   
   private static String askServer(String question) {
     String hostName   = "localhost"; // it has to be local host, since this method only tries to communicate with the server installed on this machine
-    int    portNumber = EAlgatorConfig.getTaskServerPort();
+    int    portNumber = EAlgatorConfig.getALGatorServerPort();
     
     try (   Socket kkSocket = new Socket(hostName, portNumber);
             PrintWriter    toServer    = new PrintWriter(kkSocket.getOutputStream(), true);
@@ -134,9 +134,9 @@ public class TaskServer {
       return answer;      
       
     } catch (UnknownHostException e) {
-      return ADEGlobal.ERROR_PREFIX + "Unknown host " + hostName;
+      return ASGlobal.ERROR_PREFIX + "Unknown host " + hostName;
     } catch (IOException e) {
-      return ADEGlobal.ERROR_PREFIX + "I/O error " + e;
+      return ASGlobal.ERROR_PREFIX + "I/O error " + e;
     }
   }
 

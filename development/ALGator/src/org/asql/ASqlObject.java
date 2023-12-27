@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import si.fri.algotest.analysis.DataAnalyser;
-import si.fri.algotest.analysis.TableData;
-import si.fri.algotest.entities.EQuery;
-import si.fri.algotest.entities.Project;
-import si.fri.algotest.tools.ATTools;
+import si.fri.algator.analysis.DataAnalyser;
+import si.fri.algator.analysis.TableData;
+import si.fri.algator.entities.EQuery;
+import si.fri.algator.entities.Project;
+import si.fri.algator.tools.ATTools;
 
 /**
  *

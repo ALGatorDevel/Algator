@@ -24,22 +24,23 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FilenameUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import si.fri.algotest.database.Database;
-import si.fri.algotest.entities.EAlgorithm;
-import si.fri.algotest.entities.ELocalConfig;
-import si.fri.algotest.entities.EProject;
-import si.fri.algotest.entities.EResult;
-import si.fri.algotest.entities.ETestCase;
-import si.fri.algotest.entities.ETestSet;
-import si.fri.algotest.entities.EVariable;
-import si.fri.algotest.entities.MeasurementType;
-import si.fri.algotest.entities.Project;
-import si.fri.algotest.users.DBEntity;
-import si.fri.algotest.global.ATGlobal;
-import si.fri.algotest.global.ATLog;
-import si.fri.algotest.users.DBUser;
-import si.fri.algotest.users.UsersDatabase;
-import si.fri.algotest.users.UsersTools;
+import si.fri.algator.database.Database;
+import si.fri.algator.entities.EAlgorithm;
+import si.fri.algator.entities.EGenerator;
+import si.fri.algator.entities.ELocalConfig;
+import si.fri.algator.entities.EProject;
+import si.fri.algator.entities.EResult;
+import si.fri.algator.entities.ETestCase;
+import si.fri.algator.entities.ETestSet;
+import si.fri.algator.entities.EVariable;
+import si.fri.algator.entities.MeasurementType;
+import si.fri.algator.entities.Project;
+import si.fri.algator.users.DBEntity;
+import si.fri.algator.global.ATGlobal;
+import si.fri.algator.global.ATLog;
+import si.fri.algator.users.DBUser;
+import si.fri.algator.users.UsersDatabase;
+import si.fri.algator.users.UsersTools;
 
 /**
  *
@@ -124,6 +125,11 @@ public class Admin {
     options.addOption("rdp", "remove_presenter", false,
 	    "remove a presenter for a project");
 
+    options.addOption("cit", "add_indicator_test", false,
+	    "add a new indicator test");
+    options.addOption("cgn", "add_generator", false,
+	    "add a new generator; args: proj_name type comma_separated_list_of_parameters");
+    
     
     options.addOption("use", "usage", false, "print usage guide");
     options.addOption("i", "info", false, "print info about entity");
@@ -284,6 +290,26 @@ public class Admin {
         }
       }
 
+      if (line.hasOption("add_indicator_test")) {
+	if (curArgs.length != 2) {
+          System.out.println("Invalid project or indicator name");
+          printMsg(options); 
+        } else {
+          addIndicator(username, curArgs[0], curArgs[1]);
+          return;
+        }
+      }
+
+      if (line.hasOption("add_generator")) {
+	if (curArgs.length < 2) {
+          System.out.println("Invalid project or generator name");
+          printMsg(options); 
+        } else {
+          addTestCaseGenerator(username, curArgs[0], curArgs[1], (curArgs.length>2 ? curArgs[2]:"").split(","));
+          return;
+        }
+      }
+            
       if (line.hasOption("create_algorithm")) {
 	if (curArgs.length != 2) {
           System.out.println("Invalid project or algorithm name");
@@ -363,8 +389,7 @@ public class Admin {
     String dataroot = ATGlobal.getALGatorDataRoot();         
     String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(dataroot, proj_name));
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
-    String projConfFolder = ATGlobal.getPROJECTconfig(dataroot, proj_name);
-    String testsFolder = ATGlobal.getTESTSroot(dataroot, proj_name);
+    String projConfFolder = ATGlobal.getPROJECTConfigFolder(dataroot, proj_name);
     String projDocFolder = ATGlobal.getPROJECTdoc(dataroot,proj_name);
     
     HashMap<String,String> substitutions = getSubstitutions(proj_name);
@@ -409,6 +434,109 @@ public class Admin {
     return true;
   }
 
+  public static boolean addIndicator(String username, String proj_name, String ind_name) {
+    String dataroot = ATGlobal.getALGatorDataRoot();         
+    String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(dataroot, proj_name));
+    
+    if (Database.isDatabaseMode() && !UsersTools.can_user(username, "can_write", proj_name)) {
+      System.out.println("User "+username+" does not have permitions to add indicators");
+      return false;
+    }
+    try {
+      EResult resultsDescription = new EResult(new File(ATGlobal.getRESULTDESCfilename(
+        ATGlobal.getPROJECTroot(dataroot, proj_name), proj_name, MeasurementType.EM)));
+      
+      JSONArray indOrder = new JSONArray();
+      try {indOrder = (JSONArray) resultsDescription.get(EResult.ID_IndOrder);} catch (Exception e) {}
+      boolean hasIndicator = false;
+      for (int i = 0; i < indOrder.length(); i++) {
+        if (ind_name.equals(indOrder.get(i))) {
+          hasIndicator = true; break;
+        }
+      }
+      if (hasIndicator) {
+        System.out.println("Indicator with this name already exists.");
+        return false;
+      }
+      
+      HashMap<String,String> substitutions = new HashMap<>();
+      substitutions.put("<PPP>", proj_name);
+      substitutions.put("<III>", ind_name);
+        
+      System.out.println("Adding indicator " + ind_name + " to project " + proj_name + "...");
+        
+                                 
+      // create IndicatorTest_III.java file ...
+      copyFile("templates/IndicatorTest_III", projSrcFolder, "IndicatorTest_"+ind_name+".java",substitutions);
+
+      // and add indicator to results_em.json file
+      indOrder.put(ind_name);
+      resultsDescription.set(EResult.ID_IndOrder, indOrder);
+      resultsDescription.saveEntity();
+    } catch (Exception e) {
+      System.out.println("Can not add indicator: " + e.toString());
+      return false;
+    }
+    return true;
+  }
+
+  public static boolean addTestCaseGenerator(String username, String proj_name, String gen_name, String[] params) {
+    String dataroot = ATGlobal.getALGatorDataRoot();         
+    String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(dataroot, proj_name));
+    
+    if (Database.isDatabaseMode() && !UsersTools.can_user(username, "can_write", proj_name)) {
+      System.out.println("User "+username+" does not have permitions to add generators");
+      return false;
+    }
+    try {
+      ETestCase testcaseDescription = new ETestCase(
+         new File(ATGlobal.getTESTCASEDESCfilename(dataroot, proj_name)));
+      
+      JSONArray generators = new JSONArray();
+      try {generators = (JSONArray) testcaseDescription.get(ETestCase.ID_generators);} catch (Exception e) {}
+      boolean hasGenerator = false;
+      for (int i = 0; i < generators.length(); i++) {
+        if (generators.get(i) instanceof JSONObject && gen_name.equals(((JSONObject)generators.get(i)).get(EGenerator.ID_Type))) {
+          hasGenerator = true; break;
+        }
+      }
+      if (hasGenerator) {
+        System.out.println("Generator of this type already exists.");
+        return false;
+      }
+      
+      HashMap<String,String> substitutions = getSubstitutions(proj_name);
+      substitutions.put("<TTT>", gen_name);
+
+      String param = "String <par> = generatingParameters.getVariable(\"<PAR>\", \"\").getStringValue();";
+      String paramSub = "";
+      for (int i = 0; i < params.length; i++) {
+        String param1 = param .replace("<PAR>", params[i]);
+               param1 = param1.replace("<par>", params[i].toLowerCase());
+        paramSub += (paramSub.isEmpty() ? "" : "\n    ") + param1;
+      }
+      substitutions.put("<params>", paramSub);      
+        
+      System.out.println("Adding generator " + gen_name + " to project " + proj_name + "...");
+        
+      // create TestCaseGenetator_TTT.java file ...
+      copyFile("templates/TestCaseGenerator_TTT", projSrcFolder, "TestCaseGenerator_"+gen_name+".java",substitutions);
+
+      // and add generator description to testcase.json file
+      JSONObject generator = new JSONObject();
+      generator.put(EGenerator.ID_Type, gen_name);
+      generator.put(EGenerator.ID_Desc, "");
+      generator.put(EGenerator.ID_GPars, new JSONArray(params));
+      generators.put(generator);
+      
+      testcaseDescription.saveEntity();
+    } catch (Exception e) {
+      System.out.println("Can not add indicator: " + e.toString());
+      return false;
+    }
+    return true;
+  }
+  
   private static boolean createAlgorithm(String username, String proj_name, String alg_name) {        
     String dataroot = ATGlobal.getALGatorDataRoot();         
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
@@ -455,7 +583,6 @@ public class Admin {
     }    
     return true;
   }
-
 
   private static boolean createTestset(String username, String proj_name, String testset_name) {        
     String dataroot = ATGlobal.getALGatorDataRoot();         
@@ -727,7 +854,7 @@ public class Admin {
     substitutions.put("<pPP>", projNameCamelCase);
     substitutions.put("<today>", sdf.format(new Date()));   
     
-    substitutions.put("\r", "\n");   
+    // substitutions.put("\r", "\n");   
     
     return substitutions;
   }

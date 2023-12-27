@@ -1,4 +1,4 @@
-import si.fri.algotest.execute.AbstractInput;
+import si.fri.algator.execute.AbstractInput;
 
 /**
  * @author ...

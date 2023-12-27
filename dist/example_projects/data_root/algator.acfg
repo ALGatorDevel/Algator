@@ -1,6 +1,6 @@
 {
   "Config" : {
-    "TaskServerName"   : "localhost",
+    "ALGatorServerName"   : "localhost",
     "DatabaseServer"   : {
       "Connection"     : "jdbc:mysql://127.0.0.1:3306",
       "Database"       : "algator",

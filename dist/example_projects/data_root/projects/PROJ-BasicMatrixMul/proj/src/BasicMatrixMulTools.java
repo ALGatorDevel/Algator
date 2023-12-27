@@ -10,7 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Random;
-import si.fri.algotest.tools.ARandom;
+import si.fri.algator.tools.ARandom;
 import java.util.Scanner;
 
 /**
@@ -167,8 +167,8 @@ public class BasicMatrixMulTools {
   
   /**
    * Metoda preveri, ali je C res produkt matrik A in B. Za preverjanje uporabi 
-   * Freivalds verjetnostni algoritem. Če algoritem vrne false, potem produkt ni
-   * pravilen, če pa vrne true, potem je pravilen vsaj z verjetnostno 1/2^k
+   * Freivalds verjetnostni algoritem. Èe algoritem vrne false, potem produkt ni
+   * pravilen, èe pa vrne true, potem je pravilen vsaj z verjetnostno 1/2^k
    */
   public static boolean checkCorrectness(int[][] A, int[][] B, int[][] C, int k) {
     Random rnd = new Random(System.currentTimeMillis());
@@ -180,10 +180,10 @@ public class BasicMatrixMulTools {
           abX[] = new int[n],    // A(Bx)
           cX[]  = new int[n];    // Cx
       
-      // ustvarim naključni vektor
+      // ustvarim nakljuèni vektor
       for (int r = 0; r < n; r++) {x[r]=rnd.nextInt(100) < 50 ? 0 : 1;}
       
-      // izračunam Bx in Cx ...
+      // izraèunam Bx in Cx ...
       for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
           bX[i] += B[i][j]*x[j];

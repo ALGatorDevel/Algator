@@ -1,0 +1,34 @@
+import si.fri.algator.entities.Variables;
+import static si.fri.algator.execute.AbstractTestCase.PROPS;
+import si.fri.algator.execute.AbstractTestCaseGenerator;
+
+/**
+ * <TTT> test case generator for project <PPP>
+ *
+ * @author ...
+*/
+public class TestCaseGenerator_<TTT> extends AbstractTestCaseGenerator {
+  @Override
+  public TestCase generateTestCase(Variables generatingParameters) {
+    // read params from generatingParameters
+    <params>
+
+    // create a test case and set ...
+    TestCase <pPP>TestCase = new TestCase();
+
+    // ... the input
+    // ...
+    //<pPP>TestCase.setInput(...);
+
+    // ... add properties ...
+    Variables testcaseParameters = new Variables(generatingParameters);
+    testcaseParameters.addProperty(PROPS, "Type", "<TTT>");
+    <pPP>TestCase.getInput().setParameters(testcaseParameters);
+
+    // ... and the expected output
+    // ...
+    // <pPP>TestCase.setExpectedOutput(...);
+
+    return <pPP>TestCase;
+  }
+}

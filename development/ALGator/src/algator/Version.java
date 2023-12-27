@@ -3,19 +3,19 @@ package algator;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import si.fri.algotest.database.Database;
-import si.fri.algotest.entities.ELocalConfig;
-import si.fri.algotest.global.ATGlobal;
-import si.fri.algotest.global.ATLog;
-import si.fri.algotest.users.UsersDatabase;
+import si.fri.algator.database.Database;
+import si.fri.algator.entities.ELocalConfig;
+import si.fri.algator.global.ATGlobal;
+import si.fri.algator.global.ATLog;
+import si.fri.algator.users.UsersDatabase;
 
 /**
  *
  * @author tomaz
  */
 public class Version {
-  private static String version = "0.985";
-  private static String date    = "December 2022";
+  private static String version = "0.986";
+  private static String date    = "November 2023";
   
   public static String getVersion() {
     return String.format("version %s (%s)", version, date);

@@ -13,23 +13,23 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.json.JSONObject;
-import si.fri.algotest.analysis.Analysis;
-import si.fri.algotest.analysis.DataAnalyser;
-import si.fri.algotest.entities.EQuery;
-import si.fri.algotest.entities.EResult;
-import si.fri.algotest.entities.EVariable;
-import si.fri.algotest.entities.MeasurementType;
-import si.fri.algotest.entities.Project;
-import si.fri.algotest.entities.Variables;
-import si.fri.algotest.execute.Notificator;
-import si.fri.algotest.global.ATGlobal;
-import si.fri.algotest.global.ATLog;
-import si.fri.algotest.tools.ATTools;
-import si.fri.algotest.tools.UniqueIDGenerator;
-import si.fri.timeComplexityAnalysis.Data;
-import si.fri.timeComplexityAnalysis.GA;
-import si.fri.timeComplexityAnalysis.OutlierDetector;
-import si.fri.timeComplexityAnalysis.PowerLawFunction;
+import si.fri.algator.analysis.Analysis;
+import si.fri.algator.analysis.DataAnalyser;
+import si.fri.algator.entities.EQuery;
+import si.fri.algator.entities.EResult;
+import si.fri.algator.entities.EVariable;
+import si.fri.algator.entities.MeasurementType;
+import si.fri.algator.entities.Project;
+import si.fri.algator.entities.Variables;
+import si.fri.algator.execute.Notificator;
+import si.fri.algator.global.ATGlobal;
+import si.fri.algator.global.ATLog;
+import si.fri.algator.tools.ATTools;
+import si.fri.algator.tools.UniqueIDGenerator;
+import si.fri.algator.analysis.timecomplexity.Data;
+import si.fri.algator.analysis.timecomplexity.GA;
+import si.fri.algator.analysis.timecomplexity.OutlierDetector;
+import si.fri.algator.analysis.timecomplexity.PowerLawFunction;
 
 /**
  *
@@ -360,7 +360,7 @@ public class Analyse {
               String[] indicators = new String[]{"*EM AS *EM"};
               String yColumn = String.format("%s.%s", algs[0], observedValue);
               EQuery q = new EQuery(algs, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
-              si.fri.algotest.analysis.TableData td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+              si.fri.algator.analysis.TableData td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
               int yIndex = td.header.indexOf(yColumn);
 
               double M = parameters.getVariable("M").getDoubleValue();

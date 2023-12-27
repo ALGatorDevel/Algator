@@ -1,6 +1,6 @@
-import si.fri.algotest.entities.Variables;
-import si.fri.algotest.execute.AbstractTestCase;
-import si.fri.algotest.global.ErrorStatus;
+import si.fri.algator.entities.Variables;
+import si.fri.algator.execute.AbstractTestCase;
+import si.fri.algator.global.ErrorStatus;
 
 /**
  *

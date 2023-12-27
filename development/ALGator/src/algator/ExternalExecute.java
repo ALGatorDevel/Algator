@@ -1,20 +1,22 @@
 package algator;
 
-import si.fri.algotest.execute.*;
+import si.fri.algator.execute.Counters;
+import si.fri.algator.execute.ExternalExecutor;
+import si.fri.algator.execute.AbstractAlgorithm;
 import java.net.URL;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import si.fri.algotest.timer.Timer;
+import si.fri.algator.timer.Timer;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import si.fri.algotest.entities.ELocalConfig;
-import si.fri.algotest.entities.MeasurementType;
-import si.fri.algotest.global.ATGlobal;
+import si.fri.algator.entities.ELocalConfig;
+import si.fri.algator.entities.MeasurementType;
+import si.fri.algator.global.ATGlobal;
 
 /**
  * This class is used to execute a given algorithm. The main method in this class is the run() method, which

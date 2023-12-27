@@ -1,5 +1,4 @@
-import si.fri.algotest.execute.AbstractOutput;
-import si.fri.algotest.execute.AbstractTestCase;
+import si.fri.algator.execute.AbstractOutput;
 
 /**
  * 
@@ -26,26 +25,6 @@ public class BasicMatrixMulOutput extends AbstractOutput {
     return "N = " + C.length + String.format(matrika, 'C', dataC);
   }
 
-  
- @Override
-  protected Object getIndicatorValue(AbstractTestCase testCase, AbstractOutput algorithmOutput, String indicatorName) {
-    BasicMatrixMulTestCase basicMatrixMulTestCase        = (BasicMatrixMulTestCase) testCase;
-    BasicMatrixMulOutput   basicMatrixMulAlgorithmOutput = (BasicMatrixMulOutput) algorithmOutput;
-
-    switch (indicatorName) {
-      case "Check":
-        if (basicMatrixMulTestCase.getExpectedOutput().C != null)
-          return BasicMatrixMulTools.matrixEquals(
-                  basicMatrixMulTestCase.getExpectedOutput().C, basicMatrixMulAlgorithmOutput.C
-                ) ? "OK" : "NOK";
-        else
-          return BasicMatrixMulTools.checkCorrectness(
-                  basicMatrixMulTestCase.getInput().A, basicMatrixMulTestCase.getInput().B, basicMatrixMulAlgorithmOutput.C, 20
-                ) ? "PROB" : "NOK";        
-    }
-    
-    return null;
-  }
 }
 
 

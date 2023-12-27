@@ -19,15 +19,14 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.math.NumberUtils;
-import si.fri.algotest.database.Database;
-import si.fri.algotest.entities.ELocalConfig;
-import si.fri.algotest.global.ATGlobal;
-import si.fri.algotest.global.ATLog;
-import si.fri.algotest.users.DBEntities;
-
-import si.fri.algotest.users.UsersDatabase;
-import si.fri.algotest.users.DBEntity;
-import si.fri.algotest.users.UsersTools;
+import si.fri.algator.database.Database;
+import si.fri.algator.entities.ELocalConfig;
+import si.fri.algator.global.ATGlobal;
+import si.fri.algator.global.ATLog;
+import si.fri.algator.users.DBEntities;
+import si.fri.algator.users.UsersDatabase;
+import si.fri.algator.users.DBEntity;
+import si.fri.algator.users.UsersTools;
 
 
 /**
@@ -483,7 +482,7 @@ public class Users {
       if (conn == null) {
         String err = Database.isDatabaseMode() ?
            "Please, check your settings in the algator.acfg file." :     
-           "File $ALGATOR_ROOT/mysql-stop is preventing connection.";        
+           "File $ALGATOR_ROOT/anonymous is preventing connection.";        
         System.out.println("Can not connect to database. " + err);
         return;
       }

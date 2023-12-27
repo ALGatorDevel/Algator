@@ -11,17 +11,17 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import si.fri.algotest.entities.EAlgorithm;
-import si.fri.algotest.entities.EResult;
-import si.fri.algotest.entities.ETestSet;
-import si.fri.algotest.entities.MeasurementType;
-import si.fri.algotest.entities.Project;
-import si.fri.algotest.entities.Variables;
-import si.fri.algotest.execute.AbstractTestCase;
-import si.fri.algotest.execute.ExternalExecutor;
-import si.fri.algotest.execute.New;
-import si.fri.algotest.global.ATGlobal;
-import si.fri.algotest.global.ATLog;
+import si.fri.algator.entities.EAlgorithm;
+import si.fri.algator.entities.EResult;
+import si.fri.algator.entities.ETestSet;
+import si.fri.algator.entities.MeasurementType;
+import si.fri.algator.entities.Project;
+import si.fri.algator.entities.Variables;
+import si.fri.algator.execute.AbstractTestCase;
+import si.fri.algator.execute.ExternalExecutor;
+import si.fri.algator.execute.New;
+import si.fri.algator.global.ATGlobal;
+import si.fri.algator.global.ATLog;
 
 /**
  *
