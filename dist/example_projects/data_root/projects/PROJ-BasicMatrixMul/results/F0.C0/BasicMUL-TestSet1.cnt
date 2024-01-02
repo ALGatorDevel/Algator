@@ -1,0 +1,15 @@
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test1","Timestamp":1703958909125,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test2","Timestamp":1703958909293,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test3","Timestamp":1703958909421,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test4","Timestamp":1703958909562,"Pass":"DONE","N":15,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test5","Timestamp":1703958909704,"Pass":"DONE","N":15,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test6","Timestamp":1703958909846,"Pass":"DONE","N":15,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test7","Timestamp":1703958909993,"Pass":"DONE","N":20,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test8","Timestamp":1703958910134,"Pass":"DONE","N":20,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test9","Timestamp":1703958910277,"Pass":"DONE","N":20,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test10","Timestamp":1703958910420,"Pass":"DONE","N":25,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test11","Timestamp":1703958910562,"Pass":"DONE","N":25,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test12","Timestamp":1703958910703,"Pass":"DONE","N":25,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test13","Timestamp":1703958910849,"Pass":"DONE","N":30,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test14","Timestamp":1703958910994,"Pass":"DONE","N":30,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet1","InstanceID":"test15","Timestamp":1703958911139,"Pass":"DONE","N":30,"TC_PROPS":{"Type":"Type1"},"CNT1":0}

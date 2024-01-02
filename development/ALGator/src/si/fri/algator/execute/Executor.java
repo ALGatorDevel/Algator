@@ -174,7 +174,7 @@ public class Executor {
       sc.close();
 
       classContent = "import si.fri.algator.execute.Counters;\n" + classContent;
-      classContent = classContent.replaceAll(className, newClassName);
+      classContent = classContent.replaceAll("class +"+className, "class "+newClassName);
       classContent = classContent.replaceAll("//\\@COUNT\\{(.*),(.*)\\}", "Counters.addToCounter(\"$1\", $2);");
 
       PrintWriter pw = new PrintWriter(newClassFile);

@@ -1,0 +1,10 @@
+{"Algorithm":"BasicMUL","Testset":"TestSet10","InstanceID":"test01","Timestamp":1703958913380,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"Type2"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet10","InstanceID":"test02","Timestamp":1703958915610,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"Type2"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet10","InstanceID":"test03","Timestamp":1703958917835,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"Type2"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet10","InstanceID":"test04","Timestamp":1703958920040,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"Type2"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet10","InstanceID":"test05","Timestamp":1703958922222,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"Type2"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet10","InstanceID":"test06","Timestamp":1703958924405,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"Type2"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet10","InstanceID":"test07","Timestamp":1703958926606,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"Type2"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet10","InstanceID":"test08","Timestamp":1703958928790,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"Type2"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet10","InstanceID":"test09","Timestamp":1703958930950,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"Type2"},"CNT1":0}
+{"Algorithm":"BasicMUL","Testset":"TestSet10","InstanceID":"test10","Timestamp":1703958933144,"Pass":"DONE","N":1000,"TC_PROPS":{"Type":"Type2"},"CNT1":0}
