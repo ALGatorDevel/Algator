@@ -404,6 +404,9 @@ public class ATGlobal {
   public static String getPRESENTERSroot(String projectRoot) {
     return projectRoot + File.separator + ATDIR_presenterDir;
   }
+  public static String getPRESENTERFilename(String data_root, String projectName, String presenterName) {
+    return  getPRESENTERSroot(data_root, projectName) + File.separator + presenterName + "." + AT_FILEEXT_presenter;
+  }
 
   
   /************* TMP folders   *+++++++++++++++++++++*/

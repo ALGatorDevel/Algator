@@ -48,6 +48,8 @@ public class EResult extends Entity {
      super(ID_Result, 
 	 new String [] {ID_IndOrder, ID_indicators});
          set(ID_indicators, new JSONArray());
+         
+     export_name= false; // don't export 'name' property (since it is always 'result_*')     
   }
   
   public EResult(File fileName) {

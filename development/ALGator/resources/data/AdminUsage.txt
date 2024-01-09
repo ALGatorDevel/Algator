@@ -18,3 +18,22 @@ To print the information about the "Sorting" project:
 
 To print the information about the "BubbleSort" algorithm of the "Sorting" project:
   java algator.Admin -i Sorting -a BubbleSort
+
+
+To add a parameter to project Proj24 (values for parameter are read from stdin):
+  java algator.Admin -cpa Proj24
+
+To add a parameter (advanced):
+  java algator.Admin -cpa Proj24 '{"Name":"N", "Type":"int", "Description":"Size of input"}' '{"isInputParameter":true}'
+
+To change an existing parameter (advanced):
+  java algator.Admin -cpa Proj24 '{"Name":"Delta", "Type":"enum", "Meta":{"Values":["LO","HI","MED"]}}' '{"edit":true, "isInputParameter":false}'
+
+To add an indicator to project Proj24 (values for parameter are read from stdin):
+  java algator.Admin -cin Proj24
+
+To add an indicator (advanced):
+  java algator.Admin -cin Proj24 '{"Name":"Tmin", "Type":"timer", "Description":"Tmin indikator", "Meta":{"STAT":"MAX", "ID":1}}'
+
+To change an existing indicator (advanced):
+  java algator.Admin -cin Proj24 '{"Name":"Tafna", "Type":"timer", "Description":"Tmin indikator", "Meta":{"STAT":"MIN", "ID":0}}' '{"edit":true}'

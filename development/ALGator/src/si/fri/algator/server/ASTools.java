@@ -30,6 +30,7 @@ import si.fri.algator.entities.CompCap;
 import si.fri.algator.entities.EAlgatorConfig;
 import si.fri.algator.entities.EAlgorithm;
 import si.fri.algator.entities.EComputer;
+import si.fri.algator.entities.EPresenter;
 import si.fri.algator.entities.EProject;
 import si.fri.algator.entities.ETestSet;
 import si.fri.algator.entities.MeasurementType;
@@ -198,6 +199,21 @@ public class ASTools {
     EAlgorithm algorithm = new EAlgorithm(new File(fileName));
     return jAnswer(OK_STATUS, String.format("Algorithm '%s'.", algorithmName), algorithm.toJSONString());
   }  
+  
+  public static String getPresenter(String projectName, String presenterName) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    String fileName = ATGlobal.getPRESENTERFilename(ATGlobal.getALGatorDataRoot(), projectName, presenterName);
+
+    File pFile = new File(fileName);    
+    if (!pFile.exists())
+      return sAnswer(3, String.format("Presenter '%s' does not exist in project '%s'.", presenterName, projectName), "");    
+    
+    EPresenter presenter = new EPresenter(pFile);
+    return jAnswer(OK_STATUS, String.format("Presenter '%s'.", presenterName), presenter.toJSONString());
+  }
+  
 /**** Supporting methods for getData request  ... end  */
   
   

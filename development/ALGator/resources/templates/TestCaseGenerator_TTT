@@ -7,28 +7,30 @@ import si.fri.algator.execute.AbstractTestCaseGenerator;
  *
  * @author ...
 */
-public class TestCaseGenerator_<TTT> extends AbstractTestCaseGenerator {
+public class TestCaseGenerator_<TTT> extends AbstractTestCaseGenerator {    
   @Override
   public TestCase generateTestCase(Variables generatingParameters) {
     // read params from generatingParameters
     <params>
 
-    // create a test case and set ...
+    // create a testcase and set ...
     TestCase <pPP>TestCase = new TestCase();
 
-    // ... the input
+    // ... the input ...
     // ...
-    //<pPP>TestCase.setInput(...);
+    //<pPP>TestCase.setInput(new Input(...));
 
-    // ... add properties ...
+    // ... and the expected output.
+    // ...
+    // <pPP>TestCase.setExpectedOutput(new Output(...));
+
+
+    // Add properties ...
     Variables testcaseParameters = new Variables(generatingParameters);
     testcaseParameters.addProperty(PROPS, "Type", "<TTT>");
     <pPP>TestCase.getInput().setParameters(testcaseParameters);
 
-    // ... and the expected output
-    // ...
-    // <pPP>TestCase.setExpectedOutput(...);
-
+    // ... and return the testcase
     return <pPP>TestCase;
   }
 }

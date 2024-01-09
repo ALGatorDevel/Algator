@@ -18,7 +18,7 @@ public class ETestCase extends Entity {
   public static final String ID_TestCase       ="TestCase";
   
   //Fields
-  private static final String ID_inputParameters    = "InputParameters";	// String []
+  public static final String ID_inputParameters    = "InputParameters";	// String []
   public static final String ID_parameters          = "Parameters";             // EVariable []
   public static final String ID_generators          = "Generators";             // EGenerator []
   
@@ -37,6 +37,8 @@ public class ETestCase extends Entity {
      super(ID_TestCase, 
 	 new String [] {ID_inputParameters, ID_parameters, ID_generators});
          set(ID_parameters, new JSONArray());
+         
+     export_name= false; // don't export 'name' property (since it is always 'testcase')
   }
   
   public ETestCase(File fileName) {

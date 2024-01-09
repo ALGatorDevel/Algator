@@ -1,17 +1,17 @@
-import si.fri.algotest.execute.AbstractAlgorithm;
+import si.fri.algator.execute.AbstractAlgorithm;
 
 /**
  *
  * @author ...
  */
-public abstract class <PPP>AbsAlgorithm extends AbstractAlgorithm {
+public abstract class ProjectAbstractAlgorithm extends AbstractAlgorithm {
+
+  protected abstract Output execute(Input <pPP>Input);
  
   @Override
-  public <PPP>TestCase getCurrentTestCase() {
-    return (<PPP>TestCase) super.getCurrentTestCase(); 
+  public TestCase getCurrentTestCase() {
+    return (TestCase) super.getCurrentTestCase(); 
   }
-
-  protected abstract <PPP>Output execute(<PPP>Input <pPP>Input);
 
   @Override
   public void run() {    

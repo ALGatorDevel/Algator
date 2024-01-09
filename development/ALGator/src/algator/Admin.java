@@ -2,17 +2,8 @@ package algator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Console;
-import java.io.File;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Scanner;
-import java.util.TreeMap;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -21,26 +12,23 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.io.FilenameUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import si.fri.algator.database.Database;
-import si.fri.algator.entities.EAlgorithm;
-import si.fri.algator.entities.EGenerator;
 import si.fri.algator.entities.ELocalConfig;
-import si.fri.algator.entities.EProject;
-import si.fri.algator.entities.EResult;
-import si.fri.algator.entities.ETestCase;
-import si.fri.algator.entities.ETestSet;
-import si.fri.algator.entities.EVariable;
-import si.fri.algator.entities.MeasurementType;
-import si.fri.algator.entities.Project;
-import si.fri.algator.users.DBEntity;
 import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
-import si.fri.algator.users.DBUser;
 import si.fri.algator.users.UsersDatabase;
-import si.fri.algator.users.UsersTools;
+
+import static si.fri.algator.admin.Maintenance.addIndicator;
+import static si.fri.algator.admin.Maintenance.addIndicatorTest;
+import static si.fri.algator.admin.Maintenance.addParameter;
+import static si.fri.algator.admin.Maintenance.addTestCaseGenerator;
+import static si.fri.algator.admin.Maintenance.createAlgorithm;
+import static si.fri.algator.admin.Maintenance.createPresenter;
+import static si.fri.algator.admin.Maintenance.createProject;
+import static si.fri.algator.admin.Maintenance.createTestset;
+import static si.fri.algator.admin.Maintenance.getInfo;
+import static si.fri.algator.admin.Maintenance.removePresenter;
+
 
 /**
  *
@@ -126,11 +114,14 @@ public class Admin {
 	    "remove a presenter for a project");
 
     options.addOption("cit", "add_indicator_test", false,
-	    "add a new indicator test");
+	    "add a new indicator test; args: proj_name indicator_name");
     options.addOption("cgn", "add_generator", false,
 	    "add a new generator; args: proj_name type comma_separated_list_of_parameters");
-    
-    
+    options.addOption("cpa", "add_parameter", false,
+	    "add a new parameter; args: proj_name [parameter_jsno_description]");
+    options.addOption("cin", "add_indicator", false,
+	    "add a new indicator; args: proj_name [indicator_jsno_description]");
+        
     options.addOption("use", "usage", false, "print usage guide");
     options.addOption("i", "info", false, "print info about entity");
     options.addOption("ei", "extinfo", false, "print extended info about entity");
@@ -276,8 +267,7 @@ public class Admin {
         
         return;
       }        
-      
-            
+                  
       if (!Database.databaseAccessGranted(username, password)) return;
       
       if (line.hasOption("create_project")) {
@@ -289,23 +279,49 @@ public class Admin {
           return;
         }
       }
+        
+      if (line.hasOption("add_parameter")) {
+	if (curArgs.length < 1) {
+          System.out.println("Invalid number of parameters (required: project_name)");
+          return;
+        } else {
+          if (curArgs.length == 1)
+            System.out.println(addParameter(username, curArgs[0]));
+          else 
+            System.out.println(addParameter(username, curArgs[0], curArgs[1], curArgs.length > 2 ? curArgs[2] : ""));
+          return;
+        }
+      }
 
+      if (line.hasOption("add_indicator")) {
+	if (curArgs.length < 1) {
+          System.out.println("Invalid number of parameters (required: project_name)");
+          return;
+        } else {
+          if (curArgs.length == 1)
+            System.out.println(addIndicator(username, curArgs[0]));
+          else 
+            System.out.println(addIndicator(username, curArgs[0], curArgs[1], curArgs.length > 2 ? curArgs[2] : ""));
+          return;
+        }
+      }
+            
       if (line.hasOption("add_indicator_test")) {
 	if (curArgs.length != 2) {
-          System.out.println("Invalid project or indicator name");
-          printMsg(options); 
+          System.out.println("Invalid number of parameters (required: project_name indicator_name)");
+          return;
         } else {
-          addIndicator(username, curArgs[0], curArgs[1]);
+          System.out.println(addIndicatorTest(username, curArgs[0], curArgs[1]));
           return;
         }
       }
 
       if (line.hasOption("add_generator")) {
-	if (curArgs.length < 2) {
-          System.out.println("Invalid project or generator name");
-          printMsg(options); 
+	if (curArgs.length != 3) {
+          System.out.println("Invalid number of parameters (required: project_name type_name comma_separated_list_of_parameters)");
+          return;
         } else {
-          addTestCaseGenerator(username, curArgs[0], curArgs[1], (curArgs.length>2 ? curArgs[2]:"").split(","));
+          System.out.println(addTestCaseGenerator(username, curArgs[0], curArgs[1], curArgs[2].split(",")));
           return;
         }
       }
@@ -385,520 +401,4 @@ public class Admin {
     }
   }
   
-  private static boolean createProject(String username, String proj_name) {
-    String dataroot = ATGlobal.getALGatorDataRoot();         
-    String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(dataroot, proj_name));
-    String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
-    String projConfFolder = ATGlobal.getPROJECTConfigFolder(dataroot, proj_name);
-    String projDocFolder = ATGlobal.getPROJECTdoc(dataroot,proj_name);
-    
-    HashMap<String,String> substitutions = getSubstitutions(proj_name);
-        
-    System.out.println("Creating project " + proj_name + " ...");
-        
-    try {                        
-      File projFolderFile = new File(projRoot);
-      if (projFolderFile.exists()) {
-        System.out.printf("\n Project %s already exists!\n", proj_name);
-        return false;
-      } 
-      
-      projFolderFile.mkdirs();
-      
-      copyFile("templates/PPP.atp",            projConfFolder,  proj_name+".atp",                 substitutions);
-      
-      copyFile("templates/PPP-em.atrd",        projConfFolder,  proj_name+"-em.atrd",             substitutions);
-      copyFile("templates/PPP-cnt.atrd",       projConfFolder,  proj_name+"-cnt.atrd",            substitutions);      
-      copyFile("templates/PPP-jvm.atrd",       projConfFolder,  proj_name+"-jvm.atrd",            substitutions);
-      
-      copyFile("templates/PPP.attc",           projConfFolder,  proj_name+".attc",                substitutions);
-      
-      copyFile("templates/PPPAbsAlgorithm",    projSrcFolder,   proj_name+"AbsAlgorithm.java",    substitutions);
-      copyFile("templates/PPPTestCase",        projSrcFolder,   proj_name+"TestCase.java",        substitutions);
-      copyFile("templates/PPPInput",           projSrcFolder,   proj_name+"Input.java",           substitutions);
-      copyFile("templates/PPPOutput",          projSrcFolder,   proj_name+"Output.java",          substitutions);
-      copyFile("templates/PPPTools",           projSrcFolder,   proj_name+"Tools.java",           substitutions);
-      
-      copyFile("templates/PPP.html",           projDocFolder,   "project.html",                   substitutions);
-      copyFile("templates/P_TS.html",          projDocFolder,   "testset.html",                   substitutions);      
-      copyFile("templates/P_TC.html",          projDocFolder,   "testcase.html",                  substitutions);
-      copyFile("templates/P_AAA.html",         projDocFolder,   "algorithm.html",                 substitutions);
-      copyFile("templates/P_REF.html",         projDocFolder,   "references.html",                substitutions);
-
-      if (Database.isDatabaseMode())
-        UsersTools.setProjectPermissions(username, proj_name);
-    } catch (Exception e) {
-      System.out.println("Can not create project: " + e.toString());
-      return false;
-    }
-    return true;
-  }
-
-  public static boolean addIndicator(String username, String proj_name, String ind_name) {
-    String dataroot = ATGlobal.getALGatorDataRoot();         
-    String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(dataroot, proj_name));
-    
-    if (Database.isDatabaseMode() && !UsersTools.can_user(username, "can_write", proj_name)) {
-      System.out.println("User "+username+" does not have permitions to add indicators");
-      return false;
-    }
-    try {
-      EResult resultsDescription = new EResult(new File(ATGlobal.getRESULTDESCfilename(
-        ATGlobal.getPROJECTroot(dataroot, proj_name), proj_name, MeasurementType.EM)));
-      
-      JSONArray indOrder = new JSONArray();
-      try {indOrder = (JSONArray) resultsDescription.get(EResult.ID_IndOrder);} catch (Exception e) {}
-      boolean hasIndicator = false;
-      for (int i = 0; i < indOrder.length(); i++) {
-        if (ind_name.equals(indOrder.get(i))) {
-          hasIndicator = true; break;
-        }
-      }
-      if (hasIndicator) {
-        System.out.println("Indicator with this name already exists.");
-        return false;
-      }
-      
-      HashMap<String,String> substitutions = new HashMap<>();
-      substitutions.put("<PPP>", proj_name);
-      substitutions.put("<III>", ind_name);
-        
-      System.out.println("Adding indicator " + ind_name + " to project " + proj_name + "...");
-        
-                                 
-      // create IndicatorTest_III.java file ...
-      copyFile("templates/IndicatorTest_III", projSrcFolder, "IndicatorTest_"+ind_name+".java",substitutions);
-
-      // and add indicator to results_em.json file
-      indOrder.put(ind_name);
-      resultsDescription.set(EResult.ID_IndOrder, indOrder);
-      resultsDescription.saveEntity();
-    } catch (Exception e) {
-      System.out.println("Can not add indicator: " + e.toString());
-      return false;
-    }
-    return true;
-  }
-
-  public static boolean addTestCaseGenerator(String username, String proj_name, String gen_name, String[] params) {
-    String dataroot = ATGlobal.getALGatorDataRoot();         
-    String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(dataroot, proj_name));
-    
-    if (Database.isDatabaseMode() && !UsersTools.can_user(username, "can_write", proj_name)) {
-      System.out.println("User "+username+" does not have permitions to add generators");
-      return false;
-    }
-    try {
-      ETestCase testcaseDescription = new ETestCase(
-         new File(ATGlobal.getTESTCASEDESCfilename(dataroot, proj_name)));
-      
-      JSONArray generators = new JSONArray();
-      try {generators = (JSONArray) testcaseDescription.get(ETestCase.ID_generators);} catch (Exception e) {}
-      boolean hasGenerator = false;
-      for (int i = 0; i < generators.length(); i++) {
-        if (generators.get(i) instanceof JSONObject && gen_name.equals(((JSONObject)generators.get(i)).get(EGenerator.ID_Type))) {
-          hasGenerator = true; break;
-        }
-      }
-      if (hasGenerator) {
-        System.out.println("Generator of this type already exists.");
-        return false;
-      }
-      
-      HashMap<String,String> substitutions = getSubstitutions(proj_name);
-      substitutions.put("<TTT>", gen_name);
-
-      String param = "String <par> = generatingParameters.getVariable(\"<PAR>\", \"\").getStringValue();";
-      String paramSub = "";
-      for (int i = 0; i < params.length; i++) {
-        String param1 = param .replace("<PAR>", params[i]);
-               param1 = param1.replace("<par>", params[i].toLowerCase());
-        paramSub += (paramSub.isEmpty() ? "" : "\n    ") + param1;
-      }
-      substitutions.put("<params>", paramSub);      
-        
-      System.out.println("Adding generator " + gen_name + " to project " + proj_name + "...");
-        
-      // create TestCaseGenetator_TTT.java file ...
-      copyFile("templates/TestCaseGenerator_TTT", projSrcFolder, "TestCaseGenerator_"+gen_name+".java",substitutions);
-
-      // and add generator description to testcase.json file
-      JSONObject generator = new JSONObject();
-      generator.put(EGenerator.ID_Type, gen_name);
-      generator.put(EGenerator.ID_Desc, "");
-      generator.put(EGenerator.ID_GPars, new JSONArray(params));
-      generators.put(generator);
-      
-      testcaseDescription.saveEntity();
-    } catch (Exception e) {
-      System.out.println("Can not add indicator: " + e.toString());
-      return false;
-    }
-    return true;
-  }
-  
-  private static boolean createAlgorithm(String username, String proj_name, String alg_name) {        
-    String dataroot = ATGlobal.getALGatorDataRoot();         
-    String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
-    String algRoot = ATGlobal.getALGORITHMroot(projRoot, alg_name);
-    String algSrc  = ATGlobal.getALGORITHMsrc(projRoot, alg_name);
-    String algDocFolder = ATGlobal.getALGORITHMdoc(projRoot, alg_name);
-    
-    HashMap<String,String> substitutions = getSubstitutions(proj_name);
-    substitutions.put("<AAA>", alg_name);
-    
-    // first create project if it does not exist
-    File projFolderFile = new File(projRoot);
-    if (!projFolderFile.exists()) {
-      if (!createProject(username, proj_name))
-        return false;
-    }    
-    
-    System.out.println("Creating algorithm " + alg_name +  " for the project " + proj_name);
-    try {                              
-      
-      File algFolderFile = new File(algRoot);
-      if (algFolderFile.exists()) {
-        System.out.printf("\n Algorithm %s already exists!\n", alg_name);
-        return false;
-      }       
-      algFolderFile.mkdirs();
-      
-      copyFile("templates/AAA.atal",           algRoot,         alg_name+".atal",                 substitutions);
-      copyFile("templates/AAAAlgorithm",       algSrc,          alg_name+"Algorithm.java",        substitutions);
-      copyFile("templates/AAA.html",           algDocFolder,    "algorithm.html",                 substitutions);
-      copyFile("templates/A_REF.html",         algDocFolder,    "references.html",                substitutions);
-      
-      EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
-      ArrayList a = new ArrayList<String>(Arrays.asList(eProject.getStringArray(EProject.ID_Algorithms)));
-        a.add(alg_name);
-      eProject.set(EProject.ID_Algorithms, a.toArray());
-      eProject.saveEntity();
-
-      if (Database.isDatabaseMode())
-        UsersTools.setEntityPermissions(username, proj_name, alg_name, 2);
-    } catch (Exception e) {
-      System.out.println("Can not create algorithm: " + e.toString());
-      return false;
-    }    
-    return true;
-  }
-
-  private static boolean createTestset(String username, String proj_name, String testset_name) {        
-    String dataroot = ATGlobal.getALGatorDataRoot();         
-    String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
-    String testsRoot = ATGlobal.getTESTSroot(dataroot, proj_name);
-    String testsDocFolder = ATGlobal.getTESTSdoc(dataroot, proj_name);
-
-    
-    HashMap<String,String> substitutions = getSubstitutions(proj_name);
-    substitutions.put("<TS>", testset_name);
-    
-    // first create project if it does not exist
-    File projFolderFile = new File(projRoot);
-    if (!projFolderFile.exists()) {
-      if (!createProject(username, proj_name))
-        return true;
-    }    
-    
-    System.out.println("Creating test set " + testset_name +  " for the project " + proj_name);
-    try {                              
-      
-      File testsetFolderFile = new File(testsRoot);
-      if (!testsetFolderFile.exists()) {
-        testsetFolderFile.mkdirs();
-      }
-      
-      File testSetFile = new File(testsRoot + File.separator + testset_name+".atts");
-      if (testSetFile.exists()) {
-        System.out.printf("\n Testset %s already exists!\n", testset_name);
-        return false;
-      }
-             
-      
-      
-      copyFile("templates/TS.atts",            testsRoot,       testset_name+".atts",             substitutions);
-      copyFile("templates/TS.txt",             testsRoot,       testset_name+".txt",              substitutions);
-      
-      copyFile("templates/TS.html",            testsDocFolder,  testset_name + ".html",           substitutions);
-            
-      EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
-      ArrayList ts = new ArrayList<String>(Arrays.asList(eProject.getStringArray(EProject.ID_TestSets)));
-        ts.add(testset_name);
-      eProject.set(EProject.ID_TestSets, ts.toArray());
-      eProject.saveEntity();
-      
-      if (Database.isDatabaseMode())
-        UsersTools.setEntityPermissions(username, proj_name, testset_name, 3);
-    } catch (Exception e) {
-      System.out.println("Can not create test set: " + e.toString());
-      return false;
-    }    
-    return true;
-  }
-
-
-  private static String createPresenter(String username, String proj_name, String presenter_name, int type) {
-    if (presenter_name==null || presenter_name.isEmpty())
-      presenter_name = getNextAvailablePresenterName(proj_name, type);
-    
-    String dataroot = ATGlobal.getALGatorDataRoot();         
-    String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
-    String presenterRoot = ATGlobal.getPRESENTERSroot(dataroot, proj_name);
-
-    
-    HashMap<String,String> substitutions = getSubstitutions(proj_name);
-    substitutions.put("<TP>", presenter_name);
-    
-    // first create project if it does not exist
-    File projFolderFile = new File(projRoot);
-    if (!projFolderFile.exists()) {
-      if (!createProject(username, proj_name))
-        return null;
-    }    
-    
-    System.out.println("Creating presenter " + presenter_name +  " for the project " + proj_name);
-    try {                              
-      
-      File presenterFolderFile = new File(presenterRoot);
-      if (!presenterFolderFile.exists()) {
-        presenterFolderFile.mkdirs();
-      }
-      
-      File presenterFile = new File(presenterRoot + File.separator + presenter_name+".atpd");
-      if (presenterFile.exists()) {
-        System.out.printf("\n Presenter %s already exists!\n", presenter_name);
-        return null;
-      }
-                         
-      copyFile("templates/TP.atpd",  presenterRoot,  presenter_name + ".atpd", substitutions);
-      
-      copyFile("templates/TP.html",  presenterRoot,  presenter_name + ".html", substitutions);
-            
-      String id = EProject.ID_ProjPresenters;
-      switch (type) {
-        case 0: id = EProject.ID_MainProjPresenters;break;
-        case 1: id = EProject.ID_ProjPresenters;    break;
-        case 2: id = EProject.ID_MainAlgPresenters; break;
-        case 3: id = EProject.ID_AlgPresenters;     break;
-      }
-      
-      EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
-      ArrayList tp = new ArrayList<String>(Arrays.asList(eProject.getStringArray(id)));
-        tp.add(presenter_name);
-      eProject.set(id, tp.toArray());
-      eProject.saveEntity();
-
-    } catch (Exception e) {
-      System.out.println("Can not create presenter: " + e.toString());
-      return null;
-    }    
-    return presenter_name;
-  }
-    
-  private static String getNextAvailablePresenterName(String proj_name, int type) {
-    String presenterName = "Presenter";
-    
-    String dataroot = ATGlobal.getALGatorDataRoot();
-    String presenterPath = ATGlobal.getPRESENTERSroot(dataroot, proj_name);    
-    EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
-    
-    String prefix = "";
-    switch (type) {
-      case 0: prefix = "mp"; break;
-      case 1: prefix = "p";  break;
-      case 2: prefix = "ma"; break;
-      case 3: prefix = "a";  break;
-    }
-  
-      ArrayList<String> tp = new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_MainProjPresenters)));
-           tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_ProjPresenters))));
-           tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_MainAlgPresenters))));
-           tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_AlgPresenters))));      
-      tp.replaceAll(x -> x.toUpperCase());
-           
-      int id=1;
-      while (true) {
-        presenterName = prefix + "Presenter" + id++;
-        if (!tp.contains(presenterName.toUpperCase()) && !new File(presenterPath, presenterName+".atpd").exists()) break;
-      }
-                
-    return presenterName;
-  }
-  
-  
-  private static String removePresenter(String proj_name, String presenter_name) {   
-    String dataroot = ATGlobal.getALGatorDataRoot();         
-    String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
-    String presenterRoot = ATGlobal.getPRESENTERSroot(dataroot, proj_name);
-    
-    try {
-      EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
-      String [] presIDs = new String[] {EProject.ID_MainProjPresenters, EProject.ID_ProjPresenters, EProject.ID_MainAlgPresenters,EProject.ID_AlgPresenters};
-      for (String presID : presIDs) {
-        ArrayList<String> tp = new ArrayList<String>(Arrays.asList(eProject.getStringArray(presID)));
-        if (tp.contains(presenter_name)) {
-          tp.remove(presenter_name);          
-          eProject.set(presID, tp.toArray());
-          eProject.saveEntity();
-          
-          new File(presenterRoot, presenter_name + ".atpd").delete();
-          new File(presenterRoot, presenter_name + ".html").delete();
-                 
-          return "Presenter "+presenter_name + " sucessfully removed.";         
-        }
-      }
-      return "Presenter "+presenter_name+" does not exist.";
-      
-
-    } catch (Exception e) {      
-      return "Can not remove presenter: " + e.toString();
-    }    
-  }  
-  /**
-   * Returns: list of all projects (if projectName.isEmpty), info about project (if projectName is 
-   * defined and algorithmName.isEmpty) and info about algorithm (if both, projectName and 
-   * algorithmName are defined).
-   * 
-   * @param projectName
-   * @param algorithmName
-   * @return 
-   */
-  public static String getInfo(String projectName, String algorithmName, boolean extended) {
-    if (projectName.isEmpty()) {             // list of projects
-      JSONObject projInfo = Project.getProjectsAsJSON();
-      
-      return projInfo.toString(2);
-    } else if (algorithmName.isEmpty()) {    // project info
-      Project project = new Project(ATGlobal.getALGatorDataRoot(), projectName);
-      JSONObject projInfo = new JSONObject();
-      
-      projInfo.put("Name", project.getName());
-      
-      // list of algorithms
-      TreeMap<String,EAlgorithm> algs = project.getAlgorithms();
-      JSONArray jaA = new JSONArray();
-      for (String algName : algs.keySet()) {
-        jaA.put(algName);
-      }
-      projInfo.put("Algorithms", jaA);
-      
-      // list of algorithms
-      TreeMap<String,ETestSet> testsets = project.getTestSets();
-      JSONArray jaS = new JSONArray();
-      for (String testsetName : testsets.keySet()) {
-        jaS.put(testsetName);
-      }
-      projInfo.put("TestSets", jaS);
-      
-      if (extended) {
-        JSONArray mpp = new JSONArray();
-              
-        projInfo.put("MainProjPresenters", new JSONArray(project.getEProject().getStringArray(EProject.ID_MainProjPresenters)));
-        projInfo.put("ProjPresenters",     new JSONArray(project.getEProject().getStringArray(EProject.ID_ProjPresenters)));
-        projInfo.put("MainAlgPresenters",  new JSONArray(project.getEProject().getStringArray(EProject.ID_MainAlgPresenters)));      
-        projInfo.put("AlgPresenters",      new JSONArray(project.getEProject().getStringArray(EProject.ID_AlgPresenters)));      
-        
-        
-        ETestCase eTestCase = project.getTestCaseDescription();
-        
-        HashMap<MeasurementType,EResult> rDesc = project.getResultDescriptions();
-        JSONObject jrDesc = new JSONObject();
-        for(MeasurementType mType : rDesc.keySet()) {
-          if (mType.equals(MeasurementType.JVM)) continue;
-          
-          EResult eRes = rDesc.get(mType);
-          JSONObject params     = new JSONObject();
-          JSONObject indicators = new JSONObject();
-          
-          for (EVariable var : eTestCase.getParameters()) {
-            params.put(var.getName(), new JSONObject(var.toJSONString()));
-          }
-          
-          for (EVariable var : eRes.getIndicators()) {
-            indicators.put(var.getName(), new JSONObject(var.toJSONString()));
-          }
-          
-          JSONObject curRD = new JSONObject();
-          curRD.put("Parameters", params);
-          curRD.put("Indicators", indicators);
-          curRD.put("VariableOrder", EResult.getVariableOrder(eTestCase, eRes));
-          jrDesc.put(mType.name(), curRD);
-        } 
-        projInfo.put("Result", jrDesc);
-      }
-      
-      return projInfo.toString(2);
-    } else {                                 // algorithm info
-      Project project = new Project(ATGlobal.getALGatorDataRoot(), projectName);
-      if (project == null) return "";
-      
-      EAlgorithm alg = project.getAlgorithms().get(algorithmName);
-      if (alg == null) return "";
-      return alg.toJSONString();
-    }
-  }
-  
-  
-  //*******************************
-  
-  private static HashMap<String, String> getSubstitutions(String proj_name) {
-    StringBuffer lc = new StringBuffer(proj_name);
-    lc.setCharAt(0, Character.toLowerCase(proj_name.charAt(0)));
-    String projNameCamelCase = lc.toString();
-
-    SimpleDateFormat sdf = new SimpleDateFormat("MM, YYYY");
-        
-    HashMap<String, String> substitutions = new HashMap();
-    substitutions.put("<PPP>", proj_name);
-    substitutions.put("<pPP>", projNameCamelCase);
-    substitutions.put("<today>", sdf.format(new Date()));   
-    
-    // substitutions.put("\r", "\n");   
-    
-    return substitutions;
-  }
-  
-  private static String readFile(String fileName) {
-    try {
-      ClassLoader classLoader = Admin.class.getClassLoader();
-      InputStream fis = classLoader.getResourceAsStream(fileName);
-      return new Scanner(fis).useDelimiter("\\Z").next();      
-    } catch (Exception e) {
-      System.out.println(e.toString());
-    }
-    return "";
-  }
-  
-  private static void writeFile(String fileName, String content) {
-    try {
-      // first creates a folder ...
-      String filePath = FilenameUtils.getFullPath(fileName);
-      File filePathFile = new File(filePath);
-      filePathFile.mkdirs();
-      
-      // ... then writes a content
-      PrintWriter pw = new PrintWriter(fileName);
-      pw.print(content);
-      pw.close();
-    } catch (Exception e) {
-      System.out.println(e.toString());
-    }
-  }
-    
-  private static String replace(String source, String what, String with) {
-    return source.replaceAll(what, with);
-  }
-  
-  /**
-   * Copies a template to destination folder  + makes substitutions. 
-   */
-  private static void copyFile(String tplName, String outputFolder, String outputFileName, HashMap<String, String> substitutions) { 
-    String absAlg = readFile(tplName);
-    for(String key: substitutions.keySet()) {
-      absAlg = replace(absAlg, key, substitutions.get(key));
-    }
-    writeFile(new File(outputFolder, outputFileName).getAbsolutePath(), absAlg);
-  }
-
 }

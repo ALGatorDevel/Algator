@@ -1,21 +1,25 @@
-import si.fri.algotest.execute.AbstractInput;
+import si.fri.algator.execute.AbstractInput;
 
 /**
+ * Input class for the project <PPP>.
+ * 
  * @author ...
  */
-public class <PPP>Input extends AbstractInput {
+public class Input extends AbstractInput {
 
-  // TODO: define fields to hold the input data of an algorithm
+  // TODO: define fields to hold the input data
   // ...
 
   
-  public <PPP>Input(/* TODO: define appropriate constructor parameters */) {    
+  public Input(/* TODO: define appropriate constructor parameters */) {    
     // this.parameter = parameter;
   }
       
   @Override
   public String toString() {
-    // TODO: provide a handy <PPP>Input string representation (include only important data)
+    // TODO: provide a handy representation (include only important data) of the Input
+    // This method is used only in the debugging process.
     return super.toString();
   }
+
 }

@@ -1,15 +1,16 @@
 /**
+ * Algorithm for project <PPP>.
  *
  * @author ...
  */
-public class <AAA>Algorithm extends <PPP>AbsAlgorithm {
+public class Algorithm extends ProjectAbstractAlgorithm {
 
   @Override
-  protected <PPP>Output execute(<PPP>Input input) {
+  protected Output execute(Input input) {
     
     // TODO: implement the algorithm that uses the input and generates the output
     
-    <PPP>Output output = new <PPP>Output(/* TODO: add parameters for constructor */);    
+    Output output = new Output(/* TODO: add parameters for constructor */);    
     return output;
   }
 

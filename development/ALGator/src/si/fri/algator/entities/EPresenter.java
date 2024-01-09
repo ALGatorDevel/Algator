@@ -43,6 +43,11 @@ public class EPresenter extends Entity implements Serializable {
     this();
     initFromJSON(json);
   }
+  
+  public EPresenter(File fileName) {
+    this();
+    initFromFile(fileName);
+  }   
 
   public TreeSet<GraphType> getGraphTypes() {
     TreeSet<GraphType> result = new TreeSet();

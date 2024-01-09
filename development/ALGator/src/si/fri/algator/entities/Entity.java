@@ -51,11 +51,8 @@ public class Entity implements Cloneable, Serializable {
    */
   private String entity_name;
 
-  /**
-   * The extension of the file from which the entity was read, or null if it was
-   * initialized by json string
-   */
-  private String entity_file_ext;
+  // if this is set to true, JSON representation of this entity includes the 'name' property
+  protected boolean export_name = true;
 
   /**
    * The of the file from which the entity was read, or null if it was
@@ -105,7 +102,6 @@ public class Entity implements Cloneable, Serializable {
 
     entity_id = entityID;
     entity_name = unknown_value;
-    entity_file_ext = unknown_value;
     this.fieldNames = fieldNames;
     
     // add default values, if they are provided
@@ -147,7 +143,6 @@ public class Entity implements Cloneable, Serializable {
   public ErrorStatus initFromFile(File entityFile) {
     entity_rootdir = ATTools.extractFilePath(entityFile);
     entity_name = ATTools.extractFileNamePrefix(entityFile);
-    entity_file_ext = ATTools.getFilenameExtension(entityFile.getAbsolutePath());
     entity_file_name = entityFile.getPath();
 
     try {
@@ -242,7 +237,9 @@ public class Entity implements Cloneable, Serializable {
   public String toJSONString(boolean wrapWithEntity, int indent) {
     JSONObject result = new JSONObject();
 
-    result.put(ID_NAME, getName());
+    if (export_name)
+      result.put(ID_NAME, getName());
+    
     for (String sp : fieldNames) {
       Object o = fields.get(sp);
 

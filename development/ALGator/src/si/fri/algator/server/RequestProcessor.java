@@ -208,7 +208,9 @@ public class RequestProcessor {
   
   /**
    * Returns data depending on Type parameter:
-   *   - Type=Projects ... list of all public projects; no other params required
+   *   - Type=Projects ...  list of all public projects; no other params required
+   *   - Type=Algorithm ... data of algorithm
+   *   - Type=MainProjPresenter ... all main project presenters (params: ProjectName, PresenterName)
    *
    * @return json data
    */
@@ -229,6 +231,10 @@ public class RequestProcessor {
         if (!(jObj.has("ProjectName")&& jObj.has("AlgorithmName")))
           return sAnswer(1, "getData of type=Algorithm requires 'ProjectName' and 'AlgorithmName' properties.", "");
         return ASTools.getAlgorithmData(jObj.getString("ProjectName"), jObj.getString("AlgorithmName"));
+      case "Presenter":
+        if (!(jObj.has("ProjectName")&&jObj.has("PresenterName")))
+          return sAnswer(1, "getData of type=Presenters requires 'ProjectName' and 'PresenterName' properties.", "");
+        return ASTools.getPresenter(jObj.getString("ProjectName"), jObj.getString("PresenterName"));
         
       default: return sAnswer(1, "Unknown type '"+type+"'.", "");
     }    

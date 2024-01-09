@@ -1,94 +1,18 @@
-import si.fri.algotest.entities.Variables;
-import si.fri.algotest.entities.EVariable;
-import si.fri.algotest.execute.AbstractTestCase;
+import si.fri.algator.execute.AbstractTestCase;
 
 /**
  *
  * @author ...
  */
-public class <PPP>TestCase extends AbstractTestCase {
+public class TestCase extends AbstractTestCase {
 
   @Override
-  public <PPP>Input getInput() {
-    return (<PPP>Input) super.getInput(); 
+  public Input getInput() {
+    return (Input) super.getInput(); 
   } 
 
   @Override
-  public <PPP>Output getExpectedOutput() {
-    return (<PPP>Output) super.getExpectedOutput();
+  public Output getExpectedOutput() {
+    return (Output) super.getExpectedOutput();
   }
-  
-  
-  @Override
-  /**
-   * TYPE0 test case generator. 
-   * Method creates a test case based on the given test case parameters.
-  **/
-  public <PPP>TestCase testCaseGenerator(Variables generatingParameters) {  
-    // a path to the testset folder 
-    String path       = generatingParameters.getVariable(TESTS_PATH,    "").getStringValue();  
-
-          
-    // TODO: 
-    // ... according to the values of the generating parameters create a corresponding test case data fields
-
-    // ... Example: if test case data is stored in an array of integers of size "N"
-    // int size = generatingParameters.getVariable("N", 10).getIntValue();              
-    // int [] array = new int[size];
-       
-    
-    // create a test case and set ...
-    <PPP>TestCase <pPP>TestCase = new <PPP>TestCase();    
-
-    // ... the input                
-    <pPP>TestCase.setInput(new <PPP>Input(/* TODO: add parameters for constructor */));    
-
-    // ... the testcase parameters (for the type0 generator the set of InputParameters equals to the set of GeneratingParameters)
-    Variables inputParameters = new Variables(generatingParameters);
-    <pPP>TestCase.getInput().setParameters(inputParameters);
-
-    // ... some test case properties (optionally)
-    //inputParameters.addProperty(PROPS, "prop_name", prop_value);
-
-    
-    // ... and the expected output
-    <pPP>TestCase.setExpectedOutput(new <PPP>Output(/* TODO: add parameters for constructor */));
-    
-    return <pPP>TestCase;
-  }
-
-/* 
- * Optionally: add additional generators (testCaseGenerator1() for TYPE1, 
- * testCaseGenerator2() for TYPE2, ...)
- *
- */
-//  @Override
-//  public <PPP>TestCase testCaseGenerator1(Variables generatingParameters) {
-//    // a path to the testset folder 
-//    String path       = generatingParameters.getVariable("Path",    "").getStringValue();  
-//
-//    // TODO:  
-//    // ... according to the values of the generating parameters create a corresponding test case data fields
-//                    
-//    // create a test case and set ...
-//    <PPP>TestCase <pPP>TestCase = new <PPP>TestCase();                
-//
-//    // ... the input                
-//    <pPP>TestCase.setInput(new <PPP>Input(/* TODO: add parameters for constructor */));
-//
-//    // ... the test case parameters
-//    Variables inputParameters = new Variables(); 
-//    // TODO: for each testcase parameter, set its value in inputParameters   
-//    inputParameters.addVariable(new EVariable("tc_parameter_name", tc_parameter_value));
-//    // TODO: add test case properties (optionally)
-//    //inputParameters.addProperty(PROPS, "prop_name", prop_value);
-//    <pPP>TestCase.getInput().setParameters(inputParameters);    
-
-//    // ... and the expected output
-//    <pPP>TestCase.setExpectedOutput(new <PPP>Output(/* TODO: add parameters for constructor */));
-//    
-//    return <pPP>TestCase;
-//  }
-
-
 }
