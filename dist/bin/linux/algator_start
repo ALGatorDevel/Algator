@@ -10,7 +10,7 @@ then
   echo "Press ENTER key to continue"
   read
 else	
-    docker run -v $ALGATOR_ROOT/data_root:/home/algator/ALGATOR_ROOT/data_root -p 8081:8081 --env TPY=L algator/algatorweb  &
+    docker run --privileged -v $ALGATOR_ROOT/data_root:/home/algator/ALGATOR_ROOT/data_root -p 8081:8081 --env TPY=L algator/algatorweb  &
     read
 fi
 
