@@ -44,13 +44,13 @@ public class Server {
     timeStarted = new java.util.Date().getTime();
     
     int port    = EAlgatorConfig.getALGatorServerPort();
-    String host = EAlgatorConfig.getALGatorServerName();
+    String host = "localhost";  // =EAlgatorConfig.getALGatorServerName();
     
     port(port);
     
-    ipAddress("localhost");
-    if (!host.equals("localhost"))
-      ipAddress(host);
+    //ipAddress("localhost");
+    //if (!host.equals("localhost"))
+    //  ipAddress(host);
 
     ASLog.log(String.format("ALGatorServer Initialized on %s:%s ", host, port));    
     
