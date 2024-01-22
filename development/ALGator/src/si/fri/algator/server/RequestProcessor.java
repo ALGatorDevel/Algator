@@ -236,6 +236,26 @@ public class RequestProcessor {
           return sAnswer(1, "getData of type=Presenters requires 'ProjectName' and 'PresenterName' properties.", "");
         return ASTools.getPresenter(jObj.getString("ProjectName"), jObj.getString("PresenterName"));
         
+      case "ProjectSources": // project sources
+        if (!jObj.has("ProjectName"))
+          return sAnswer(1, "getData of type=ProjectSources requires 'ProjectName' property.", "");
+        return ASTools.getProjectSources(jObj.getString("ProjectName"));
+      
+      case "ProjectProps": // data for query form (algs, testsets, parameters, indicators)
+        if (!jObj.has("ProjectName"))
+          return sAnswer(1, "getData of type=ProjectProps requires 'ProjectName' property.", "");
+        return ASTools.getProjectProps(jObj.getString("ProjectName"));
+
+      case "ProjectDocs": // all html files and list of resources
+        if (!jObj.has("ProjectName"))
+          return sAnswer(1, "getData of type=ProjectDocs requires 'ProjectName' property.", "");
+        return ASTools.getProjectDocs(jObj.getString("ProjectName"));
+        
+      case "ProjectResource": // a resource file
+        if (!(jObj.has("ProjectName") && jObj.has("ResourceName")))
+          return sAnswer(1, "getData of type=ProjectResource requires 'ProjectName' and 'ResourceName' properties.", "");
+        return ASTools.getProjectResource(jObj.getString("ProjectName"), jObj.getString("ResourceName"));                
+      
       default: return sAnswer(1, "Unknown type '"+type+"'.", "");
     }    
   }

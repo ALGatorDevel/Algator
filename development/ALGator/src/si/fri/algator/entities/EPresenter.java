@@ -18,23 +18,23 @@ public class EPresenter extends Entity implements Serializable {
   public static final String ID_PresenterParameter = "Presenter";
 
   // Fields
-  public static final String ID_Title = "Title";                 // String
-  public static final String ID_ShortDesc = "ShortTitle";        // String
-  public static final String ID_Desc = "Description";            // String
-  public static final String ID_Query = "Query";                 // String
-  public static final String ID_HasGraph = "HasGraph";           // String (1-true, other-false)
-  public static final String ID_Xaxis = "Xasix";                 // String
-  public static final String ID_Yaxes = "Yaxes";                 // String []
-  public static final String ID_GraphTypes = "GraphTypes";       // GraphType [] (coma separated string)
-  public static final String ID_XaxisLabel = "XaxisLabel";       // String
-  public static final String ID_Yaxislabel = "YaxisLabel";       // String (1-true, other-false)
-  public static final String ID_HasTable = "HasTable";           // String
-  public static final String ID_Columns = "Columns";             // String []
+  public static final String ID_Title      = "Title";           // String
+  public static final String ID_ShortDesc  = "ShortTitle";      // String
+  public static final String ID_Desc       = "Description";     // String
+  public static final String ID_Query      = "Query";           // String
+  public static final String ID_HasGraph   = "HasGraph";        // String (1-true, other-false)
+  public static final String ID_Xaxis      = "xAxis";           // String
+  public static final String ID_Yaxes      = "yAxes";           // String []
+  public static final String ID_GraphTypes = "GraphTypes";      // GraphType [] (coma separated string)
+  public static final String ID_XaxisTitle = "xAxisTitle";      // String
+  public static final String ID_YaxisTitle = "yAxisTitle";      // String (1-true, other-false)
+  public static final String ID_HasTable   = "HasTable";        // String
+  public static final String ID_Columns    = "Columns";         // String []
 
   public EPresenter() {
     super(ID_PresenterParameter,
             new String[]{ID_Title, ID_ShortDesc, ID_Desc, ID_Query, ID_HasGraph, ID_Xaxis, ID_Yaxes,
-              ID_GraphTypes, ID_XaxisLabel, ID_Yaxislabel, ID_HasTable, ID_Columns});
+              ID_GraphTypes, ID_XaxisTitle, ID_YaxisTitle, ID_HasTable, ID_Columns});
 
     setRepresentatives(ID_Title);
   }

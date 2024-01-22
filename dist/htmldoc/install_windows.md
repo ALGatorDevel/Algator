@@ -58,7 +58,7 @@
     ... and check the version of the ALGator with 
     <br>
     ``` 
-    C:\> ALGator_version.bat
+    C:\> algator version
     ```
     <br>
 

@@ -32,7 +32,40 @@ import static si.fri.algator.admin.Tools.getSubstitutions;
  */
 public class Maintenance {
 
-  public static boolean createProject(String username, String proj_name) {
+  /**
+   * Method creates project and all of its parts (testset, algorithm, 
+   * parameter, indicator, ...) and returns "0:Project created" if 
+   * no error occured or error message (as returned by submethod)
+   */
+  public static String createAll(String username, String proj_name) {
+    String msg = createProject(username, proj_name);
+    try {if (msg.charAt(0)!='0') return msg;} catch (Exception e) {}
+    
+    String paramDesc = "{Name:N, Type:int, Meta:{Min:1, Max:1, Default:1, Step:1}}";
+    msg = addParameter(username, proj_name, paramDesc, "{isInputParameter:true}");
+    try {if (msg.charAt(0)!='0') return msg;} catch (Exception e) {}
+    
+    msg = addTestCaseGenerator(username, proj_name, "Type0", new String[]{"N"});
+    try {if (msg.charAt(0)!='0') return msg;} catch (Exception e) {}
+
+    msg = createTestset(username, proj_name, "TestSet0");
+    try {if (msg.charAt(0)!='0') return msg;} catch (Exception e) {}
+    
+    String indDesc = "{Name:Tmin, Type:timer, Meta:{ID:0, STAT:MIN}}";
+    msg = addIndicator(username, proj_name, indDesc, "");
+    try {if (msg.charAt(0)!='0') return msg;} catch (Exception e) {}
+
+    indDesc = "{Name:Check, Type:string}";
+    msg = addIndicator(username, proj_name, indDesc, "");
+    try {if (msg.charAt(0)!='0') return msg;} catch (Exception e) {}
+    
+    msg = createAlgorithm(username, proj_name, "Alg1");
+
+    
+    return "0:Project created.";
+  }
+  
+  public static String createProject(String username, String proj_name) {
     String dataroot = ATGlobal.getALGatorDataRoot();
     String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(dataroot, proj_name));
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
@@ -41,15 +74,15 @@ public class Maintenance {
 
     HashMap<String, String> substitutions = getSubstitutions(proj_name);
 
-    System.out.println("Creating project " + proj_name + " ...");
-
+    System.out.println("Creating project " + proj_name);
+    
+    
     try {
       File projFolderFile = new File(projRoot);
       if (projFolderFile.exists()) {
-        System.out.printf("\n Project %s already exists!\n", proj_name);
-        return false;
-      }
-
+        return String.format("1:Project %s already exists!\n", proj_name);
+      }      
+      
       projFolderFile.mkdirs();
 
       copyFile("templates/project.json", projConfFolder, "project.json", substitutions);
@@ -76,10 +109,9 @@ public class Maintenance {
         UsersTools.setProjectPermissions(username, proj_name);
       }
     } catch (Exception e) {
-      System.out.println("Can not create project: " + e.toString());
-      return false;
+      return String.format("2: Can not create project: " + e.toString());
     }
-    return true;
+    return String.format("0:Project %s created.", proj_name);
   }
 
   public static String addParameter(String username, String proj_name) {
@@ -147,6 +179,8 @@ public class Maintenance {
   public static String addParameter(String username, String proj_name, String paramDesc, String opt) {
     JSONObject param = new JSONObject();
     String name = "";
+
+    
     try {
       param = new JSONObject(paramDesc);
 
@@ -168,6 +202,9 @@ public class Maintenance {
     } catch (Exception e) {
       return "2:Invalid parameter description string (not a json?).";
     }
+    
+    System.out.println("Adding parameter " + name);        
+    
     
     // read opts  (if opt is an invalid json string or propertis (edit 
     // or isInputParameter) are missing, the default values are used)
@@ -366,6 +403,9 @@ public class Maintenance {
       return "2:Invalid indicator description string (not a json?).";
     }
     
+    System.out.println("Adding indicator " + indName);
+
+    
     // read opts  (if opt is an invalid json string or property 
     // edit is missing, the default value is used)
     boolean edit=false;
@@ -484,6 +524,8 @@ public class Maintenance {
     if (Database.isDatabaseMode() && !UsersTools.can_user(username, "can_write", projName)) 
       return "1:User " + username + " does not have permitions to add generators.";
     
+    System.out.println("Adding test case generator " + genName);    
+    
     try {
       boolean projectExists = new File(ATGlobal.getPROJECTfilename(dataroot, projName)).exists();
       if (!projectExists)
@@ -548,8 +590,6 @@ public class Maintenance {
       }
       substitutions.put("<params>", paramSub);
 
-      System.out.println("Adding generator " + genName + " to project " + projName + "...");
-
       // create TestCaseGenetator_TTT.java file ...
       copyFile("templates/TestCaseGenerator_TTT", projSrcFolder, "TestCaseGenerator_" + genName + ".java", substitutions);
 
@@ -568,7 +608,7 @@ public class Maintenance {
     }
   }
 
-  public static boolean createAlgorithm(String username, String proj_name, String alg_name) {
+  public static String createAlgorithm(String username, String proj_name, String alg_name) {
     String dataroot = ATGlobal.getALGatorDataRoot();
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
     String algRoot = ATGlobal.getALGORITHMroot(projRoot, alg_name);
@@ -581,18 +621,18 @@ public class Maintenance {
     // first create project if it does not exist
     File projFolderFile = new File(projRoot);
     if (!projFolderFile.exists()) {
-      if (!createProject(username, proj_name)) {
-        return false;
+      String msg = createProject(username, proj_name);
+      if (msg.charAt(0)!='0') {
+        return msg;
       }
     }
 
-    System.out.println("Creating algorithm " + alg_name + " for the project " + proj_name);
+    System.out.println("Adding algorithm " + alg_name);
     try {
 
       File algFolderFile = new File(algRoot);
       if (algFolderFile.exists()) {
-        System.out.printf("\n Algorithm %s already exists!\n", alg_name);
-        return false;
+        return String.format("1:Algorithm %s already exists!\n", alg_name);
       }
       algFolderFile.mkdirs();
 
@@ -610,14 +650,13 @@ public class Maintenance {
       if (Database.isDatabaseMode()) {
         UsersTools.setEntityPermissions(username, proj_name, alg_name, 2);
       }
-    } catch (Exception e) {
-      System.out.println("Can not create algorithm: " + e.toString());
-      return false;
+    } catch (Exception e) {      
+      return String.format("2:Can not create algorithm: " + e.toString());
     }
-    return true;
+    return "0:Algorithm added";
   }
 
-  public static boolean createTestset(String username, String proj_name, String testset_name) {
+  public static String createTestset(String username, String proj_name, String testset_name) {
     String dataroot = ATGlobal.getALGatorDataRoot();
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
     String testsRoot = ATGlobal.getTESTSroot(dataroot, proj_name);
@@ -629,12 +668,13 @@ public class Maintenance {
     // first create project if it does not exist
     File projFolderFile = new File(projRoot);
     if (!projFolderFile.exists()) {
-      if (!createProject(username, proj_name)) {
-        return true;
+      String msg;
+      if ((msg = createProject(username, proj_name)).charAt(0)!='0') {
+        return msg;
       }
     }
 
-    System.out.println("Creating test set " + testset_name + " for the project " + proj_name);
+    System.out.println("Adding test set " + testset_name);
     try {
 
       File testsetFolderFile = new File(testsRoot);
@@ -643,9 +683,8 @@ public class Maintenance {
       }
 
       File testSetFile = new File(testsRoot + File.separator + testset_name + ".json");
-      if (testSetFile.exists()) {
-        System.out.printf("\n Testset %s already exists!\n", testset_name);
-        return false;
+      if (testSetFile.exists()) {        
+        return String.format("1:Testset %s already exists!", testset_name);
       }
 
       copyFile("templates/TS.json", testsRoot, testset_name + ".json", substitutions);
@@ -662,11 +701,10 @@ public class Maintenance {
       if (Database.isDatabaseMode()) {
         UsersTools.setEntityPermissions(username, proj_name, testset_name, 3);
       }
-    } catch (Exception e) {
-      System.out.println("Can not create test set: " + e.toString());
-      return false;
+    } catch (Exception e) {      
+      return String.format("Can not create test set: " + e.toString());
     }
-    return true;
+    return "0:Test set created.";
   }
 
   public static String createPresenter(String username, String projName, String presenterName, int type) {
@@ -684,12 +722,12 @@ public class Maintenance {
     // first create project if it does not exist
     File projFolderFile = new File(projRoot);
     if (!projFolderFile.exists()) {
-      if (!createProject(username, projName)) {
+      if (createProject(username, projName).charAt(0)!='0') {
         return null;
       }
     }
 
-    System.out.println("Creating presenter " + presenterName + " for the project " + projName);
+    System.out.println("Adding presenter " + presenterName);
     try {
 
       File presenterFolderFile = new File(presenterRoot);

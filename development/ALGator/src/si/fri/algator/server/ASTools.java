@@ -3,9 +3,9 @@ package si.fri.algator.server;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.PrintWriter;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -22,17 +23,23 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import si.fri.algator.admin.Tools;
 
 import si.fri.algator.entities.CompCap;
 import si.fri.algator.entities.EAlgatorConfig;
 import si.fri.algator.entities.EAlgorithm;
 import si.fri.algator.entities.EComputer;
 import si.fri.algator.entities.EPresenter;
+import si.fri.algator.entities.EPresenterN;
 import si.fri.algator.entities.EProject;
 import si.fri.algator.entities.ETestSet;
+import si.fri.algator.entities.EVariable;
 import si.fri.algator.entities.MeasurementType;
 import si.fri.algator.entities.Project;
 import si.fri.algator.global.ATGlobal;
@@ -210,8 +217,118 @@ public class ASTools {
     if (!pFile.exists())
       return sAnswer(3, String.format("Presenter '%s' does not exist in project '%s'.", presenterName, projectName), "");    
     
-    EPresenter presenter = new EPresenter(pFile);
+    EPresenterN presenter = new EPresenterN(pFile);
     return jAnswer(OK_STATUS, String.format("Presenter '%s'.", presenterName), presenter.toJSONString());
+  }
+  
+  public static String getProjectSources(String projectName) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+
+    JSONObject result = new JSONObject();
+    String projectSrc = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName)); 
+    String[][] srcs = {{"Input", "Input.java"}, {"Output", "Output.java"}, {"Algorithm", "ProjectAbstractAlgorithm.java"} };
+    for (String[] src : srcs) {
+      String fileCont = ASTools.getFileContent(new File(projectSrc,src[1]).toString());
+      result.put(src[0], Base64.getEncoder().encodeToString(fileCont.getBytes()));
+   }
+    
+    String[] files = new File(projectSrc).list();
+    
+    JSONObject indicators = new JSONObject();    
+    Pattern p = Pattern.compile("IndicatorTest_(.*)[.]java");
+    for (String file : files) {
+      Matcher m = p.matcher(file);
+      if (m.find()) {
+        String indName = m.group(1);
+        String fileCont = ASTools.getFileContent(new File(projectSrc,file).toString());
+        indicators.put(indName, Base64.getEncoder().encodeToString(fileCont.getBytes()));
+      }
+    }
+    result.put("Indicators", indicators);
+    
+    JSONObject generators = new JSONObject();    
+    p = Pattern.compile("TestCaseGenerator_(.*)[.]java");
+    for (String file : files) {
+      Matcher m = p.matcher(file);
+      if (m.find()) {
+        String genName = m.group(1);
+        String fileCont = ASTools.getFileContent(new File(projectSrc,file).toString());
+        generators.put(genName, Base64.getEncoder().encodeToString(fileCont.getBytes()));
+      }
+    }
+    result.put("Generators", generators);
+
+    return jAnswer(OK_STATUS, String.format("Project '%s' sources.", projectName), result.toString());
+  }
+
+  public static String getProjectProps(String projectName) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    Project project = new Project(ATGlobal.getALGatorDataRoot(), projectName);
+    
+    JSONObject result = new JSONObject();
+    result.put("Algorithms", project.getAlgorithms().keySet());
+    result.put("TestSets",   project.getTestSets().keySet());
+    
+    JSONObject jParams = new JSONObject();
+    for (EVariable par : project.getTestCaseDescription().getParameters()) {
+      jParams.put(par.getName(), par.toJSON(false));
+    }
+    result.put("Parameters", jParams);
+    
+    String[] mTypes = {"em", "cnt", "jvm"};
+    for (String mType : mTypes) {
+      JSONObject jInd = new JSONObject();
+      for (EVariable ind : project.getResultDescriptions().get(MeasurementType.mtOf(mType)).getIndicators()) { 
+        jInd.put(ind.getName(), ind.toJSON(false));
+      }
+      result.put(mType.toUpperCase() + " indicators", jInd);      
+    }     
+    return jAnswer(OK_STATUS, String.format("Project '%s' sources.", projectName), result.toString());
+  }  
+
+
+  public static String getProjectDocs(String projectName) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+
+    JSONObject result = new JSONObject();
+    String projectDoc = ATGlobal.getPROJECTdoc(ATGlobal.getALGatorDataRoot(), projectName); 
+    String[][] docs = {{"Project", "project.html"}, {"Algorithm", "algorithm.html"}, {"References", "references.html"}, {"TestCase", "testcase.html"}, {"TestSet", "testset.html"}};
+    for (String[] doc : docs) {
+      String fileCont = ASTools.getFileContent(new File(projectDoc,doc[1]).toString());
+      result.put(doc[0], Base64.getEncoder().encodeToString(fileCont.getBytes()));
+   }
+
+   JSONObject resources = new JSONObject();        
+   String[] files = new File(projectDoc).list();
+   for (String file : files) {
+     boolean included = false;
+     for(int i=0; i<docs.length; i++)
+       if (file.equals(docs[i][1])) {included=true; break;}
+     if (!included) {
+       resources.put(file, new File(projectDoc,file).lastModified());
+     }
+   }
+   result.put("Resources", resources);    
+
+   return jAnswer(OK_STATUS, String.format("Project '%s' docs.", projectName), result.toString());
+  }
+  
+  public static String getProjectResource(String projectName, String resource) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+
+    String projectDoc = ATGlobal.getPROJECTdoc(ATGlobal.getALGatorDataRoot(), projectName); 
+    File   resFile    = new File(projectDoc, resource);
+    
+    if (!resFile.exists())
+      return sAnswer(3, String.format("Resource '%s' of project '%s' does not exist.",resource, projectName), "");    
+
+    String resourceCont = Tools.encodeFileToBase64Binary(resFile.toString());
+    return sAnswer(OK_STATUS, String.format("Project resource '%s'.", resource), resourceCont);
   }
   
 /**** Supporting methods for getData request  ... end  */
@@ -647,9 +764,7 @@ public class ASTools {
     else return "";
   }
   
-  public static String getFileContent(String projectName, String fileName) {
-    String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName);
-    String filePath = projectRoot + File.separator + fileName;
+  public static String getFileContent(String filePath) {
     StringBuilder result = new StringBuilder();
     try {
       for (String l : Files.readAllLines(Paths.get(filePath))) 
@@ -657,7 +772,13 @@ public class ASTools {
     } catch (Exception e) {
       result = new StringBuilder("!!" + e.toString());
     }
-    return result.toString();
+    return result.toString();    
+  }
+  
+  public static String getFileContent(String projectName, String fileName) {
+    String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName);
+    String filePath = projectRoot + File.separator + fileName;
+    return getFileContent(filePath);
   }
   
   public static String saveFile(String projectName, String fileName, String content) {

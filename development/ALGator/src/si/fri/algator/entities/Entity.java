@@ -83,7 +83,6 @@ public class Entity implements Cloneable, Serializable {
     this(entityID, fieldNames, new Object[0]);
   }
   
-  
   /**
    * 
    * @param entityID
@@ -111,6 +110,15 @@ public class Entity implements Cloneable, Serializable {
       }
 
     representatives = new ArrayList<>();
+  }
+  
+  public void addFieldName(String fieldName) {
+    String[] newNames = new String[fieldNames.length + 1];
+    for (int i = 0; i < fieldNames.length; i++) {
+      newNames[i] = fieldNames[i];
+    }
+    newNames[fieldNames.length] = fieldName;
+    fieldNames = newNames;
   }
 
   public String getName() {
@@ -235,6 +243,9 @@ public class Entity implements Cloneable, Serializable {
     return toJSONString(wrapWithEntity, 2);
   }
   public String toJSONString(boolean wrapWithEntity, int indent) {
+    return toJSON(wrapWithEntity).toString(indent);
+  }  
+  public JSONObject toJSON(boolean wrapWithEntity) {
     JSONObject result = new JSONObject();
 
     if (export_name)
@@ -249,16 +260,16 @@ public class Entity implements Cloneable, Serializable {
 
       result.put(sp, o);
     }
-
     if (wrapWithEntity) {
       JSONObject wrapped = new JSONObject();
       wrapped.put(entity_id, result);
-      return wrapped.toString(indent);
+      return wrapped;
     } else {
-      return result.toString(indent);
+      return result;
     }
   }
 
+  
   public Object get(String fieldKey) {
     if (fields.containsKey(fieldKey) && fields.get(fieldKey)!=null) {
       return fields.get(fieldKey);

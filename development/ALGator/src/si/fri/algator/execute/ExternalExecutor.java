@@ -236,7 +236,6 @@ public class ExternalExecutor {
     String algClassName = project.getAlgorithms().get(algName).getAlgorithmClassname();
     AbstractAlgorithm algorithm = New.algorithmInstance(currentJobID, algClassName, mType);
     AbstractInput input = testCase != null ? testCase.getInput() : null;
-    AbstractOutput expectedOutput = testCase != null ? testCase.getExpectedOutput() : null;
 
     EResult resultDesc = project.getResultDescriptions().get(mType);
     if (resultDesc == null) {
@@ -248,9 +247,10 @@ public class ExternalExecutor {
     // meta - število decimalk) ni prenesel in se je zato vedno uporabila default vrednost. Po tej spremembi se 
     // podatki pravilno prenesejo.
     // ??? bi moral prenesti tudi parametre? Namesto resultDesc.getVariables() bi pisal join(project.getTestCaseDescription.getParameters, resultDesc.getVariables())
-    if (expectedOutput != null) {
+    if (testCase != null) {
+      AbstractOutput defaultOutput = testCase.getDefaultOutput();
       for (EVariable evar : resultDesc.getVariables()) {
-        expectedOutput.addIndicator(evar, false);
+        defaultOutput.addIndicator(evar, false);
       }
     }
 
@@ -324,7 +324,7 @@ public class ExternalExecutor {
       } else { // the execution did not perform succesfully          
         try {
           // if possible, obtain indicators from the algorithm 
-          algResultIndicators = algorithm.getCurrentTestCase().getExpectedOutput().getIndicators();
+          algResultIndicators = algorithm.getCurrentTestCase().getDefaultOutput().getIndicators();
         } catch (Exception e) {
           algResultIndicators = new Variables();
         }

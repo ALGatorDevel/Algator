@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# Define the set of commands
+commands=("start" "stop" "status" "execute" "admin" "analyse" "bash" "version" "webpage")
+
+# Check if the first argument is in the set
+if [[ ! " ${commands[@]} " =~ " $1 " ]]; then
+  echo "Usage: algator command <args>"
+  echo Valid commands: ${commands[@]}
+  exit 1
+fi
+
+cmd=$1
+shift
+
+# ***********************************************
+# Gets the id of algator docker container
+# ***********************************************
+tID=`docker container ls | grep algatorweb | cut -f 1 -d" "` 
+
+
+if [[ -z $tID && $cmd != "start" ]]; then
+    echo "ALGator docker container is not running. Run 'algator start' before using other commands."
+    exit
+fi
+
+# Switch-like operation based on the first argument
+case $cmd in
+  "start")
+
+    if [ ${#tID} -gt 2 ]; then 
+      echo "ALGator docker container is already running. Container id: $tID"  
+    else  
+      docker run --privileged -v $ALGATOR_ROOT/data_root:/home/algator/ALGATOR_ROOT/data_root -p 8081:8081 --env TPY=L algator/algatorweb  &
+    fi
+    ;;
+  "stop")
+
+    docker container kill $tID
+    ;;
+  "status")
+    if [ ${#tID} -gt 2 ]; then 
+      echo "ALGator docker container is running, container id: $tID" 
+    else  
+      echo "Algator docker container is not running." 
+    fi    
+    ;;
+  "execute")
+    javaHome=`docker exec -i -t $tID /bin/bash -c "ejh"`
+    docker exec -it -e JAVA_HOME=$javaHome $tID java algator.Execute "$@"
+    ;;
+  "admin")
+    docker exec -it $tID java algator.Admin "$@"
+    ;;
+  "analyse")
+    docker exec -it $tID java algator.Analyse "$@"
+    ;;
+  "bash")
+    docker exec -i -t $tID /bin/bash
+    ;;
+  "version")
+    docker exec -it $tID java algator.Version "$@"
+    ;;
+  "webpage")
+    if which xdg-open > /dev/null; then
+      xdg-open 'http://127.0.0.1:8081'
+    elif which gnome-open > /dev/null; then
+      gnome-open 'http://127.0.0.1:8081'
+    else
+      echo "Could not detect the web browser to use. Open the page http://127.0.0.1:8081 manually."
+    fi
+    ;;
+  *)
+    # This should not be reached, as we already checked for valid values
+    echo "Internal Error: Unexpected argument."
+    exit 1
+    ;;
+esac
+
+
+  echo
+  echo "Press ENTER key to continue"
+  read

@@ -56,7 +56,9 @@
     </td>
     </tr>
 </table>
-<hr><br>
+<hr>
+<p style="text-align: right;"><a href="a_projekt.html">[SLO]</a></p>
+
 
 <p>
 In this documentation, we will refer to the project name as <span class=code>&lt;P&gt;</span>, the algorithm name as <span class=code>&lt;A&gt;</span>, and the test set name as <span class=code>&lt;T&gt;</span>. All data that the <span class=algator>ALGator</span> system maintains about project <span class=code>&lt;P&gt;</span> is stored in the directory <span class=code>&lt;algator_root&gt;/data_root/projects/PROJ-&lt;P&gt;</span> (where <span class=code>&lt;algator_root&gt;</span> represents the root directory of the <span class=algator>ALGator</span> system, pointed to by the environmental variable <span class=code>$ALGATOR_ROOT</span>).
@@ -66,7 +68,8 @@ In this documentation, we will refer to the project name as <span class=code>&lt
 <a name="o1"></a>
 <h3>Task List for Project Creation</h3>
 <p>
-The following list outlines the tasks that a user of the system must perform to create a new project and define all its components. Tasks are described more precisely later.
+The following list outlines the tasks that a user of the system must perform to create a new project and define all its components. The list is followed by a more detailed description of each task.
+
 </p>
 
 <span class=code></span>
@@ -94,10 +97,19 @@ The following list outlines the tasks that a user of the system must perform to 
 <ol style="list-style-type:lower-latin" start="8" >
   <li><a href="#oh">define algorithm</a> (<span class=code>algator.Admin -ca</span> + edit the file <span class=code>algs/ALG-&lt;alg&gt;/src/Algorithm.java</span>)</li>
 </ol>
+<hr>
+<p><b>All-in-one</b></p>
+<ul >
+  <li><a href="#ox">Shortcut</a> (<span class=code>algator.Admin -call</span>)</li>
+</ul>
+
 </div>
 
+
+
+
 <p>
-In the following, we will create the project <span class=code>Sort</span>, input parameters <span class=code>N</span> and <span class=code>DIST</span>, the class <span class=code>Input</span>, generator type <span class=code>Type0</span>, test set <span class=code>TestSet0</span>, the class <span class=code>Output</span>, the indicator <span class=code>Check</span>, and the algorithm <span class=code>JavaSort</span>.
+Note: with the tasks described in the following we will create the project <span class=code>Sort</span>, input parameters <span class=code>N</span> and <span class=code>DIST</span>, the class <span class=code>Input</span>, generator type <span class=code>Type0</span>, test set <span class=code>TestSet0</span>, the class <span class=code>Output</span>, the indicator <span class=code>Check</span>, and the algorithm <span class=code>JavaSort</span>.
 </p>
 
 <a name="oa"></a>
@@ -353,6 +365,17 @@ public class Algorithm extends ProjectAbstractAlgorithm {
 
 In this case, the actual implementation of the algorithm is in the <span class=code>javaSort()</span> method, which takes an array as input and sorts it. The <span class=code>execute()</span> method serves as a bridge between the <span class=algator>ALGator</span> system and the algorithm implementation.
 
+<hr>
+
+<a name="ox"></a>
+<h3>Shortcut</h3>
+We can create the project (with all its components) with one simple command:
+
+<div class=bash>
+  <b>$ java algator.Admin -call Sort</b>
+</div>
+
+To complete the project setup we only have to edit the source files (<span class=code>proj/src/Input.java</span>, <span class=code>proj/src/Output.java</span>, <span class=code>proj/src/TestCaseGenerator_Type0.java</span>, <span class=code>proj/src/IndicatorTest_Check.java</span>, <span class=code>algs/ALG-Alg1/src/Algorithm.java</span>) as described above. 
 
 </body>
 </html>

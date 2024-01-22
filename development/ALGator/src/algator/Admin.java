@@ -18,13 +18,14 @@ import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
 import si.fri.algator.users.UsersDatabase;
 
+import static si.fri.algator.admin.Maintenance.createProject;
+import static si.fri.algator.admin.Maintenance.createAll;
 import static si.fri.algator.admin.Maintenance.addIndicator;
 import static si.fri.algator.admin.Maintenance.addIndicatorTest;
 import static si.fri.algator.admin.Maintenance.addParameter;
 import static si.fri.algator.admin.Maintenance.addTestCaseGenerator;
 import static si.fri.algator.admin.Maintenance.createAlgorithm;
 import static si.fri.algator.admin.Maintenance.createPresenter;
-import static si.fri.algator.admin.Maintenance.createProject;
 import static si.fri.algator.admin.Maintenance.createTestset;
 import static si.fri.algator.admin.Maintenance.getInfo;
 import static si.fri.algator.admin.Maintenance.removePresenter;
@@ -101,17 +102,20 @@ public class Admin {
     
     options.addOption("h", "help", false,
 	    "print this message");
-    
+        
     options.addOption("cp", "create_project", false,
-	    "create a new project");
+	    "create a new project; args: project_name");
+    options.addOption("call", "create_all", false,
+	    "create a new project with all its components; args: project_name");
+    
     options.addOption("ca", "create_algorithm", false,
-	    "create a new algorithm for a given project");
+	    "create a new algorithm for a given project; args: project_name algorithm_name");
     options.addOption("ct", "create_testset", false,
-	    "create a new testset for a given project");    
+	    "create a new testset for a given project; args: project_name testset_name");    
     options.addOption("cdp", "create_presenter", false,
-	    "create a new presenter for a given project");
+	    "create a new presenter for a given project; args: project_name presenter_name");
     options.addOption("rdp", "remove_presenter", false,
-	    "remove a presenter for a project");
+	    "remove a presenter for a project; args: project_name presenter_name");
 
     options.addOption("cit", "add_indicator_test", false,
 	    "add a new indicator test; args: proj_name indicator_name");
@@ -275,10 +279,21 @@ public class Admin {
           System.out.println("Invalid project name");
           printMsg(options); 
         } else {
-          createProject(username, curArgs[0]);
+          System.out.println(createProject(username, curArgs[0]));
           return;
         }
       }
+      
+      if (line.hasOption("create_all")) {
+	if (curArgs.length != 1) {
+          System.out.println("Invalid project name");
+          printMsg(options); 
+        } else {
+          System.out.println(createAll(username, curArgs[0]));
+          return;
+        }
+      }
+
         
       if (line.hasOption("add_parameter")) {
 	if (curArgs.length < 1) {
@@ -331,7 +346,7 @@ public class Admin {
           System.out.println("Invalid project or algorithm name");
           printMsg(options); 
         } else {
-          createAlgorithm(username, curArgs[0], curArgs[1]);
+          System.out.println(createAlgorithm(username, curArgs[0], curArgs[1]));
           return;
         }
       }
@@ -341,26 +356,7 @@ public class Admin {
           System.out.println("Invalid project or test set name");
           printMsg(options); 
         } else {
-          createTestset(username, curArgs[0], curArgs[1]);
-          return;
-        }
-      }
-
-      if (line.hasOption("create_presenter")) {
-	if (curArgs.length < 1) {
-          System.out.println("Invalid project or presenter name");
-          printMsg(options); 
-        } else {
-          String presenterName = "";
-          if (curArgs.length == 2)
-            presenterName = curArgs[1];
-          
-          int type = 1;
-          if (line.hasOption("pType"))
-            try{type=Integer.parseInt(line.getOptionValue("pType"));} catch (Exception e) {}
-          
-          String result = createPresenter(username, curArgs[0], presenterName, type);
-          if (result!=null) System.out.println(result);
+          System.out.println(createTestset(username, curArgs[0], curArgs[1]));
           return;
         }
       }

@@ -55,7 +55,7 @@
     ... and check the version of the ALGator with 
     <br>
     ``` 
-    $ algator_version
+    $ algator version
     ```
     <p align=right><a href="/dist/htmldoc/images/version.png">Screenshot</a>
     <br>

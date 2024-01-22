@@ -24,6 +24,15 @@ public abstract class AbstractTestCase implements Serializable {
   
   private AbstractInput  input;
   private AbstractOutput expectedOutput;
+  
+  // used to hold indicators of the project
+  private AbstractOutput defaultOutput;
+
+  public AbstractTestCase() {
+    defaultOutput = new AbstractOutput() {};
+  }
+  
+  
 
   public AbstractInput getInput() {
     return input;
@@ -39,6 +48,10 @@ public abstract class AbstractTestCase implements Serializable {
 
   public void setExpectedOutput(AbstractOutput expectedOutput) {
     this.expectedOutput = expectedOutput;
+  }
+  
+  public AbstractOutput getDefaultOutput() {
+    return defaultOutput;
   }
   
   

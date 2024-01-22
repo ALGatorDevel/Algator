@@ -2,12 +2,16 @@ package si.fri.algator.admin;
 
 import algator.Admin;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 /**
@@ -73,4 +77,14 @@ public class Tools {
     writeFile(new File(outputFolder, outputFileName).getAbsolutePath(), absAlg);
   }
 
+  public static String encodeFileToBase64Binary(String fileName)  {
+    try {
+      File file = new File(fileName);
+      byte[] encoded = Base64.encodeBase64(FileUtils.readFileToByteArray(file));
+      return new String(encoded, StandardCharsets.US_ASCII);
+    } catch (Exception e) {
+      return "Error: " + e.toString();
+    }
+  }
+  
 }

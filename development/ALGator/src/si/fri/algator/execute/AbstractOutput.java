@@ -18,6 +18,7 @@ public abstract class AbstractOutput implements Serializable {
     indicators = new Variables();
   }
   
+  @Override
   public String toString() {
     return this.getClass().getName();
   }
@@ -33,10 +34,9 @@ public abstract class AbstractOutput implements Serializable {
   public Variables getIndicators() {
     return indicators;
   }
-  
-  
+    
   // create IndicatorTest_<indicator_name> class and run its getValue() method
-  protected Object getIndicatorValue(AbstractTestCase testCase, AbstractOutput algorithmOutput, String indicatorName) 
+  protected static Object getIndicatorValue(AbstractTestCase testCase, AbstractOutput algorithmOutput, String indicatorName) 
   {
     try {
       ClassLoader cl =  testCase.getClass().getClassLoader(); // get classloader that loaded testcase
@@ -48,5 +48,4 @@ public abstract class AbstractOutput implements Serializable {
       return "?";
     }
   }  
-  
 }

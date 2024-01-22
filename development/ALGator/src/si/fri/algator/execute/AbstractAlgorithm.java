@@ -114,13 +114,13 @@ public abstract class AbstractAlgorithm implements Cloneable, Serializable {
    * verify the correctness of the solution. 
    */
   public Variables done() {
-    Variables result = new Variables(currentTestCase.getExpectedOutput().getIndicators());
+    Variables result = new Variables(currentTestCase.getDefaultOutput().getIndicators());
      
     for (EVariable eVariable : result) {      
       Object value = null;
       try {
-        value = currentTestCase.getExpectedOutput().
-          getIndicatorValue(currentTestCase, algorithmOutput, eVariable.getName());
+        value = AbstractOutput
+           .getIndicatorValue(currentTestCase, algorithmOutput, eVariable.getName());
       } catch (Exception e) {
         ATLog.log("Invalid result " + e.toString(), 1);
       }
