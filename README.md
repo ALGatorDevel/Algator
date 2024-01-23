@@ -15,7 +15,7 @@ To use the ALGator, user defines a project including the definition of the probl
 ## User manuals (in Slovene)
 - [Basic concepts](https://htmlpreview.github.io/?https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/a_desc.html)
 
-- [Usage instructions](https://htmlpreview.github.io/?https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/a_uporaba.html)
+- [Usage instructions](dist/htmldoc/a_usage.md)
 
 - [Project administration](https://htmlpreview.github.io/?https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/a_project.html)
 
