@@ -5,8 +5,6 @@
 The ALGator system is utilized through a batch file, which is automatically downloaded to the folder `<algator_root>/data_root/bin` upon installation ([linux](/dist/htmldoc/install_linux.md) | [windows](/dist/htmldoc/install_windows.md)). The script is executed manually in the shell. Before using the script, ensure that the folder `<algator_root>/data_root/bin` is added to the `PATH` environment variable, or manually navigate to this folder using the `cd` command in the shell.
 
 
-### Managing with Docker
-
 ### The ``docker``  image
 
 Before using other scripts, the ALGator system image must be started using the `docker` program.
