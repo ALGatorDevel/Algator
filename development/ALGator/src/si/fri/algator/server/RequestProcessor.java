@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,12 +24,15 @@ import si.fri.algator.analysis.DataAnalyser;
 import si.fri.algator.entities.EAlgatorConfig;
 import si.fri.algator.entities.EComputer;
 import si.fri.algator.entities.EComputerFamily;
+import si.fri.algator.entities.EProject;
+import si.fri.algator.entities.EQuery;
 import si.fri.algator.entities.MeasurementType;
 import si.fri.algator.entities.Project;
 import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ErrorStatus;
 import si.fri.algator.tools.ATTools;
 import si.fri.algator.tools.SortedArray;
+import static si.fri.algator.admin.Maintenance.synchronizators;
 
 /**
  * Methods to process the requests to ALGatorServer.
@@ -83,6 +87,9 @@ public class RequestProcessor {
         
       case ASGlobal.REQ_GETDATA:
         return getData(jObj);  
+
+      case ASGlobal.REQ_ALTER:
+        return alter(jObj);          
         
       // return the list of all tasks in the queue; no parameters  
       case ASGlobal.REQ_GET_TASKS:
@@ -124,7 +131,10 @@ public class RequestProcessor {
         return saveFile(jObj);
 
       case ASGlobal.REQ_QUERY_RES:
-        return queryResult(pParams);        
+        return queryResult(pParams);   
+        
+      case ASGlobal.REQ_QUERY:
+        return runQuery(jObj);   
         
       case ASGlobal.REQ_USERS:
         return users(pParams);
@@ -209,9 +219,13 @@ public class RequestProcessor {
   /**
    * Returns data depending on Type parameter:
    *   - Type=Projects ...  list of all public projects; no other params required
-   *   - Type=Algorithm ... data of algorithm
-   *   - Type=MainProjPresenter ... all main project presenters (params: ProjectName, PresenterName)
-   *
+   *   - Type=Project
+   *   - Type=Algorit hm ... data of algorithm
+   *   - Type=Presenter  ... (params: ProjectName, PresenterName)
+   *   - Type=ProjectSources
+   *   - Type=ProjectDocs
+   *   - Type=ProjectResource
+   *   - Type=ProjectProps
    * @return json data
    */
   public String getData(JSONObject jObj) {
@@ -220,7 +234,7 @@ public class RequestProcessor {
 
     String type = jObj.getString("Type");
     switch (type) {
-      
+    
       case "Projects":
         return ASTools.getProjectsData();
       case "Project":
@@ -258,6 +272,60 @@ public class RequestProcessor {
       
       default: return sAnswer(1, "Unknown type '"+type+"'.", "");
     }    
+  }
+  
+  public String alter(JSONObject jObj) {
+    if (!(jObj.has("Action")&&jObj.has("ProjectName")))
+      return sAnswer(1, "Invalid parameter. Expecting JSON with 'Action' and 'ProjectName' properties.", "");
+    
+    // pri vsaki zahtevi "alter" se sinhroniziram na projekt (na ime root folderja)
+    String projRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), jObj.getString("ProjectName"));
+    if (!synchronizators.containsKey(projRoot)) synchronizators.put(projRoot, projRoot);
+    String syncObject = synchronizators.get(projRoot);
+    synchronized (syncObject) {          
+      String action = jObj.getString("Action");
+      switch (action) { 
+      
+        case "NewPresenter":
+          if (!(jObj.has("ProjectName")&&jObj.has("PresenterType")))
+            return sAnswer(1, "Alter of type=NewPresenters requires 'ProjectName' and 'PresenterType' properties.", "");
+          return ASTools.newPresenter(jObj.getString("ProjectName"), jObj.getInt("PresenterType"));
+          
+        case "RemovePresenter":
+          if (!(jObj.has("ProjectName")&&jObj.has("PresenterName")))
+            return sAnswer(1, "Alter of type=RemovePresenters requires 'ProjectName' and 'PresenterName' properties.", "");
+          return ASTools.removePresenter(jObj.getString("ProjectName"), jObj.getString("PresenterName"));
+  
+        case "SavePresenter":
+          if (!(jObj.has("ProjectName")&&jObj.has("PresenterName")&&jObj.has("PresenterData")))
+            return sAnswer(1, "Alter of type=SavePresenters requires 'ProjectName', 'PresenterName' and 'PresenterData' properties.", "");
+          return ASTools.savePresenter(jObj.getString("ProjectName"), jObj.getString("PresenterName"), jObj.getJSONObject("PresenterData"));
+  
+        case "NewIndicator":
+          if (!(jObj.has("ProjectName")&&jObj.has("IndicatorName")))
+            return sAnswer(1, "Alter of type=NewIndicator requires 'ProjectName', 'IndicatorName', 'IndicatorType' (optional, default='indicator') and 'Meta' (optional, default:{}) properties.", "");
+          JSONObject meta =           jObj.optJSONObject("Meta"); if (meta==null) meta = new JSONObject();
+          return ASTools.newIndicator(jObj.getString("ProjectName"), jObj.getString("IndicatorName"), jObj.optString("IndicatorType", "indicator"), meta);        
+  
+        case "RemoveIndicator":
+          if (!(jObj.has("ProjectName")&&jObj.has("IndicatorName")))
+            return sAnswer(1, "Alter of type=RemoveIndicator requires 'ProjectName' 'IndicatorName' and 'IndicatorType' (optional, default='indicator') properties.", "");
+          return ASTools.removeIndicator(jObj.getString("ProjectName"), jObj.getString("IndicatorName"), jObj.optString("IndicatorType", "indicator"));        
+  
+        case "SaveIndicator":
+          if (!(jObj.has("ProjectName")&&jObj.has("Indicator")))
+            return sAnswer(1, "Alter of type=SaveIndicator requires 'ProjectName' 'Indicator' and 'IndicatorType' (optional, default='indicator') properties.", "");
+          return ASTools.saveIndicator(jObj.getString("ProjectName"), jObj.getJSONObject("Indicator"), jObj.optString("IndicatorType", "indicator"));                
+         
+        case "NewGenerator":
+          if (!(jObj.has("ProjectName")&&jObj.has("GeneratorName")))
+            return sAnswer(1, "Alter of type=NewGenerator requires 'ProjectName', 'GeneratorName' and 'GeneratorParameters' (optional, default:[]) properties.", "");
+          JSONArray genParams =           jObj.optJSONArray("GeneratorParameters"); if (genParams==null) genParams = new JSONArray();
+          return ASTools.newGenerator(jObj.getString("ProjectName"), jObj.getString("GeneratorName"), genParams);        
+          
+        default: return sAnswer(1, "Unknown type '"+action+"'.", "");        
+      }
+    }
   }
   
   
@@ -562,7 +630,37 @@ public class RequestProcessor {
     return DataAnalyser.getQueryResultTableAsString(parts[0], query, queryParams, computerID);
   }
   
-  
+
+  /**
+   * Method returns a String of results produced by a given query. 
+   */  
+  public String runQuery(JSONObject jObj) {
+    String errorAnswer = sAnswer(1, ASGlobal.ERROR_INVALID_NPARS, "Expecting JSON with \"ProjectName\", \"Query\", \"ComputerID\" (optional) and \"Parameters\" (optional) properties.");
+    
+    String projName, query, compID;
+    JSONArray jParams;String[] params = null;
+    try {
+      projName  = jObj.getString("ProjectName");
+      query     = jObj.getJSONObject("Query").toString(); 
+      compID    = jObj.optString("ComputerID", null);
+      
+      jParams   = jObj.optJSONArray("Parameters");     
+      List<String> list = new ArrayList<>();
+      if (jParams != null) for(int i = 0; i < jParams.length(); i++)
+        list.add((String)jParams.get(i));
+      params = list.toArray(new String[0]); 
+
+    } catch (Exception e) {
+      return errorAnswer;
+    }
+
+    if (projName.isEmpty() || query.isEmpty()) return errorAnswer;
+
+    EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projName)));
+    EQuery   eQuery = new EQuery(query, params);
+    
+    return sAnswer(OK_STATUS, "Query result", DataAnalyser.runQuery(eProject, eQuery, compID).toString());
+  }
 
 
   

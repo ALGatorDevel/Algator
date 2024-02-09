@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -29,15 +30,18 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import si.fri.algator.admin.Maintenance;
 import si.fri.algator.admin.Tools;
 
 import si.fri.algator.entities.CompCap;
 import si.fri.algator.entities.EAlgatorConfig;
 import si.fri.algator.entities.EAlgorithm;
 import si.fri.algator.entities.EComputer;
+import si.fri.algator.entities.EGenerator;
 import si.fri.algator.entities.EPresenter;
 import si.fri.algator.entities.EPresenterN;
 import si.fri.algator.entities.EProject;
+import si.fri.algator.entities.ETestCase;
 import si.fri.algator.entities.ETestSet;
 import si.fri.algator.entities.EVariable;
 import si.fri.algator.entities.MeasurementType;
@@ -180,9 +184,7 @@ public class ASTools {
                new File(new File(proj, ATGlobal.ATDIR_projConfDir), ATGlobal.getPROJECTConfigName()).exists();
       });
     
-// TODO: 
-    // filter-out projects according to user rights
-    
+    // TODO:  filter-out projects according to user rights   
     return jAnswer(OK_STATUS, "Projects", 
         new JSONArray(Arrays.asList(projects).stream().map(s->s.substring(5)).collect(Collectors.toList())).toString()
     );  
@@ -193,7 +195,12 @@ public class ASTools {
     
     String fileName = ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projectName);
     EProject project = new EProject(new File(fileName));
-    return jAnswer(OK_STATUS, String.format("Project '%s'.", projectName), project.toJSONString());
+    
+    // tole dodam, da v rezultat urinem tudi podatek o racunalnikih
+    JSONObject result = new JSONObject(project.toJSONString());
+    JSONArray  compArray = new JSONArray(Arrays.asList(new String[]{"F0.C0", "F0.C1", "F1.C1", "F1.C2"}));
+    result.put("Computers", compArray);
+    return jAnswer(OK_STATUS, String.format("Project '%s'.", projectName), /*project.toJSONString()*/ result.toString());
   }
   public static String getAlgorithmData(String projectName, String algorithmName) {
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
@@ -227,7 +234,7 @@ public class ASTools {
 
     JSONObject result = new JSONObject();
     String projectSrc = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName)); 
-    String[][] srcs = {{"Input", "Input.java"}, {"Output", "Output.java"}, {"Algorithm", "ProjectAbstractAlgorithm.java"} };
+    String[][] srcs = {{"Input", "Input.java"}, {"Output", "Output.java"}, {"Algorithm", "ProjectAbstractAlgorithm.java"}, {"Tools", "Tools.java"} };
     for (String[] src : srcs) {
       String fileCont = ASTools.getFileContent(new File(projectSrc,src[1]).toString());
       result.put(src[0], Base64.getEncoder().encodeToString(fileCont.getBytes()));
@@ -236,7 +243,7 @@ public class ASTools {
     String[] files = new File(projectSrc).list();
     
     JSONObject indicators = new JSONObject();    
-    Pattern p = Pattern.compile("IndicatorTest_(.*)[.]java");
+    Pattern p = Pattern.compile(ATGlobal.INDICATOR_TEST_OFFSET+"(.*)[.]java");
     for (String file : files) {
       Matcher m = p.matcher(file);
       if (m.find()) {
@@ -271,21 +278,43 @@ public class ASTools {
     JSONObject result = new JSONObject();
     result.put("Algorithms", project.getAlgorithms().keySet());
     result.put("TestSets",   project.getTestSets().keySet());
+
+    ArrayList<String> inputParams = new ArrayList(
+            Arrays.asList(project.getTestCaseDescription().getInputParameters()));
     
     JSONObject jParams = new JSONObject();
     for (EVariable par : project.getTestCaseDescription().getParameters()) {
-      jParams.put(par.getName(), par.toJSON(false));
+      if (!ETestCase.TESTCASE_PROPS.equals(par.getName())) {
+       JSONObject param = par.toJSON(false);
+       param.put("IsInputParameter", inputParams.contains(par.getName()));
+       jParams.put(par.getName(), param);
+      }
     }
     result.put("Parameters", jParams);
     
+            
+    
     String[] mTypes = {"em", "cnt", "jvm"};
     for (String mType : mTypes) {
-      JSONObject jInd = new JSONObject();
-      for (EVariable ind : project.getResultDescriptions().get(MeasurementType.mtOf(mType)).getIndicators()) { 
-        jInd.put(ind.getName(), ind.toJSON(false));
-      }
-      result.put(mType.toUpperCase() + " indicators", jInd);      
-    }     
+      try {
+        JSONObject jInd = new JSONObject();
+        for (EVariable ind : project.getResultDescriptions().get(MeasurementType.mtOf(mType)).getIndicators()) { 
+          jInd.put(ind.getName(), ind.toJSON(false));
+        }
+        result.put(mType.toUpperCase() + " indicators", jInd);      
+      } catch (Exception e) {}
+    }       
+    
+    HashMap<String, EGenerator> generators = project.getTestCaseDescription().getGenerators();
+    JSONObject jGenerators = new JSONObject();
+    for (String genKey : generators.keySet()) {
+      EGenerator gen = generators.get(genKey);
+      jGenerators.put(genKey, gen.toJSON(false));
+    }
+    result.put("Generators", jGenerators);
+
+
+    
     return jAnswer(OK_STATUS, String.format("Project '%s' sources.", projectName), result.toString());
   }  
 
@@ -333,6 +362,102 @@ public class ASTools {
   
 /**** Supporting methods for getData request  ... end  */
   
+ 
+/**** Supporting methods for alter request    */
+  
+  public static String newPresenter(String projectName, int presenterType) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    String result = Maintenance.createPresenter("", projectName, "", presenterType);
+    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
+    String msg = result.length()> 2 ? result=result.substring(2) : "Error creating presenter.";
+    return sAnswer(status, status==0 ? "Presenter created.":msg, status==0?msg:"");
+  }
+
+  public static String removePresenter(String projectName, String presenterName) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    String result = Maintenance.removePresenter(projectName, presenterName);
+    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
+    String msg = result.length()> 2 ? result.substring(2) : "Error removing presenter.";
+    return sAnswer(status, status==0 ? "Presenter removed.":msg, status==0?msg:"");
+  }
+
+  public static String savePresenter(String projectName, String presenterName, JSONObject presenterData) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+
+    String presenterFilename = ATGlobal.getPRESENTERFilename(ATGlobal.getALGatorDataRoot(), projectName, presenterName);
+    try {
+      JSONObject presenter = new JSONObject();
+      presenter.put(EPresenter.ID_PresenterParameter, presenterData);
+      
+      PrintWriter pw = new PrintWriter(presenterFilename);
+      pw.println(presenter.toString(2)); 
+      pw.close();
+      
+      return sAnswer(OK_STATUS, "Presenter saved.", presenterFilename);
+    } catch (Exception e) {
+      return sAnswer(1, "Error saving presenter.", e.toString());
+    }
+  }
+  
+  public static String newIndicator(String projectName, String indicatorName, String indicatorType, JSONObject meta) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    String username = ""; // !!!
+    String indType  = "indicator".equals(indicatorType) ? "int" : indicatorType; 
+    String indDesc = String.format("{'Name':'%s', 'Description':'', 'Type':'%s', 'Meta':%s}", indicatorName, indType, meta.toString());
+    String result = Maintenance.addIndicator(username, projectName, indDesc, "{}");
+    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
+    String msg = result.length()> 2 ? result.substring(2) : "Error adding indicator.";
+
+    String code = ((status != 0) || (!"indicator".equals(indicatorType))) ? "" :
+        ASTools.getFileContent(projectName, "proj/src/IndicatorTest_"+indicatorName+".java", true);
+    return sAnswer(status, status==0 ? "Indicator added.":msg, code);
+  }
+  
+  public static String removeIndicator(String projectName, String indicatorName, String type) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    String result = Maintenance.removeIndicator(projectName, indicatorName, type);
+    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
+    String msg = result.length()> 2 ? result.substring(2) : "Error removing indicator.";
+    
+    return sAnswer(status, status==0 ? "Indicator removed.": msg, status==0?msg:"");
+  }
+  
+  public static String saveIndicator(String projectName, JSONObject indicator, String type) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+        
+    String result = Maintenance.saveIndicator(projectName, indicator, type);
+    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
+    String msg = result.length()> 2 ? result.substring(2) : "Error saving "+type+".";
+
+    String tYpe=type.isEmpty()?"Indicator":(type.toUpperCase().charAt(0)+type.substring(1));
+    return sAnswer(status, status==0 ? tYpe + " saved.": msg, status==0?msg:"");
+  }
+  
+  public static String newGenerator(String projectName, String generatorName, JSONArray genParams) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+
+    String username = "";
+    List<String> list = new ArrayList<String>();
+    for(int i = 0; i < genParams.length(); i++){list.add(genParams.getString(i));
+}
+    String addMsg = Maintenance.addTestCaseGenerator(
+        username, projectName, generatorName, list.toArray(new String[0]));
+    int status = -1; try {status = addMsg.charAt(0);} catch (Exception e) {}
+    
+    return sAnswer(status, status==0 ? "Generator added.":addMsg, addMsg);
+  }
+/**** Supporting methods for alter request  ... end  */  
   
   /**
    * Method reads a file with tasks and returns a list.
@@ -776,9 +901,15 @@ public class ASTools {
   }
   
   public static String getFileContent(String projectName, String fileName) {
+    return getFileContent(projectName, fileName, false);
+  }
+
+  public static String getFileContent(String projectName, String fileName, boolean encode) {
     String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName);
     String filePath = projectRoot + File.separator + fileName;
-    return getFileContent(filePath);
+    String result = getFileContent(filePath);
+    if (encode) result = Base64.getEncoder().encodeToString(result.getBytes());
+    return result;
   }
   
   public static String saveFile(String projectName, String fileName, String content) {

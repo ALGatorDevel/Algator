@@ -61,7 +61,7 @@ public class Executor {
     Variables indicators = project.getResultDescriptions().get(MeasurementType.EM).getIndicators();
     for (EVariable indicator : indicators) {
       if (!indicator.getType().equals(VariableType.TIMER))
-        baseSources.add("IndicatorTest_" + indicator.getName());
+        baseSources.add(ATGlobal.INDICATOR_TEST_OFFSET + indicator.getName());
     }
     // ... and TestCaseGenerator_* classes
     HashMap<String, EGenerator> generators = project.getTestCaseDescription().getGenerators();

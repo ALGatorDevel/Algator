@@ -31,7 +31,7 @@ public class Entity implements Cloneable, Serializable {
   public static final String unknown_value = "?";
 
   // The name of the entity (property Name)
-  private static final String ID_NAME = "Name";
+  public static final String ID_NAME = "Name";
 
   /**
    * The ID of an entity in an JSON file

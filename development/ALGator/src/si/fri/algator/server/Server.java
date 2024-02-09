@@ -3,7 +3,6 @@ package si.fri.algator.server;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import si.fri.algator.entities.EAlgatorConfig;
-import spark.Route;
 import static spark.Spark.*;
 
 

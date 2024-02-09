@@ -1,0 +1,120 @@
+<h1>Generatorji</h1>
+
+Kot smo že omenili, je zelo pomembno, da generator poleg podatkovnega dela nastavi tudi parametre vhoda. V
+primeru privzetega generatorja (generator tipa 0) so vrednosti teh parametrov podane med generirajočimi
+parametri, vhodu jih pripnemo z naslednjimi ukazi:
+
+        <span class=code>
+            <pre>
+    Variable inputParameters = new Variables(generatingParameters);        
+    <span class=code>&lt;p&gt;</span>TestCase.getInput().setParameters(inputParameters);
+</pre>
+        </span>
+
+        Pri generatorjih tipa 1, 2, 3, ... pa mora za pravilno vrednost parametrov vhoda poskrbeti uporabnik.
+    </p>
+
+    <div class=primer>
+        <b>Primer:</b> v projektu <span class=code>BasicSort</span>generator tipa 1 podatke prebere iz datoteke,
+        parametre vhoda pa nastavi z ukazi:
+
+        <span class=code>
+            <pre>
+    Variables inputParameters = new Variables();
+    inputParameters.addVariable(new EVariable("N", n)); 
+    inputParameters.addVariable(new EVariable("DIST", "RND"));
+    basicSortTestCase.getInput().setParameters(inputParameters);
+</pre>
+        </span>
+    </div>
+
+    <p>
+        Lastnosti se v vhod zapišejo z metodo <span
+            class=code>addProperty()</span>.
+    </p>
+
+    <div class=primer>
+        <b>Primer:</b> v projektu <span class=code>BasicSort</span>generator tipa 1 doda lastnosti <span
+            class=code>Type</span> in <span class=code>Filename</span> takole:
+
+        <span class=code>
+            <pre>
+    inputParameters.addProperty(PROPS, "Type", "Type1");        
+    inputParameters.addProperty(PROPS, "Filename", filename);
+  </pre>
+        </span>
+    </div>
+
+
+
+
+
+
+
+<h1>Uporaba TESTS_PATH za vhodno datoteko</h1>
+
+    <div class=primer>
+        <b>Primer:</b> če je generatorju relativno ime datoteke podano v parametru <span class=code>"Filename"</span>,
+        celotno ime datoteke dobimo takole:
+
+        <p clas=code>
+        <pre>
+    String path     = generatingParameters.getVariable(TESTS_PATH, "").getStringValue();
+    String filename = generatingParameters.getVariable("Filename", "").getStringValue();
+    String testFile = path + File.separator + filename;
+</pre>
+        </p>
+    </div>
+
+
+
+
+
+
+
+
+<h1>Generator - pričakovan izhod</h1>
+
+<p class=code>
+    <pre>
+BasicMatrixMulTestCase basicMatrixMulTestCase = new BasicMatrixMulTestCase();                
+basicMatrixMulTestCase.setInput(new BasicMatrixMulInput(A, B));    
+basicMatrixMulTestCase.getInput().setParameters(inputParameters);    
+basicMatrixMulTestCase.setExpectedOutput(new BasicMatrixMulOutput(C));
+</pre>
+    </p>
+
+
+
+
+<h1>Indikator</h1>
+<div class=primer>
+    <b>Primer:</b> v projektu <span class=code>BasicSort</span> je indikator pravilnosti rezultata (<span
+        class=code>Check</span>) v atrd datoteki podan takole:
+
+    <p class=code>
+    <pre>
+{
+"Name"        : "Check",             
+"Description" : "The correctness of the algorithm (OK or NOK)", 
+"Type"        : "string"       
+}
+</pre>
+    </p>
+
+    V datoteki <span class=code>BasicSortOuput.java</span> v metodi <span class=code>getIndicatorValue()</span> pa
+    se njegova vrednost določi takole:
+
+    <span class=code>
+        <pre>
+switch (indicatorName) {
+case "Check" :
+  boolean checkOK = 
+     Arrays.equals(basicSortAlgorithmOutput.sortedArray, 
+                   basicSortTestCase.getExpectedOutput().sortedArray);
+  return checkOK ? "OK" : "NOK";
+}
+</pre>
+    </span>
+</div>
+

@@ -1,8 +1,10 @@
 package si.fri.algator.admin;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Scanner; 
 import java.util.TreeMap;
@@ -25,12 +27,16 @@ import si.fri.algator.users.UsersTools;
 
 import static si.fri.algator.admin.Tools.copyFile;
 import static si.fri.algator.admin.Tools.getSubstitutions;
+import si.fri.algator.entities.Entity;
 
 /**
  *
  * @author tomaz
  */
 public class Maintenance {
+  // hashmap of objects to syncronize on
+  public static HashMap<String, String> synchronizators = new HashMap();
+  
 
   /**
    * Method creates project and all of its parts (testset, algorithm, 
@@ -333,7 +339,7 @@ public class Maintenance {
     String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projName));
     
     // indicator test already exists?
-    String indicatorTestFilename = "IndicatorTest_" + indName + ".java";      
+    String indicatorTestFilename = ATGlobal.INDICATOR_TEST_OFFSET + indName + ".java";      
     boolean hasIndicatorTest = new File(projSrcFolder, indicatorTestFilename).exists();
     if (hasIndicatorTest) 
       return false;
@@ -442,8 +448,9 @@ public class Maintenance {
       
       indicators.put(indicator);
 
-      JSONArray indicatorsOrder = new JSONArray();
-      try {indicatorsOrder = (JSONArray) resultDescription.get(EResult.ID_IndOrder);} catch (Exception e) {}
+      JSONArray indicatorsOrder;
+      try {indicatorsOrder = (JSONArray) resultDescription.get(EResult.ID_IndOrder);} 
+      catch (Exception e) {indicatorsOrder = new JSONArray(); resultDescription.set(EResult.ID_IndOrder, indicatorsOrder);}
       indicatorsOrder.put(indName);
       msg = String.format("0:Indicator '%s' added to project %s.", indName, projName);
     }
@@ -458,6 +465,96 @@ public class Maintenance {
     return msg;
   }
   
+  /**
+   * 
+   * @param projectName
+   * @param indicatorName
+   * @param type ... "timer", "counter", or "indicator"
+   * @return 
+   */
+  public static String removeIndicator(String projectName, String indicatorName, String type) {
+    String dataroot = ATGlobal.getALGatorDataRoot();
+    String projRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName);
+    
+    try {  
+      MeasurementType mt = "counter".equals(type) ? MeasurementType.CNT : MeasurementType.EM;
+      EResult resultDescription = new EResult(new File(ATGlobal.getRESULTDESCfilename(projRoot, projectName, mt)));
+
+      String msg = "";
+      // remove from "Indicators"
+      JSONArray indicators = resultDescription.getField(EResult.ID_indicators);
+      if (indicators!= null) for (int i=0; i<indicators.length(); i++) {
+        if (indicatorName.equals(indicators.getJSONObject(i).get(Entity.ID_NAME))) {
+          indicators.remove(i); msg += "Removed from Indicators. "; break;
+        }
+      }      
+      // remove from "IndicatorOrder"
+      JSONArray indicatorOrder = resultDescription.getField(EResult.ID_IndOrder);
+      if (indicatorOrder != null) for (int i=0; i<indicatorOrder.length(); i++) {
+        if (indicatorName.equals(indicatorOrder.get(i))) {
+          indicatorOrder.remove(i); msg += "Removed from IndicatorsOrder. ";break;
+        }
+      }
+      resultDescription.saveEntity();
+      
+      if ("indicator".equals(type)) {
+        // remove IndicatorTest file
+        String indFilename = ATGlobal.getIndicatorTestFilename(dataroot, projectName, indicatorName);
+        boolean deleted = new File(indFilename).delete();
+        if (deleted) msg += "IndicatotTest file removed. ";
+      }      
+      if (msg.isEmpty())
+        return "2:Indicator does not exist.";
+      else return "0:"+msg;
+    } catch (Exception e) {
+      return "1:Can not remove indicator: " + e.toString();
+    }
+  }
+  
+  public static String saveIndicator(String projectName, JSONObject jIndicator, String type) {
+    String dataroot = ATGlobal.getALGatorDataRoot();
+    String projRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName);
+    
+    String tYpe=type.isEmpty()?"Indicator":(type.toUpperCase().charAt(0)+type.substring(1));
+    try {      
+      MeasurementType mt = "counter".equals(type) ? MeasurementType.CNT : MeasurementType.EM;
+
+      // parse indicator json and get Name and Code
+      String indicatorName = jIndicator.optString(Entity.ID_NAME, "<non existing>");
+      String code          = jIndicator.optString("Code");
+      code = new String(Base64.getDecoder().decode(code));
+      jIndicator.remove("Code");
+      
+      EResult resultDescription = new EResult(new File(ATGlobal.getRESULTDESCfilename(projRoot, projectName, mt)));
+
+      String msg = "";
+      // change indicators in Indicator array
+      JSONArray indicators = resultDescription.getField(EResult.ID_indicators);
+      if (indicators!= null) for (int i=0; i<indicators.length(); i++) {
+        if (indicatorName.equals(indicators.getJSONObject(i).get(Entity.ID_NAME))) {
+          indicators.put(i, jIndicator); msg += tYpe +" changed. "; break;
+        }
+      }      
+      resultDescription.saveEntity();
+            
+      if ("indicator".equals(type)) {
+        // remove IndicatorTest file
+        String indFilename = ATGlobal.getIndicatorTestFilename(dataroot, projectName, indicatorName);
+        File indFile = new File(indFilename);
+        if (indFile.exists()) try (PrintWriter pw = new PrintWriter(indFile);) {                    
+          pw.println(code);
+          msg += "IndicatotTest file changed. ";
+        } catch (Exception e) {}
+      }      
+      if (msg.isEmpty())
+        return "2:"+tYpe+" does not exist.";
+      else return "0:"+msg;
+    } catch (Exception e) {
+      return "1:Can not save "+tYpe+": " + e.toString();
+    }
+  }
+   
+
   /**
    * Adds an indicator test to project projName. 
    * @param indName ... the name of indicator to be tested by this test
@@ -722,11 +819,8 @@ public class Maintenance {
     // first create project if it does not exist
     File projFolderFile = new File(projRoot);
     if (!projFolderFile.exists()) {
-      if (createProject(username, projName).charAt(0)!='0') {
-        return null;
-      }
+        return "1:Project does not exist.";
     }
-
     System.out.println("Adding presenter " + presenterName);
     try {
 
@@ -739,10 +833,10 @@ public class Maintenance {
       File presenterFile = new File(ATGlobal.getPRESENTERFilename(dataroot, projName, presenterName));
       if (presenterFile.exists()) {
         System.out.printf("\n Presenter %s already exists!\n", presenterName);
-        return null;
+        return "2:Presenter with this name already exists.";
       }
 
-      copyFile("templates/TP.json", presenterRoot, presenterName + ATGlobal.AT_FILEEXT_presenter, substitutions);
+      copyFile("templates/TP.json", presenterRoot, presenterName + "." + ATGlobal.AT_FILEEXT_presenter, substitutions);
       copyFile("templates/TP.html", presenterRoot, presenterName + ".html", substitutions);
 
       String id = EProject.ID_ProjPresenters;
@@ -762,16 +856,15 @@ public class Maintenance {
       }
 
       EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, projName)));
-      ArrayList tp = new ArrayList<String>(Arrays.asList(eProject.getStringArray(id)));
+      ArrayList<String> tp = new ArrayList(Arrays.asList(eProject.getStringArray(id)));
       tp.add(presenterName);
       eProject.set(id, tp.toArray());
       eProject.saveEntity();
 
     } catch (Exception e) {
-      System.out.println("Can not create presenter: " + e.toString());
-      return null;
+      return "3:Can not create presenter: " + e.toString();
     }
-    return presenterName;
+    return "0:"+presenterName;
   }
 
   public static String getNextAvailablePresenterName(String proj_name, int type) {
@@ -796,17 +889,21 @@ public class Maintenance {
         prefix = "a";
         break;
     }
-
+        
     ArrayList<String> tp = new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_MainProjPresenters)));
     tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_ProjPresenters))));
     tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_MainAlgPresenters))));
     tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_AlgPresenters))));
-    tp.replaceAll(x -> x.toUpperCase());
-
+    // add all files in presenter path 
+    tp.addAll(Arrays.asList(new File(presenterPath).list())); 
+    
+    String ext = "." + ATGlobal.AT_FILEEXT_presenter;
+    tp.replaceAll(x -> {return x.endsWith(ext) ? x : x+ext;});
+    
     int id = 1;
     while (true) {
-      presenterName = prefix + "Presenter" + id++;
-      if (!tp.contains(presenterName.toUpperCase()) && !new File(presenterPath, presenterName + ATGlobal.AT_FILEEXT_presenter).exists()) {
+      presenterName = prefix + "Presenter" + (id++);
+      if (!tp.contains(presenterName+ext) && !new File(presenterPath, presenterName + ext).exists()) {
         break;
       }
     }
@@ -828,16 +925,16 @@ public class Maintenance {
           eProject.set(presID, tp.toArray());
           eProject.saveEntity();
 
-          new File(presenterRoot, presenter_name + ATGlobal.AT_FILEEXT_presenter).delete();
+          new File(presenterRoot, presenter_name + "." + ATGlobal.AT_FILEEXT_presenter).delete();
           new File(presenterRoot, presenter_name + ".html").delete();
 
-          return "Presenter " + presenter_name + " sucessfully removed.";
+          return "0:Presenter " + presenter_name + " sucessfully removed.";
         }
       }
-      return "Presenter " + presenter_name + " does not exist.";
+      return "2:Presenter " + presenter_name + " does not exist.";
 
     } catch (Exception e) {
-      return "Can not remove presenter: " + e.toString();
+      return "3:Can not remove presenter: " + e.toString();
     }
   }
 

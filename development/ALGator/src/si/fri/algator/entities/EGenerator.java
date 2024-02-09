@@ -24,6 +24,7 @@ public class EGenerator extends Entity  implements Serializable {
 	 new String [] {ID_Type,  ID_Desc, ID_GPars});   
   
    setRepresentatives(ID_Type, ID_Desc);
+   export_name = false;
   }
   
   public EGenerator(String json) {

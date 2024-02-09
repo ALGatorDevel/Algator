@@ -1,26 +1,11 @@
 {
   "Presenter": {
-    "Name": "<TP>",
-    "Title":        "t_<TP>",
+    "Name":   "<TP>",
+    "Title":  "t_<TP>",
     "ShortTitle":   "st_<TP>",
     "Description":  "d_<TP>",
-    "Query"   :     {}, 
+    "Query"   : {}, 
 
-    "HasTable":     true, 
-    "Columns" :     [], 
-
-    "HasGraph":       true, 
-    "categoryLabels": false, 
-    "graphType":      "line", 
-    "gridX":          true, 
-    "gridY":          true, 
-    "logScale":       false, 
-    "manData":        {},  
-    "zoom":           true,
-    "subchart":       false, 
-    "xAxis":          "", 
-    "yAxes":          [], 
-    "xAxisTitle":     "x_<TP>", 
-    "yAxisTitle":     "y_<TP>"    
+    "Layout"  : []
   }
 }

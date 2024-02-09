@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import si.fri.algator.entities.EVariable;
 import si.fri.algator.entities.Variables;
+import si.fri.algator.global.ATGlobal;
 
 
 /**
@@ -40,7 +41,7 @@ public abstract class AbstractOutput implements Serializable {
   {
     try {
       ClassLoader cl =  testCase.getClass().getClassLoader(); // get classloader that loaded testcase
-      Class testIndicator = Class.forName("IndicatorTest_" + indicatorName, true, cl);
+      Class testIndicator = Class.forName(ATGlobal.INDICATOR_TEST_OFFSET + indicatorName, true, cl);
       AbstractIndicatorTest ait = (AbstractIndicatorTest)testIndicator.newInstance();
       Method getValue = testIndicator.getDeclaredMethod("getValue", testCase.getClass(), algorithmOutput.getClass());
       return getValue.invoke(ait, testCase, algorithmOutput);

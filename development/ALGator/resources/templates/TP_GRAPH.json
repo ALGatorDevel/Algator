@@ -1,0 +1,17 @@
+{
+  "Graph": {
+    "xAxis": "", 
+    "yAxes": [],    
+    "xAxisTitle": "", 
+    "yAxisTitle": "", 
+  
+    "categoryLabels": false, 
+    "graphTypes": [], 
+    "gridX": true, 
+    "gridY": true, 
+    "logScale": false, 
+    "manData": {}, 
+    "subchart": false,     
+    "zoom": true
+  }
+}

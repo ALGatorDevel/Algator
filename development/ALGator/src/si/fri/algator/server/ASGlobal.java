@@ -33,6 +33,7 @@ public class ASGlobal {
   public static final String REQ_TASK_RESULT      = "TASKRESULT";     // parameters: json(ComputerUID, TaskID, TestNo, Result)
  
   public static final String REQ_QUERY_RES        = "GETQUERYRESULT"; // parameters: projectName
+  public static final String REQ_QUERY            = "QUERY";          // parameters: json(projectName, query, ComputerID, Parameters)
   public static final String REQ_ADMIN_PRINTPATHS = "PRINTPATHS";     // no parameters
   public static final String REQ_ADMIN_PRINTLOG   = "PRINTLOG";       // parameters: numberOfLogs (default: 10)
   public static final String REQ_USERS            = "USERS";          // users (povezava do programa algator.Users)
@@ -53,6 +54,7 @@ public class ASGlobal {
   public static final String REQ_GETRESULTUPDATE  = "GETRESULTUPDATE"; // json (ID)
   
   public static final String REQ_GETDATA          = "GETDATA";         // json (Type, ...)
+  public static final String REQ_ALTER            = "ALTER";           // json (Type, ...)
   
   // dodana funkcionalnost za poganjanje ALGator ukazov (execute, analyse, ...) v svojem procesu. Za podrobnosti glej komentar v ADECommand
   public static final String COMMAND              = "COMMAND";        // parameters: run / status / output / stop + params

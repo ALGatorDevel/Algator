@@ -84,6 +84,7 @@ public class ATGlobal {
   public static final String ATDIR_libDir         = "lib";
   
   public static final String COUNTER_CLASS_EXTENSION = "_COUNT"; 
+  public static final String INDICATOR_TEST_OFFSET   = "IndicatorTest_"; 
   
   
   /**
@@ -202,6 +203,12 @@ public class ATGlobal {
   }
   public static String getTESTSETpath(String data_root, String projName) {
     return data_root + File.separator + ATDIR_projects + File.separator + getProjectDirName(projName) + File.separator + ATDIR_testsDir;
+  }
+  
+  
+  //////////   Indicator 
+  public static String getIndicatorTestFilename(String data_root, String projName, String indicatorName) {
+    return getPROJECTsrc(getPROJECTroot(data_root, projName)) + File.separator + INDICATOR_TEST_OFFSET+indicatorName+".java";
   }
   
   

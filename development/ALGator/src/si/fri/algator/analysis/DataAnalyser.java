@@ -304,30 +304,9 @@ public class DataAnalyser {
       try {
         String queryname = query;
         String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectname);
-        //String qResultFileName = ATGlobal.getQUERYOutputFilename(projectRoot, queryname, params);
-        //HashSet<String> queryDepFiles = ATTools.getFilesForQuery(projectname, queryname, params);
-
-        /*        
-        if (ATTools.resultsAreUpToDate(queryDepFiles, qResultFileName)) {
-          File qResultFile = new File(qResultFileName);
-          String content = "";
-          Scanner sc = new Scanner(qResultFile);
-          while (sc.hasNextLine()) {
-            String vrstica = sc.nextLine();
-            content += (content.isEmpty() ? "" : "\n") + vrstica;
-          }
-          sc.close();
-          return content;
-        } else { */
-        // mehanizem shranjevanja poizvedb ne dela prav, zato se poizvedbe ne osvežujejo!
-        // popravi mehanizem, ker zna prihraniti veliko časa!!!
         {
           TableData td = runQuery(projectname, queryname, params, computerID);
           String result = td.toString();
-
-          //PrintWriter pw = new PrintWriter(qResultFileName);
-          //pw.print(result);
-          //pw.close();
           return result;
         }
       } catch (Exception e) {

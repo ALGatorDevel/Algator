@@ -1,9 +1,7 @@
 package si.fri.algator.entities;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.HashMap;
