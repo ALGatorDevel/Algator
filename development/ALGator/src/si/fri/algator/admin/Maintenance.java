@@ -2,6 +2,7 @@ package si.fri.algator.admin;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -183,7 +184,7 @@ public class Maintenance {
    *          opt       = {"edit":true, "isInputParameter":false}
    */    
   public static String addParameter(String username, String proj_name, String paramDesc, String opt) {
-    JSONObject param = new JSONObject();
+    JSONObject param;
     String name = "";
 
     
@@ -267,7 +268,35 @@ public class Maintenance {
     testcaseDescription.saveEntity();
     return msg;
   }
+  
+  public static String removeParameter(String projectName, String parameterName) {
+    String dataroot = ATGlobal.getALGatorDataRoot();
+    
+    try {  
+      ETestCase testcase = new ETestCase(new File(ATGlobal.getTESTCASEDESCfilename(dataroot, projectName)));
 
+      String msg = "";
+      // remove from "Parameters"
+      JSONArray parameters = testcase.getField(ETestCase.ID_parameters);
+      if (parameters!= null) for (int i=0; i<parameters.length(); i++) {
+        if (parameterName.equals(parameters.getJSONObject(i).get(Entity.ID_NAME))) {
+          parameters.remove(i); msg += "Removed from Parameters. "; break;
+        }
+      }      
+      // remove from "InputParameters"
+      JSONArray inputParameters = testcase.getField(ETestCase.ID_inputParameters);
+      if (inputParameters != null) for (int i=0; i<inputParameters.length(); i++) {
+        if (parameterName.equals(inputParameters.get(i))) {
+          inputParameters.remove(i); msg += "Removed from InputParameters. ";break;
+        }
+      }
+      testcase.saveEntity();      
+      return "0:"+msg;
+    } catch (Exception e) {
+      return "1:Can not remove parameter: " + e.toString();
+    }
+  }
+  
   public static String addIndicator(String username, String proj_name) {
     Scanner sc = new Scanner(System.in);
 
@@ -687,8 +716,10 @@ public class Maintenance {
       }
       substitutions.put("<params>", paramSub);
 
+      String genFilename = ATGlobal.getGENERATORFilename(genName);
+      
       // create TestCaseGenetator_TTT.java file ...
-      copyFile("templates/TestCaseGenerator_TTT", projSrcFolder, "TestCaseGenerator_" + genName + ".java", substitutions);
+      copyFile("templates/TestCaseGenerator_TTT", projSrcFolder, genFilename, substitutions);
 
       // and add generator description to testcase.json file
       JSONObject generator = new JSONObject();
@@ -699,12 +730,50 @@ public class Maintenance {
 
       testcaseDescription.saveEntity();
       
-      return "0:Testcase generator created.";
+      String encodedCode = 
+        Base64.getEncoder().encodeToString(
+          Files.readAllBytes(new File(new File(projSrcFolder), genFilename).toPath())
+      );
+      JSONObject answer = new JSONObject();
+      answer.put("Code", encodedCode);
+      answer.put("Parameters", new JSONArray(params));
+      
+      return "0:" + answer.toString();
+      
     } catch (Exception e) {
       return "5:Can not add generator: " + e.toString();
     }
   }
 
+  public static String removeGenerator(String projectName, String generatorType) {
+    String dataroot = ATGlobal.getALGatorDataRoot();
+    
+    try {  
+      ETestCase testcase = new ETestCase(new File(ATGlobal.getTESTCASEDESCfilename(dataroot, projectName)));
+
+      String msg = "";
+      // remove from "Generators"
+      JSONArray generators = testcase.getField(ETestCase.ID_generators);
+      if (generators!= null) for (int i=0; i<generators.length(); i++) {
+        if (generatorType.equals(generators.getJSONObject(i).get(EGenerator.ID_Type))) {
+          generators.remove(i); msg += "Removed from Generators. "; break;
+        }
+      }      
+      testcase.saveEntity();    
+      
+      String genFilename = ATGlobal.getGENERATORPathname(dataroot, projectName, generatorType);
+      boolean deleted = new File(genFilename).delete();
+      if (deleted) msg += "Generator source file removed. ";
+            
+      if (msg.isEmpty())
+        return "2:Generator does not exist.";                 
+      
+      return "0:"+msg;
+    } catch (Exception e) {
+      return "1:Can not remove generator: " + e.toString();
+    }
+  }
+  
   public static String createAlgorithm(String username, String proj_name, String alg_name) {
     String dataroot = ATGlobal.getALGatorDataRoot();
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
@@ -762,28 +831,16 @@ public class Maintenance {
     HashMap<String, String> substitutions = getSubstitutions(proj_name);
     substitutions.put("<TS>", testset_name);
 
-    // first create project if it does not exist
-    File projFolderFile = new File(projRoot);
-    if (!projFolderFile.exists()) {
-      String msg;
-      if ((msg = createProject(username, proj_name)).charAt(0)!='0') {
-        return msg;
-      }
-    }
-
-    System.out.println("Adding test set " + testset_name);
     try {
 
       File testsetFolderFile = new File(testsRoot);
       if (!testsetFolderFile.exists()) {
         testsetFolderFile.mkdirs();
       }
-
       File testSetFile = new File(testsRoot + File.separator + testset_name + ".json");
       if (testSetFile.exists()) {        
         return String.format("1:Testset %s already exists!", testset_name);
       }
-
       copyFile("templates/TS.json", testsRoot, testset_name + ".json", substitutions);
       copyFile("templates/TS.txt", testsRoot, testset_name + ".txt", substitutions);
 
@@ -799,10 +856,42 @@ public class Maintenance {
         UsersTools.setEntityPermissions(username, proj_name, testset_name, 3);
       }
     } catch (Exception e) {      
-      return String.format("Can not create test set: " + e.toString());
+      return String.format("2: Can not create testset: " + e.toString());
     }
-    return "0:Test set created.";
+    return "0:Testset created.";
   }
+  public static String removeTestset(String projectName, String testsetName) {
+    String dataroot = ATGlobal.getALGatorDataRoot();
+    
+    try {  
+      EProject project = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, projectName)));
+
+      String msg = "";
+      // remove from "TestSets"
+      JSONArray testsets = project.getField(EProject.ID_TestSets);
+      if (testsets!= null) for (int i=0; i<testsets.length(); i++) {
+        if (testsetName.equals(testsets.get(i))) {
+          testsets.remove(i); msg += "Removed from TestSets. "; break;
+        }
+      }      
+      project.saveEntity();
+      
+      String tsconfigName = ATGlobal.getTESTSETfilename(dataroot, projectName, testsetName);
+      if (new File(tsconfigName).delete()) 
+        msg+="Configuration file deleted. ";
+      else return "1: Can not delete configuration file";
+      
+      String tsdataName = ATGlobal.getTESTSETDATAfilename(dataroot, projectName, testsetName);
+      if (new File(tsdataName).delete()) 
+        msg+="Data file deleted. ";
+      else return "1: Can not delete data file";
+      
+      return "0:"+msg;
+    } catch (Exception e) {
+      return "1:Can not remove testset: " + e.toString();
+    }
+  }
+  
 
   public static String createPresenter(String username, String projName, String presenterName, int type) {
     if (presenterName == null || presenterName.isEmpty()) {

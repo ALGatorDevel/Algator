@@ -51,7 +51,9 @@ public class EPresenterN extends Entity implements Serializable {
         JSONArray line = (JSONArray) layout.get(i);
         for (int j = 0; j < line.length(); j++) {
           String viewerName = (String)line.get(j);
-          String viewerS = jsonO.get(viewerName).toString();
+          
+          Object viewerO = jsonO.opt(viewerName);
+          String viewerS = viewerO == null ? "{}" : viewerO.toString();
           Entity viewer = null;
           if (viewerName.startsWith("Graph")) {
             viewer = new EGraphN(viewerS);

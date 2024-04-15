@@ -245,6 +245,11 @@ public class RequestProcessor {
         if (!(jObj.has("ProjectName")&& jObj.has("AlgorithmName")))
           return sAnswer(1, "getData of type=Algorithm requires 'ProjectName' and 'AlgorithmName' properties.", "");
         return ASTools.getAlgorithmData(jObj.getString("ProjectName"), jObj.getString("AlgorithmName"));
+      case "Testset":
+        if (!(jObj.has("ProjectName")&& jObj.has("TestsetName")))
+          return sAnswer(1, "getData of type=Testset requires 'ProjectName' and 'TestsetName' properties.", "");
+        return ASTools.getTestsetData(jObj.getString("ProjectName"), jObj.getString("TestsetName"));
+        
       case "Presenter":
         if (!(jObj.has("ProjectName")&&jObj.has("PresenterName")))
           return sAnswer(1, "getData of type=Presenters requires 'ProjectName' and 'PresenterName' properties.", "");
@@ -285,33 +290,69 @@ public class RequestProcessor {
     synchronized (syncObject) {          
       String action = jObj.getString("Action");
       switch (action) { 
+        
+        case "SaveProjectGeneral":
+          if (!jObj.has("Data"))
+            return sAnswer(1, "Alter of type=SaveProjectGeneral requires 'ProjectName' and 'Data' properties.", "");
+          return ASTools.saveProjectGeneral(jObj.getString("ProjectName"), jObj.get("Data"));
       
         case "NewPresenter":
-          if (!(jObj.has("ProjectName")&&jObj.has("PresenterType")))
+          if (!jObj.has("PresenterType"))
             return sAnswer(1, "Alter of type=NewPresenters requires 'ProjectName' and 'PresenterType' properties.", "");
-          return ASTools.newPresenter(jObj.getString("ProjectName"), jObj.getInt("PresenterType"));
-          
+          return ASTools.newPresenter(jObj.getString("ProjectName"), jObj.getInt("PresenterType"));          
         case "RemovePresenter":
           if (!(jObj.has("ProjectName")&&jObj.has("PresenterName")))
             return sAnswer(1, "Alter of type=RemovePresenters requires 'ProjectName' and 'PresenterName' properties.", "");
           return ASTools.removePresenter(jObj.getString("ProjectName"), jObj.getString("PresenterName"));
-  
         case "SavePresenter":
           if (!(jObj.has("ProjectName")&&jObj.has("PresenterName")&&jObj.has("PresenterData")))
             return sAnswer(1, "Alter of type=SavePresenters requires 'ProjectName', 'PresenterName' and 'PresenterData' properties.", "");
           return ASTools.savePresenter(jObj.getString("ProjectName"), jObj.getString("PresenterName"), jObj.getJSONObject("PresenterData"));
-  
+                    
+        case "NewParameter":
+          if (!jObj.has("ParameterName"))
+            return sAnswer(1, "Alter of type=NewParameter requires 'ProjectName', 'ParameterName' and 'IsInput' (optional, default=false)) properties.", "");
+          boolean isInput = false; try {isInput = jObj.getBoolean("IsInput");} catch (Exception e) {}
+          return ASTools.newParameter(jObj.getString("ProjectName"), jObj.getString("ParameterName"), isInput);                            
+        case "SaveParameter":
+          if (!(jObj.has("ProjectName")&&jObj.has("ParameterName")&&jObj.has("Parameter")))
+            return sAnswer(1, "Alter of type=SaveParameter requires 'ProjectName' 'ParameterName' and 'Parameter' properties.", "");
+          JSONObject parameter = new JSONObject();
+          try {parameter = jObj.getJSONObject("Parameter");} catch (Exception e) {
+            return sAnswer(2, "Parameter not a JSON.", "");            
+          }
+          return ASTools.saveParameter(jObj.getString("ProjectName"), jObj.getString("ParameterName"), parameter);                
+        case "RemoveParameter":
+          if (!(jObj.has("ProjectName")&&jObj.has("ParameterName")))
+            return sAnswer(1, "Alter of type=RemoveParameter requires 'ProjectName' and 'ParameterName' properties.", "");
+          return ASTools.removeParameter(jObj.getString("ProjectName"), jObj.getString("ParameterName"));        
+
+        case "NewTestset":
+          if (!jObj.has("TestsetName"))
+            return sAnswer(1, "Alter of type=NewTestset requires 'ProjectName' and 'TestsetName' properties.", "");
+          return ASTools.newTestset(jObj.getString("ProjectName"), jObj.getString("TestsetName"));                            
+        case "SaveTestset":
+          if (!(jObj.has("TestsetName")&&jObj.has("Testset")))
+            return sAnswer(1, "Alter of type=SaveTestset requires 'ProjectName' 'TestsetName' and 'Testset' properties.", "");
+          JSONObject testset = new JSONObject();
+          try {testset = jObj.getJSONObject("Testset");} catch (Exception e) {
+            return sAnswer(2, "Testset not a JSON.", "");            
+          }
+          return ASTools.saveTestset(jObj.getString("ProjectName"), jObj.getString("TestsetName"), testset);                
+        case "RemoveTestset":
+          if (!jObj.has("TestsetName"))
+            return sAnswer(1, "Alter of type=RemoveTestset requires 'ProjectName' and 'TestsetName' properties.", "");
+          return ASTools.removeTestset(jObj.getString("ProjectName"), jObj.getString("TestsetName"));        
+          
         case "NewIndicator":
           if (!(jObj.has("ProjectName")&&jObj.has("IndicatorName")))
             return sAnswer(1, "Alter of type=NewIndicator requires 'ProjectName', 'IndicatorName', 'IndicatorType' (optional, default='indicator') and 'Meta' (optional, default:{}) properties.", "");
           JSONObject meta =           jObj.optJSONObject("Meta"); if (meta==null) meta = new JSONObject();
           return ASTools.newIndicator(jObj.getString("ProjectName"), jObj.getString("IndicatorName"), jObj.optString("IndicatorType", "indicator"), meta);        
-  
         case "RemoveIndicator":
           if (!(jObj.has("ProjectName")&&jObj.has("IndicatorName")))
             return sAnswer(1, "Alter of type=RemoveIndicator requires 'ProjectName' 'IndicatorName' and 'IndicatorType' (optional, default='indicator') properties.", "");
-          return ASTools.removeIndicator(jObj.getString("ProjectName"), jObj.getString("IndicatorName"), jObj.optString("IndicatorType", "indicator"));        
-  
+          return ASTools.removeIndicator(jObj.getString("ProjectName"), jObj.getString("IndicatorName"), jObj.optString("IndicatorType", "indicator"));          
         case "SaveIndicator":
           if (!(jObj.has("ProjectName")&&jObj.has("Indicator")))
             return sAnswer(1, "Alter of type=SaveIndicator requires 'ProjectName' 'Indicator' and 'IndicatorType' (optional, default='indicator') properties.", "");
@@ -321,7 +362,20 @@ public class RequestProcessor {
           if (!(jObj.has("ProjectName")&&jObj.has("GeneratorName")))
             return sAnswer(1, "Alter of type=NewGenerator requires 'ProjectName', 'GeneratorName' and 'GeneratorParameters' (optional, default:[]) properties.", "");
           JSONArray genParams =           jObj.optJSONArray("GeneratorParameters"); if (genParams==null) genParams = new JSONArray();
-          return ASTools.newGenerator(jObj.getString("ProjectName"), jObj.getString("GeneratorName"), genParams);        
+          return ASTools.newGenerator(jObj.getString("ProjectName"), jObj.getString("GeneratorName"), genParams);                
+        case "SaveGenerator":
+          if (!(jObj.has("ProjectName")&&jObj.has("GeneratorType")&&jObj.has("Generator")&&jObj.has("Code")))
+            return sAnswer(1, "Alter of type=SaveParameter requires 'ProjectName' 'GeneratorType', 'Code' and 'Generator' properties.", "");
+          JSONObject generator = new JSONObject();
+          try {generator = jObj.getJSONObject("Generator");} catch (Exception e) {
+            return sAnswer(2, "Generator not a JSON.", "");            
+          }
+          return ASTools.saveGenerator(jObj.getString("ProjectName"), jObj.getString("GeneratorType"), generator, jObj.getString("Code"));                
+        case "RemoveGenerator":
+          if (!(jObj.has("ProjectName")&&jObj.has("GeneratorName")))
+            return sAnswer(1, "Alter of type=RemoveGenerator requires 'ProjectName' and 'GeneratorName' properties.", "");
+          return ASTools.removeGenerator(jObj.getString("ProjectName"), jObj.getString("GeneratorName"));        
+          
           
         default: return sAnswer(1, "Unknown type '"+action+"'.", "");        
       }

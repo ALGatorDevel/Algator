@@ -48,6 +48,7 @@ public class ATGlobal {
   public static final String AT_FILENAM_testcasedesc = "testcase";
   
   public static final String AT_FILEEXT_testset      = "json"; // atts
+  public static final String AT_FILEEXT_testsetdata  = "txt";  
   public static final String AT_FILEEXT_query        = "json"; // atqd
   public static final String AT_FILEEXT_presenter    = "json"; // atpd
 
@@ -85,6 +86,8 @@ public class ATGlobal {
   
   public static final String COUNTER_CLASS_EXTENSION = "_COUNT"; 
   public static final String INDICATOR_TEST_OFFSET   = "IndicatorTest_"; 
+  
+  public static final String GENERATOR_FILENAME      = "TestCaseGenerator_";
   
   
   /**
@@ -311,13 +314,22 @@ public class ATGlobal {
   }
   
   /**
-   * Returns the name of a test set configuration file. This file is placed in
-   * the projects tests folder
+   * Returns the name of a test set configuration (json) file. 
    */
   public static String getTESTSETfilename(String data_root, String projectName, String testSetName) {
     return getTESTSroot(data_root, projectName) + File.separator + testSetName + "." + AT_FILEEXT_testset;
   }
+  /**
+   * Returns the name of a test set data (txt) file. 
+   */
+  public static String getTESTSETDATAfilename(String data_root, String projectName, String testSetName) {
+    return getTESTSroot(data_root, projectName) + File.separator + testSetName + "." + AT_FILEEXT_testsetdata;
+  }
 
+  public static boolean testsetExists(String data_root, String projName, String tsName) {
+    File f = new File(getTESTSETfilename(data_root, projName, tsName));
+    return f.exists();
+  }
   
   
   
@@ -415,6 +427,14 @@ public class ATGlobal {
     return  getPRESENTERSroot(data_root, projectName) + File.separator + presenterName + "." + AT_FILEEXT_presenter;
   }
 
+  
+  /************* generators  *+++++++++++++++++++++*/
+  public static String getGENERATORFilename(String genName) {
+    return GENERATOR_FILENAME + genName + ".java";
+  }
+  public static String getGENERATORPathname(String data_root, String projectName, String genName) {
+    return getPROJECTsrc(getPROJECTroot(data_root, projectName)) + File.separator + GENERATOR_FILENAME + genName + ".java";
+  }
   
   /************* TMP folders   *+++++++++++++++++++++*/
   public static String getTMProot(String data_local, String prefix) {

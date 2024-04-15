@@ -27,6 +27,8 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import jdk.nashorn.internal.parser.JSONParser;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -213,6 +215,18 @@ public class ASTools {
     EAlgorithm algorithm = new EAlgorithm(new File(fileName));
     return jAnswer(OK_STATUS, String.format("Algorithm '%s'.", algorithmName), algorithm.toJSONString());
   }  
+
+  public static String getTestsetData(String projectName, String testsetName) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");
+    if (!ATGlobal.testsetExists(ATGlobal.getALGatorDataRoot(), projectName, testsetName))
+      return sAnswer(3, String.format("Testset '%s' does not exist in project '%s'.", testsetName, projectName), "");
+    
+    String fileName = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataRoot(), projectName, testsetName);
+    ETestSet testset = new ETestSet(new File(fileName));
+    return jAnswer(OK_STATUS, String.format("Testset '%s'.", testsetName), testset.toJSONString());
+  }  
+
   
   public static String getPresenter(String projectName, String presenterName) {
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
@@ -225,7 +239,13 @@ public class ASTools {
       return sAnswer(3, String.format("Presenter '%s' does not exist in project '%s'.", presenterName, projectName), "");    
     
     EPresenterN presenter = new EPresenterN(pFile);
-    return jAnswer(OK_STATUS, String.format("Presenter '%s'.", presenterName), presenter.toJSONString());
+    String presenterJSON = "{}";
+    try {
+      presenterJSON = FileUtils.readFileToString(pFile, "UTF-8");
+      JSONObject jObj= new JSONObject(presenterJSON);
+      presenterJSON = jObj.optString("Presenter", "{}");
+    } catch (Exception e) {}
+    return jAnswer(OK_STATUS, String.format("Presenter '%s'.", presenterName), presenterJSON);
   }
   
   public static String getProjectSources(String projectName) {
@@ -362,17 +382,38 @@ public class ASTools {
   
 /**** Supporting methods for getData request  ... end  */
   
- 
+  /**
+   * Method gets the answer of an action in form "status:msg"; if status==0, 
+   * method returns msgOK and msg, else msgNOK
+   * 
+   */
+  private static String parsedAnswer(String result, String msgOK, String msgNOK) {
+    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
+    String msg = result.length()> 2 ? result.substring(2) : msgNOK;
+    if (msg.startsWith("{"))
+      return jAnswer(status, status==0 ? msgOK:msg, status==0?msg:"{}");         
+    else
+      return sAnswer(status, status==0 ? msgOK:msg, status==0?msg:"");   
+  }
+  
 /**** Supporting methods for alter request    */
+  
+  public static String saveProjectGeneral(String projectName, Object data) {
+    if (!(data instanceof JSONObject)) 
+      return sAnswer(1, "Expecting 'Data' to be an JSON object.", "");    
+
+    String projFilename = ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projectName);
+    String result = saveJSONProperties(
+       projFilename, "Project", new String[]{"Description", "Author", "Date"},(JSONObject) data);
+    return parsedAnswer(result,"Project properties saved.","Error saving project properties."); 
+  }
   
   public static String newPresenter(String projectName, int presenterType) {
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
       return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
     
     String result = Maintenance.createPresenter("", projectName, "", presenterType);
-    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
-    String msg = result.length()> 2 ? result=result.substring(2) : "Error creating presenter.";
-    return sAnswer(status, status==0 ? "Presenter created.":msg, status==0?msg:"");
+    return parsedAnswer(result,"Presenter created.","Error creating presenter."); 
   }
 
   public static String removePresenter(String projectName, String presenterName) {
@@ -380,9 +421,7 @@ public class ASTools {
       return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
     
     String result = Maintenance.removePresenter(projectName, presenterName);
-    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
-    String msg = result.length()> 2 ? result.substring(2) : "Error removing presenter.";
-    return sAnswer(status, status==0 ? "Presenter removed.":msg, status==0?msg:"");
+    return parsedAnswer(result,"Presenter removed.","Error removing presenter."); 
   }
 
   public static String savePresenter(String projectName, String presenterName, JSONObject presenterData) {
@@ -398,12 +437,70 @@ public class ASTools {
       pw.println(presenter.toString(2)); 
       pw.close();
       
-      return sAnswer(OK_STATUS, "Presenter saved.", presenterFilename);
+      return sAnswer(OK_STATUS, "Presenter saved.", presenterName);
     } catch (Exception e) {
       return sAnswer(1, "Error saving presenter.", e.toString());
     }
   }
   
+  public static String newParameter(String projectName, String parameterName, boolean isInput) {     
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    String username = ""; // !!!
+    String parDesc = String.format("{'Name':'%s', 'Description':'', 'Type':'string'}", parameterName);
+    String result = Maintenance.addParameter(username, projectName, parDesc, String.format("{'isInputParameter':%s}", isInput ? "true" : "false"));
+    return parsedAnswer(result,"Parameter added.", "Error adding parameter.");     
+  }
+  
+  public static String removeParameter(String projectName, String parameterName) {
+    
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    String result = Maintenance.removeParameter(projectName, parameterName  );
+    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
+    String msg = result.length()> 2 ? result.substring(2) : "Error removing parameter.";
+    
+    return sAnswer(status, status==0 ? "Parameter removed.": msg, status==0?msg:"");
+  }
+  
+  public static String saveParameter(String projectName, String parameterName, JSONObject parameter) {
+    String testcaseFilename = ATGlobal.getTESTCASEDESCfilename(ATGlobal.getALGatorDataRoot(), projectName);
+
+    String result = replaceJSONArrayElement(
+       testcaseFilename, "TestCase", "Parameters", "Name", parameterName, parameter);
+    return parsedAnswer(result,"Parameter saved.","Error saving parameter."); 
+  }
+  
+  public static String newTestset(String projectName, String testsetName) {     
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    String username = "";
+    String result = Maintenance.createTestset(username, projectName, testsetName);
+    return parsedAnswer(result,"Testset added.", "Error adding testset.");     
+  }
+  
+  public static String removeTestset(String projectName, String testsetName) {
+    
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    String result = Maintenance.removeTestset(projectName, testsetName);
+    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
+    String msg = result.length()> 2 ? result.substring(2) : "Error removing testset.";
+    
+    return sAnswer(status, status==0 ? "Testset removed.": msg, status==0?msg:"");
+  }
+  public static String saveTestset(String projectName, String testsetName, JSONObject testsetData) {
+    String testsetFilename = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataRoot(), projectName, testsetName);
+    String result = saveJSONProperties(
+       testsetFilename, "TestSet", new String[]{"Name","ShortName","Description","N","TestRepeat","TimeLimit"}, testsetData);
+    return parsedAnswer(result,"Testset properties saved.","Error saving testset properties."); 
+  }
+  
+     
   public static String newIndicator(String projectName, String indicatorName, String indicatorType, JSONObject meta) {
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
       return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
@@ -436,11 +533,8 @@ public class ASTools {
       return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
         
     String result = Maintenance.saveIndicator(projectName, indicator, type);
-    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
-    String msg = result.length()> 2 ? result.substring(2) : "Error saving "+type+".";
-
     String tYpe=type.isEmpty()?"Indicator":(type.toUpperCase().charAt(0)+type.substring(1));
-    return sAnswer(status, status==0 ? tYpe + " saved.": msg, status==0?msg:"");
+    return parsedAnswer(result,tYpe + " saved.", "Error saving "+type+".");     
   }
   
   public static String newGenerator(String projectName, String generatorName, JSONArray genParams) {
@@ -449,14 +543,42 @@ public class ASTools {
 
     String username = "";
     List<String> list = new ArrayList<String>();
-    for(int i = 0; i < genParams.length(); i++){list.add(genParams.getString(i));
-}
-    String addMsg = Maintenance.addTestCaseGenerator(
+    for(int i = 0; i < genParams.length(); i++){list.add(genParams.getString(i));}
+
+    String result = Maintenance.addTestCaseGenerator(
         username, projectName, generatorName, list.toArray(new String[0]));
-    int status = -1; try {status = addMsg.charAt(0);} catch (Exception e) {}
-    
-    return sAnswer(status, status==0 ? "Generator added.":addMsg, addMsg);
+        
+    return parsedAnswer(result, "Generator added.", "Error adding generator.");     
   }
+  public static String saveGenerator(String projectName, String generatorType, JSONObject generator, String code) {
+    String testcaseFilename = ATGlobal.getTESTCASEDESCfilename(ATGlobal.getALGatorDataRoot(), projectName);
+
+    String result = replaceJSONArrayElement(
+       testcaseFilename, "TestCase", "Generators", "Type", generatorType, generator);
+    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
+    if (status != 0) 
+      return sAnswer(5, "Error saving generator - element can not be replaced.", "");
+    
+    String generatorFilename = new File(new File(new File(ATGlobal.ATDIR_projConfDir), ATGlobal.ATDIR_srcDir),
+            ATGlobal.getGENERATORFilename(generatorType)).getPath();
+    String decodecCode = new String(Base64.getDecoder().decode(code));
+    result = saveFile(projectName, generatorFilename, decodecCode);
+
+    return parsedAnswer(result,"Generator saved.","Error saving generator."); 
+  }
+  
+  public static String removeGenerator(String projectName, String generatorName) {    
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    String result = Maintenance.removeGenerator(projectName, generatorName);
+    int status = 0; try { status = Integer.parseInt(result.substring(0,1));} catch (Exception e) {}
+    String msg = result.length()> 2 ? result.substring(2) : "Error removing generator.";
+    
+    return sAnswer(status, status==0 ? "Generator removed.": msg, status==0?msg:"");
+  }
+
+  
 /**** Supporting methods for alter request  ... end  */  
   
   /**
@@ -912,15 +1034,16 @@ public class ASTools {
     return result;
   }
   
+  
   public static String saveFile(String projectName, String fileName, String content) {
     String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName);
     String filePath = projectRoot + File.separator + fileName;
     try (PrintWriter pw = new PrintWriter(filePath)) {
       pw.print(content);
     } catch (Exception e) {
-      return "!!" + e.toString();
+      return "1:" + e.toString();
     }
-    return "OK";
+    return "0:File saved.";
   }
   
   public static String getMyIPAddress() {
@@ -1134,7 +1257,75 @@ public class ASTools {
       return result;  
   }   
   
+  public static String saveJSONProperties(String filename, String entity, String[] properties, JSONObject newValues) {
+    for (String property : properties) {
+      if (!newValues.has(property))
+        return String.format("2:Missing property '%s'.", property);
+    }
+    try {
+      String jsonString = Files.lines(Paths.get(filename)).collect(Collectors.joining("\n"));
+      JSONObject json = new JSONObject(jsonString);
+      
+      if (!json.has(entity) || !(json.get(entity) instanceof JSONObject))
+        return String.format("3:Can't find '%s' in '%s'.", entity, filename);
+      
+      for (String property : properties) {
+        ((JSONObject)json.get(entity)).put(property, newValues.get(property));
+      }
+      PrintWriter pw = new PrintWriter(new File(filename));
+        pw.println(json.toString(2));
+      pw.close();          
+    } catch (Exception e) {
+      return "1:"+e;
+    }
+    return "0:Properties changed.";
+  }
+
+  public static String replaceJSONArrayElement(String filename, String entity, String arrayName, String elementId, String elementIdValue,  JSONObject newElementValue) {
+    if (!newElementValue.has(elementId))
+      return String.format("2:Missing elementID '%s' in newValue.", elementId);
+    
+    try {
+      String jsonString = Files.lines(Paths.get(filename)).collect(Collectors.joining("\n"));
+      JSONObject json = new JSONObject(jsonString);
+      
+      if (!json.has(entity) || !(json.get(entity) instanceof JSONObject))
+        return String.format("3:Can't find '%s' in '%s'.", entity, filename);
+
+      
+      JSONObject eJson = json.getJSONObject(entity);
+      
+      if (!eJson.has(arrayName) || !(eJson.get(arrayName) instanceof JSONArray))
+        return String.format("3:Array '%s' does not exist in '%s'.", arrayName, filename);
+      
+      boolean exists = false;
+      JSONArray eltArray = (JSONArray)(eJson.get(arrayName));
+      for (int i = 0; i < eltArray.length(); i++) {
+        if (!(eltArray.get(i) instanceof JSONObject)) continue;
+        Object idValue = ((JSONObject)eltArray.get(i)).get(elementId);
+        if (elementIdValue.equals(idValue)) {
+          exists = true;
+          eltArray.put(i, newElementValue);
+        }
+      }
+      if (!exists) 
+        return String.format("4:No element with '%s'='%s' in %s.", elementId, elementIdValue, arrayName);
+
+      PrintWriter pw = new PrintWriter(new File(filename));
+        pw.println(json.toString(2));
+      pw.close();          
+    } catch (Exception e) {
+      return "1:"+e;
+    }
+    return "0:Element replaced.";
+  }
+
+  
   public static void main(String[] args) {
-    System.out.println(getResultStatus("BasicSort", "em"));
+    JSONObject json = new JSONObject();
+    json.put("Description", "opisfd sdf sds");json.put("Author", "lojze");json.put("Type", "abra");json.put("Name", "tralala");
+    System.out.println(
+      replaceJSONArrayElement("D:\\Users\\tomaz\\OneDrive\\ULFRI\\ALGATOR_ROOT\\data_root\\projects\\PROJ-BasicSort\\proj\\testcase.json", "TestCase","Parameters", "Name","tralala", json)
+    );
   }
 }

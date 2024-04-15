@@ -23,7 +23,6 @@ public class EVariable extends Entity  implements Serializable {
   public static final String ID_Value    = "Value";
   public static final String ID_Default  = "Default";
   
-  
   private VariableType              type;
   private HashMap<String, Object>   metadata; 
   
