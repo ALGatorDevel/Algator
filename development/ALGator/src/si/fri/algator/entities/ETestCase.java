@@ -107,13 +107,15 @@ public class ETestCase extends Entity {
 	generators.put(type, gen);
       }      
       
-      // ce dafault generator ni definiran v attc datoteki, ga dodam avtomatsko!
+      // Če default generator ni definiran v attc datoteki, ga dodam avtomatsko!
+      /* ... Tega ne delam več! Če generatorja ni, ga ni, ne morem ga na silo ustvariti!!!
       if (!generators.containsKey(defaultGeneratorType)) {
         EGenerator gen = new EGenerator();
         gen.set(EGenerator.ID_Type, defaultGeneratorType);
         gen.set(EGenerator.ID_GPars, get(ID_inputParameters));
         generators.put(defaultGeneratorType, gen);
       }
+      */
     } catch (Exception e) {
         ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_NOT_A_GENERATORS_ARRAY, ID_generators);
     }    

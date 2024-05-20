@@ -1,13 +1,8 @@
-{
-  "Algorithm" : {	
-
-   "Name"           : "JavaSort",
-
-   "Author"         : "tomaz",
-   "Date"           : "01, 2018",
-
-   "ShortName"      : "JSort",             
-   "Description"    : "Java sorting method",
-   "Language"       : "Java"
-  }
-} 
+{"Algorithm": {
+  "Name": "JavaSort",
+  "Author": "tomaz",
+  "Date": "01, 2018",
+  "ShortName": "JSort",
+  "Description": "Java sorting method",
+  "Language": "Java"
+}}

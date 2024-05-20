@@ -1,0 +1,46 @@
+{"Presenter": {
+  "Name": "mpPresenter5",
+  "Title": " Sorting sorted arrays ",
+  "ShortTitle": "TS3",
+  "Description": "",
+  "Query": {
+    "Algorithms": [
+      "InsertionSort",
+      "JavaSort",
+      "QuickSort"
+    ],
+    "ComputerID": "F0.C0",
+    "Count": false,
+    "Filter": ["N<30000"],
+    "GroupBy": ["N"],
+    "Indicators": ["*EM"],
+    "Parameters": ["N"],
+    "SortBy": [],
+    "TestSets": ["TestSet3"]
+  },
+  "Layout": [[
+    "Graph_1",
+    "TextBox_1",
+    "Table_1"
+  ]],
+  "Descripotion": "",
+  "Graph_1": {
+    "xAxis": "N",
+    "yAxes": ["*.Tmin"],
+    "graphTypes": "",
+    "xAxisTitle": "",
+    "yAxisTitle": "",
+    "categoryLabels": false,
+    "gridX": false,
+    "gridY": false,
+    "logScale": false,
+    "manData": {},
+    "subchart": false,
+    "zoom": false
+  },
+  "TextBox_1": {"htmltext": "<div class=\"col-md-12\" id=\"htmlpresenter3\">For sorting already sorted arrays the Insertion sort performs only a linear number\r\nof operation, therefore it is not surprising that it is better than both quick sort\r\nalgorithms. The results that we can not explaint are those of sorting relatively small \r\narrays (from 10.000 to 13.000). Here the Insertion sort is also slow. Why?&nbsp;<\/div>"},
+  "Table_1": {"Columns": [
+    "*.Tmin",
+    "N"
+  ]}
+}}

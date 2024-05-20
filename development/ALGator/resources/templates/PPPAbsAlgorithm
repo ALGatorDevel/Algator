@@ -1,9 +1,5 @@
 import si.fri.algator.execute.AbstractAlgorithm;
 
-/**
- *
- * @author ...
- */
 public abstract class ProjectAbstractAlgorithm extends AbstractAlgorithm {
 
   protected abstract Output execute(Input <pPP>Input);

@@ -1,0 +1,37 @@
+{"Presenter": {
+  "Name": "mpPresenter3",
+  "Title": "Minimal time on TestSet1",
+  "ShortTitle": "TS1",
+  "Description": "",
+  "Query": {
+    "Algorithms": ["*"],
+    "ComputerID": "F0.C0",
+    "Count": false,
+    "Filter": [],
+    "GroupBy": ["N"],
+    "Indicators": ["*EM"],
+    "Parameters": ["N"],
+    "SortBy": [],
+    "TestSets": ["TestSet1"]
+  },
+  "Layout": [[
+    "Graph_1",
+    "TextBox_1"
+  ]],
+  "Descripotion": "This presenter presents the execution time of all algorithms of the project on the TestSet1. ",
+  "Graph_1": {
+    "xAxis": "N",
+    "yAxes": ["*.Tmin"],
+    "graphTypes": "",
+    "xAxisTitle": "",
+    "yAxisTitle": "",
+    "categoryLabels": false,
+    "gridX": false,
+    "gridY": false,
+    "logScale": false,
+    "manData": {},
+    "subchart": false,
+    "zoom": false
+  },
+  "TextBox_1": {"htmltext": "<div id=\"htmlmpPresenter21\" style=\"padding-top: 20px;\"><br><\/div><div id=\"htmlmpPresenter21\" style=\"padding-top: 20px;\"><br><\/div><div id=\"htmlmpPresenter21\" style=\"padding-top: 20px;\">&nbsp; &nbsp; &nbsp;This presenter presents the execution time of all algorithms of the project on the TestSet1.&nbsp;<\/div>"}
+}}

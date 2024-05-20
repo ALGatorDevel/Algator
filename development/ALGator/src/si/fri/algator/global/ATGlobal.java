@@ -67,6 +67,8 @@ public class ATGlobal {
   public static final String ATDIR_queryDir       = "queries";
   public static final String ATDIR_presenterDir   = "presenters";
   public static final String ATDIR_queryOutput    = "output";
+  
+  public static final String ATDIR_projectRes     = "resources";
 
   public static final String ATDIR_logDir         = "log";
   public static final String ATDIR_algatorLOGfile = "algator.log";
@@ -271,7 +273,10 @@ public class ATGlobal {
     return getPROJECTConfigFolder(data_root, projName) + File.separator + ATDIR_docFolder;
   }
   
-  
+  public static String getPROJECTResourcesFolder(String projectName) {
+    return  getPROJECTroot(getALGatorDataRoot(), projectName) + File.separator + ATDIR_projectRes;
+  }
+
   
   public static String getALGORITHMroot(String projectRoot, String algName) {
     return projectRoot + File.separator + ATDIR_algsDir + File.separator
@@ -294,6 +299,10 @@ public class ATGlobal {
 
   public static String getALGORITHMdoc(String projectRoot, String algName) {
     return getALGORITHMroot(projectRoot, algName) + File.separator + ATDIR_docFolder;
+  }
+
+  public static String getALGORITHMHtmlName(String projectRoot, String algName) {
+    return getALGORITHMdoc(projectRoot, algName) + File.separator + AT_FILENAM_algorithm + ".html";
   }
   
   

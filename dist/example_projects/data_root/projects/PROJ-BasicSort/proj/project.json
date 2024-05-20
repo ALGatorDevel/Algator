@@ -21,6 +21,11 @@
     "presenter3"
   ],
   "AlgPresenters": ["aPresenter2"],
-  "MainProjPresenters": ["mpPresenter2"],
+  "MainProjPresenters": [
+    "mpPresenter2",
+    "mpPresenter3",
+    "mpPresenter4",
+    "mpPresenter5"
+  ],
   "MainAlgPresenters": ["maPresenter1"]
 }}

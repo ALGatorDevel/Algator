@@ -56,6 +56,8 @@ public class ASGlobal {
   public static final String REQ_GETDATA          = "GETDATA";         // json (Type, ...)
   public static final String REQ_ALTER            = "ALTER";           // json (Type, ...)
   
+  public static final String REQ_UPLOAD_STATIC    = "UPLOADSTATIC";    // Files, Data
+  
   // dodana funkcionalnost za poganjanje ALGator ukazov (execute, analyse, ...) v svojem procesu. Za podrobnosti glej komentar v ADECommand
   public static final String COMMAND              = "COMMAND";        // parameters: run / status / output / stop + params
   
@@ -63,7 +65,7 @@ public class ASGlobal {
   public static final TreeSet<String> nonlogableRequests;
   static {
     nonlogableRequests = new TreeSet(String.CASE_INSENSITIVE_ORDER);
-    //nonlogableRequests.add(REQ_GET_TASK);        
+    //nonlogableRequests.add(REQ_UPLOAD_STATIC);        
     //nonlogableRequests.add(REQ_STATUS);
     //nonlogableRequests.add(REQ_WHO);
     //nonlogableRequests.add(REQ_LIST);    

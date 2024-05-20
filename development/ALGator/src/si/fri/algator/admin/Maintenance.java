@@ -960,7 +960,10 @@ public class Maintenance {
     String presenterName = "Presenter";
 
     String dataroot = ATGlobal.getALGatorDataRoot();
-    String presenterPath = ATGlobal.getPRESENTERSroot(dataroot, proj_name);
+    
+    File presenterPath = new File(ATGlobal.getPRESENTERSroot(dataroot, proj_name));
+    if (!presenterPath.exists()) presenterPath.mkdirs();
+    
     EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
 
     String prefix = "";
@@ -984,7 +987,7 @@ public class Maintenance {
     tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_MainAlgPresenters))));
     tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_AlgPresenters))));
     // add all files in presenter path 
-    tp.addAll(Arrays.asList(new File(presenterPath).list())); 
+    tp.addAll(Arrays.asList(presenterPath.list())); 
     
     String ext = "." + ATGlobal.AT_FILEEXT_presenter;
     tp.replaceAll(x -> {return x.endsWith(ext) ? x : x+ext;});

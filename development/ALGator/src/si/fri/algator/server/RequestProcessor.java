@@ -33,6 +33,8 @@ import si.fri.algator.global.ErrorStatus;
 import si.fri.algator.tools.ATTools;
 import si.fri.algator.tools.SortedArray;
 import static si.fri.algator.admin.Maintenance.synchronizators;
+import spark.Request;
+import spark.Response;
 
 /**
  * Methods to process the requests to ALGatorServer.
@@ -45,9 +47,8 @@ public class RequestProcessor {
   public RequestProcessor(Server server) {
     this.server = server;
   }
-  
-  
-  public String processRequest(String command, String pParams) {
+    
+  public String processRequest(String command, String pParams, Request request, Response response) {
     // najprej pocistim morebitne pozabljene ukaze in datoteke
     ASCommandManager.sanitize();
 
@@ -63,7 +64,7 @@ public class RequestProcessor {
     }
 
     switch (command) {
-
+      
       // return my ID (ID of caller; taskClient's ID); no parameters
       case ASGlobal.REQ_WHO:
         return Long.toString(Thread.currentThread().getId());//Integer.toString(id);
@@ -169,6 +170,9 @@ public class RequestProcessor {
       case ASGlobal.REQ_GETRESULTUPDATE:
         return getResultUpdate(jObj);
         
+      case ASGlobal.REQ_UPLOAD_STATIC:
+        return ASTools.uploadStatic(jObj);
+        
       default:
         return ASGlobal.getErrorString("Unknown request");
     }
@@ -244,11 +248,11 @@ public class RequestProcessor {
       case "Algorithm":
         if (!(jObj.has("ProjectName")&& jObj.has("AlgorithmName")))
           return sAnswer(1, "getData of type=Algorithm requires 'ProjectName' and 'AlgorithmName' properties.", "");
-        return ASTools.getAlgorithmData(jObj.getString("ProjectName"), jObj.getString("AlgorithmName"));
+        return ASTools.getAlgorithmData(jObj.getString("ProjectName"), jObj.getString("AlgorithmName"), jObj.optBoolean("Deep", false));
       case "Testset":
         if (!(jObj.has("ProjectName")&& jObj.has("TestsetName")))
           return sAnswer(1, "getData of type=Testset requires 'ProjectName' and 'TestsetName' properties.", "");
-        return ASTools.getTestsetData(jObj.getString("ProjectName"), jObj.getString("TestsetName"));
+        return ASTools.getTestsetData(jObj.getString("ProjectName"), jObj.getString("TestsetName"), jObj.optBoolean("Deep", false));
         
       case "Presenter":
         if (!(jObj.has("ProjectName")&&jObj.has("PresenterName")))
@@ -291,11 +295,22 @@ public class RequestProcessor {
       String action = jObj.getString("Action");
       switch (action) { 
         
+        
+        case "NewProject":
+          if (!jObj.has("ProjectName"))
+            return sAnswer(1, "Alter of type=NewProject requires 'ProjectName'  property.", "");
+          return ASTools.newProject(jObj.getString("ProjectName"));          
+
         case "SaveProjectGeneral":
           if (!jObj.has("Data"))
             return sAnswer(1, "Alter of type=SaveProjectGeneral requires 'ProjectName' and 'Data' properties.", "");
           return ASTools.saveProjectGeneral(jObj.getString("ProjectName"), jObj.get("Data"));
       
+        case "SaveHTML":
+          if (!jObj.has("Data"))
+            return sAnswer(1, "Alter of type=SaveHTML requires 'ProjectName' and 'Data' properties.", "");
+          return ASTools.saveHTML(jObj.getString("ProjectName"), jObj.get("Data"));  
+          
         case "NewPresenter":
           if (!jObj.has("PresenterType"))
             return sAnswer(1, "Alter of type=NewPresenters requires 'ProjectName' and 'PresenterType' properties.", "");
@@ -327,6 +342,16 @@ public class RequestProcessor {
             return sAnswer(1, "Alter of type=RemoveParameter requires 'ProjectName' and 'ParameterName' properties.", "");
           return ASTools.removeParameter(jObj.getString("ProjectName"), jObj.getString("ParameterName"));        
 
+        case "SaveAlgorithm":
+          if (!(jObj.has("AlgorithmName")&&jObj.has("Algorithm")))
+            return sAnswer(1, "Alter of type=SaveAlgorithm requires 'ProjectName' 'AlgorithmName' and 'Algorithm' properties.", "");
+          JSONObject algorithm = new JSONObject();
+          try {algorithm = jObj.getJSONObject("Algorithm");} catch (Exception e) {
+            return sAnswer(2, "Algorithm not a JSON.", "");            
+          }
+          return ASTools.saveAlgorithm(jObj.getString("ProjectName"), jObj.getString("AlgorithmName"), algorithm);                
+
+          
         case "NewTestset":
           if (!jObj.has("TestsetName"))
             return sAnswer(1, "Alter of type=NewTestset requires 'ProjectName' and 'TestsetName' properties.", "");

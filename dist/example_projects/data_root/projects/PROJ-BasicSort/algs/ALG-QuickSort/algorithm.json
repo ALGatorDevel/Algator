@@ -1,14 +1,8 @@
-{
-  "Algorithm" : {	
-
-   "Name"           : "QuickSort",
-
-   "Author"         : "tomaz",
-   "Date"           : "01, 2018",
-
-   "ShortName"      : "Hoare",             
-   "Description"    : "The Hoare's quicksort algorithm",
-
-   "Language"       : "Java"
-  }
-} 
+{"Algorithm": {
+  "Name": "QuickSort",
+  "Author": "tomaz",
+  "Date": "01, 2018",
+  "ShortName": "Hoare",
+  "Description": "The Hoare's quicksort algorithm",
+  "Language": "Java"
+}}

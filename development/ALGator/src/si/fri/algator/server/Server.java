@@ -1,8 +1,11 @@
 package si.fri.algator.server;
 
+import java.io.File;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import javax.servlet.MultipartConfigElement;
 import si.fri.algator.entities.EAlgatorConfig;
+import si.fri.algator.global.ATGlobal;
 import static spark.Spark.*;
 
 
@@ -42,6 +45,11 @@ public class Server {
   public void run() {
     timeStarted = new java.util.Date().getTime();
     
+    long maxFileSize         = 100000000; // max upload file size: 100 MB
+    long maxRequestSize      = 100000000; 
+    int fileSizeThreshold    = 1024; 
+    String tmpUploadLocation = ATGlobal.getALGatorDataLocal() + File.separator + "webupload_tmp";
+    
     int port    = EAlgatorConfig.getALGatorServerPort();
     String host = "localhost";  // =EAlgatorConfig.getALGatorServerName();
     
@@ -55,6 +63,11 @@ public class Server {
     
     threadPool(16);
     
+    before((request, response) -> {
+      request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(tmpUploadLocation));    
+//      request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(tmpUploadLocation, maxFileSize, maxRequestSize, fileSizeThreshold));      
+    });
+
     
     post("/*", (req, res) -> {
       String pParams = req.body();
@@ -65,7 +78,7 @@ public class Server {
       if (!ASGlobal.nonlogableRequests.contains(path)) 
           ASLog.log("[REQUEST]:  " + path + " " + pParams);
       
-      String response = processor.processRequest(path, pParams);
+      String response = processor.processRequest(path, pParams, req, res);
       if (response.startsWith("{"))
         res.header("Content-type", "application/json");
               

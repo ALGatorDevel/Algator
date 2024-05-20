@@ -3,12 +3,12 @@ package si.fri.algator.server;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,9 +27,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import jdk.nashorn.internal.parser.JSONParser;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import si.fri.algator.admin.Maintenance;
@@ -204,7 +202,7 @@ public class ASTools {
     result.put("Computers", compArray);
     return jAnswer(OK_STATUS, String.format("Project '%s'.", projectName), /*project.toJSONString()*/ result.toString());
   }
-  public static String getAlgorithmData(String projectName, String algorithmName) {
+  public static String getAlgorithmData(String projectName, String algorithmName, boolean deep) {
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
       return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");
     if (!ATGlobal.algorithmExists(ATGlobal.getALGatorDataRoot(), projectName, algorithmName))
@@ -213,10 +211,25 @@ public class ASTools {
     String fileName = ATGlobal.getALGORITHMfilename(
       ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName), algorithmName);
     EAlgorithm algorithm = new EAlgorithm(new File(fileName));
-    return jAnswer(OK_STATUS, String.format("Algorithm '%s'.", algorithmName), algorithm.toJSONString());
+    
+    JSONObject algorithmData = new JSONObject();
+    algorithmData.put("Properties",  new JSONObject(algorithm.toJSONString()));
+    if (deep) {
+      String sourceFileName = ATGlobal.getALGORITHMsrc(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName), algorithmName);
+      String content = ""; 
+      try {content = new String(Files.readAllBytes(Paths.get(sourceFileName + File.separator + "Algorithm.java")));} catch (Exception e) {}
+      algorithmData.put("FileContent", content);
+      
+      String htmlFileName = ATGlobal.getALGORITHMHtmlName(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName), algorithmName);
+      String htmlContent = ""; 
+      try {htmlContent = new String(Files.readAllBytes(Paths.get(htmlFileName)));} catch (Exception e) {}
+      algorithmData.put("HtmlFileContent", htmlContent);
+    }
+    
+    return jAnswer(OK_STATUS, String.format("Algorithm '%s'.", algorithmName), algorithmData.toString());    
   }  
 
-  public static String getTestsetData(String projectName, String testsetName) {
+  public static String getTestsetData(String projectName, String testsetName, boolean deep) {
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
       return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");
     if (!ATGlobal.testsetExists(ATGlobal.getALGatorDataRoot(), projectName, testsetName))
@@ -224,7 +237,17 @@ public class ASTools {
     
     String fileName = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataRoot(), projectName, testsetName);
     ETestSet testset = new ETestSet(new File(fileName));
-    return jAnswer(OK_STATUS, String.format("Testset '%s'.", testsetName), testset.toJSONString());
+    
+    JSONObject testsetData = new JSONObject();
+    testsetData.put("Properties",  new JSONObject(testset.toJSONString()));
+    if (deep) {
+      String dataFileName = ATGlobal.getTESTSETDATAfilename(ATGlobal.getALGatorDataRoot(), projectName, testsetName);
+      String content = ""; 
+      try {content = new String(Files.readAllBytes(Paths.get(dataFileName)));} catch (Exception e) {}
+      testsetData.put("FileContent", content);
+    }
+    
+    return jAnswer(OK_STATUS, String.format("Testset '%s'.", testsetName), testsetData.toString());
   }  
 
   
@@ -351,13 +374,12 @@ public class ASTools {
       result.put(doc[0], Base64.getEncoder().encodeToString(fileCont.getBytes()));
    }
 
-   JSONObject resources = new JSONObject();        
-   String[] files = new File(projectDoc).list();
-   for (String file : files) {
-     boolean included = false;
-     for(int i=0; i<docs.length; i++)
-       if (file.equals(docs[i][1])) {included=true; break;}
-     if (!included) {
+   JSONObject resources = new JSONObject(); 
+   String resDir = ATGlobal.getPROJECTResourcesFolder(projectName);    
+   File resFile = new File(resDir);
+   if (resFile.exists() && resFile.isDirectory()) {
+     for (String file : resFile.list()) {
+       if ((new File(file)).isDirectory()) continue;
        resources.put(file, new File(projectDoc,file).lastModified());
      }
    }
@@ -370,8 +392,8 @@ public class ASTools {
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
       return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
 
-    String projectDoc = ATGlobal.getPROJECTdoc(ATGlobal.getALGatorDataRoot(), projectName); 
-    File   resFile    = new File(projectDoc, resource);
+    String resDir = ATGlobal.getPROJECTResourcesFolder(projectName);    
+    File   resFile    = new File(resDir, resource);
     
     if (!resFile.exists())
       return sAnswer(3, String.format("Resource '%s' of project '%s' does not exist.",resource, projectName), "");    
@@ -398,6 +420,15 @@ public class ASTools {
   
 /**** Supporting methods for alter request    */
   
+  public static String newProject(String projectName) {
+    if (ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' already exists.",projectName), "");    
+    
+    String result = Maintenance.createProject("", projectName);
+    return parsedAnswer(result,"Project created.","Error creating project."); 
+  }
+
+  
   public static String saveProjectGeneral(String projectName, Object data) {
     if (!(data instanceof JSONObject)) 
       return sAnswer(1, "Expecting 'Data' to be an JSON object.", "");    
@@ -407,6 +438,18 @@ public class ASTools {
        projFilename, "Project", new String[]{"Description", "Author", "Date"},(JSONObject) data);
     return parsedAnswer(result,"Project properties saved.","Error saving project properties."); 
   }
+
+  // Data should contain information about html type and html content 
+  // html type: "problemDescription", "testCases", "testSets", "projDescAlgorithms", "references"
+  // html content: base64 encoded html file content
+  public static String saveHTML(String projectName, Object data) {
+    if (!(data instanceof JSONObject)) 
+      return sAnswer(1, "Expecting 'Data' to be an JSON object.", "");    
+
+    String result = saveHTMLToFile(projectName,(JSONObject) data);
+    return parsedAnswer(result,"Project properties saved.","Error saving project properties."); 
+  }
+
   
   public static String newPresenter(String projectName, int presenterType) {
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
@@ -472,6 +515,39 @@ public class ASTools {
        testcaseFilename, "TestCase", "Parameters", "Name", parameterName, parameter);
     return parsedAnswer(result,"Parameter saved.","Error saving parameter."); 
   }
+
+  public static String saveAlgorithm(String projectName, String algorithmName, JSONObject algorithmData) {
+    String algorithmFilename = ATGlobal.getALGORITHMfilename(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName), algorithmName);
+    String result = saveJSONProperties(
+       algorithmFilename, "Algorithm", new String[]{"Name","Description","ShortName", "Date", "Author", "Language"}, algorithmData.getJSONObject("Properties"));
+    
+    String fileSaved = "";
+    
+    String fileCont = algorithmData.optString("FileContent", "");
+    if (!fileCont.isEmpty()) {
+      String sourceFileName = ATGlobal.getALGORITHMsrc(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName), algorithmName) + File.separator + "Algorithm.java";
+      fileSaved = " Source saved to file.";
+      try {
+        Files.write(Paths.get(sourceFileName), fileCont.getBytes());
+      } catch (Exception e) {
+        fileSaved = " Error saving source to file.";
+      }     
+    }
+
+    String htmlCont = algorithmData.optString("HtmlFileContent", "");
+    if (!htmlCont.isEmpty()) {
+      String htmlFileName = ATGlobal.getALGORITHMHtmlName(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName), algorithmName);      
+      try {
+        Files.write(Paths.get(htmlFileName), htmlCont.getBytes());
+        fileSaved = " HTML saved to file.";        
+      } catch (Exception e) {
+        fileSaved = " Error saving HTML to file.";
+      }     
+    }
+ 
+    return parsedAnswer(result,"Algorithm properties saved." + fileSaved, "Error saving testset properties."); 
+  }
+
   
   public static String newTestset(String projectName, String testsetName) {     
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
@@ -496,8 +572,20 @@ public class ASTools {
   public static String saveTestset(String projectName, String testsetName, JSONObject testsetData) {
     String testsetFilename = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataRoot(), projectName, testsetName);
     String result = saveJSONProperties(
-       testsetFilename, "TestSet", new String[]{"Name","ShortName","Description","N","TestRepeat","TimeLimit"}, testsetData);
-    return parsedAnswer(result,"Testset properties saved.","Error saving testset properties."); 
+       testsetFilename, "TestSet", new String[]{"Name","ShortName","Description","N","TestRepeat","TimeLimit"}, testsetData.getJSONObject("Properties"));
+    String fileCont = testsetData.optString("FileContent", "");
+    
+    String fileSaved = "";
+    if (!fileCont.isEmpty()) {
+      String dataFileName = ATGlobal.getTESTSETDATAfilename(ATGlobal.getALGatorDataRoot(), projectName, testsetName);
+      fileSaved = " Tests saved to file.";
+      try {
+        Files.write(Paths.get(dataFileName), fileCont.getBytes());
+      } catch (Exception e) {
+        fileSaved = " Error saving tests to file.";
+      }
+    }
+    return parsedAnswer(result,"Testset properties saved." + fileSaved, "Error saving testset properties."); 
   }
   
      
@@ -1281,6 +1369,31 @@ public class ASTools {
     return "0:Properties changed.";
   }
 
+  
+  public static String saveHTMLToFile(String projectName, JSONObject data) {
+    try {
+      String filename;
+      String type = data.optString("Type", "");
+      switch (type) {
+        case "problemDescription": filename="project.html"; break;
+        case "testCases":          filename="testcase.html"; break;
+        case "testSets":           filename="testset.html"; break;
+        case "projDescAlgorithms": filename="algorithm.html"; break;
+        case "references":         filename="references.html"; break;
+        default:
+          return "2:Invalid file type.";
+      }
+      String path = ATGlobal.getPROJECTdoc(ATGlobal.getALGatorDataRoot(), projectName);
+      File htmlFile = new File(path, filename);
+      String content = new String(Base64.getDecoder().decode(data.optString("Content", "")));
+      FileUtils.writeStringToFile(htmlFile, content, StandardCharsets.UTF_8);
+    } catch (Exception e) {
+      return "1:"+e;
+    }
+    return "0:HTML description saved.";
+  }
+
+  
   public static String replaceJSONArrayElement(String filename, String entity, String arrayName, String elementId, String elementIdValue,  JSONObject newElementValue) {
     if (!newElementValue.has(elementId))
       return String.format("2:Missing elementID '%s' in newValue.", elementId);
@@ -1319,7 +1432,28 @@ public class ASTools {
     }
     return "0:Element replaced.";
   }
-
+  
+  public static String uploadStatic(JSONObject jObj) {
+    try {
+      String projectName = jObj.optString("ProjectName", "");
+      String fileName    = jObj.optString("FileName", "");
+      if (projectName.isEmpty() || fileName.isEmpty()) 
+        return sAnswer(1, "Upload error", "Unknown project or file name.");
+      
+      byte[] content  = Base64.getDecoder().decode(jObj.optString("FileContent", ""));
+      File savePath = new File(ATGlobal.getPROJECTResourcesFolder(projectName));
+      if (!savePath.exists()) savePath.mkdirs();
+      
+      try (FileOutputStream fos = new FileOutputStream(new File(savePath, fileName));) {
+        fos.write(content);
+      } catch (Exception e) {
+        return sAnswer(2, "Upload error", e.toString());
+      }
+      return sAnswer(OK_STATUS, "File uploaded successfully",  fileName);             
+    } catch (Exception e) {
+        return sAnswer(3, "Upload error",  e.toString());
+    }
+  }
   
   public static void main(String[] args) {
     JSONObject json = new JSONObject();

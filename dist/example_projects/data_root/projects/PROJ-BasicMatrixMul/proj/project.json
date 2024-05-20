@@ -22,6 +22,9 @@
   "JVMExecFamily": "",
   "ProjPresenters": [],
   "AlgPresenters": [],
-  "MainProjPresenters": ["mpPresenter2"],
+  "MainProjPresenters": [
+    "mpPresenter2",
+    "mpPresenter3"
+  ],
   "MainAlgPresenters": ["maPresenter2"]
 }}
