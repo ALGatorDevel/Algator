@@ -524,7 +524,7 @@ public class ASTools {
     String fileSaved = "";
     
     String fileCont = algorithmData.optString("FileContent", "");
-    if (!fileCont.isEmpty()) {
+      if (!fileCont.isEmpty()) {
       String sourceFileName = ATGlobal.getALGORITHMsrc(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName), algorithmName) + File.separator + "Algorithm.java";
       fileSaved = " Source saved to file.";
       try {
