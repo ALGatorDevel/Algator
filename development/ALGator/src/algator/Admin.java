@@ -15,8 +15,6 @@ import org.apache.commons.cli.ParseException;
 import si.fri.algator.database.Database;
 import si.fri.algator.entities.ELocalConfig;
 import si.fri.algator.global.ATGlobal;
-import si.fri.algator.global.ATLog;
-import si.fri.algator.users.UsersDatabase;
 
 import static si.fri.algator.admin.Maintenance.createProject;
 import static si.fri.algator.admin.Maintenance.createAll;
@@ -82,12 +80,7 @@ public class Admin {
 	    .hasArg(true)
 	    .withDescription("the password of the current user")
 	    .create("p");  
-    
-    Option init = OptionBuilder
-	    .hasArg(false)
-	    .withDescription("initialize the system")
-	    .create("init");         
-    
+        
     options.addOption(data_root);
     options.addOption(algator_root);    
     options.addOption(algorithm);
@@ -96,10 +89,7 @@ public class Admin {
     
     options.addOption(username);
     options.addOption(password);
-    
-    options.addOption(init);
-
-    
+        
     options.addOption("h", "help", false,
 	    "print this message");
         
@@ -140,7 +130,7 @@ public class Admin {
   }
 
   private static void printUsage() {
-    Scanner sc = new Scanner((new Chart()).getClass().getResourceAsStream("/data/AdminUsage.txt")); 
+    Scanner sc = new Scanner((new Admin()).getClass().getResourceAsStream("/data/AdminUsage.txt")); 
     while (sc.hasNextLine())
       System.out.println(sc.nextLine());    
   }
@@ -156,51 +146,7 @@ public class Admin {
     System.out.flush();
     System.setOut(old);    
     return baos.toString();
-  }
-  
-  private static String[] getUsernameAndPassword() {
-    Console console = System.console();
-    if (console == null) return null;
-    
-    String up[] = new String[2];
-    up[0]=console.readLine("Username: ");
-    
-    do {
-      up[1]=new String(console.readPassword("Password: "));
-      String control = new String(console.readPassword("Password (check): "));
-      if (!up[1].equals(control)) {
-        System.out.println("Passwords do not match. Please try again.");      
-        up[1]="";
-      }
-    } while (up[1].isEmpty());
-    
-    return up;
-  }
-  public static int initAlgatorSystem(String username, String password) {
-    ATGlobal.verboseLevel=Math.max(2, ATGlobal.verboseLevel);
-    ATLog.log("Initializing the system ...",0);
-      
-    // create a database and its tables
-    boolean databaseInit = Database.init();
-    if (databaseInit) {    
-      
-      if (ATGlobal.verboseLevel > 2) 
-        ATLog.log("Creating a new user ...", 0);
-      
-      if (username==null || username.isEmpty()|| password==null || password.isEmpty()) {
-        String up[] = getUsernameAndPassword();
-        if (up==null) {
-          ATLog.log("Empty username or pasword are not alowed.", 0);
-          return -1;
-        }
-        username=up[0];password=up[1];
-      }      
-      UsersDatabase.addNewUser(username, password);      
-      
-      ATLog.log("Done.",0);      
-    }
-    return 0;    
-  }
+  }  
   
   /**
    * Used to run the system. Parameters are given through the arguments
@@ -255,13 +201,7 @@ public class Admin {
       if (line.hasOption("p")) {
 	password = line.getOptionValue("p");
       }            
-      
-     if (line.hasOption("init")) {
-        initAlgatorSystem(username, password);
-        return;
-      }          
-           
-      
+                
       if (line.hasOption("info") || line.hasOption("extinfo")) {
         String project   = (curArgs.length != 0) ? curArgs[0] : "";
         String algorithm = line.hasOption("algorithm") ? line.getOptionValue("algorithm") : "";

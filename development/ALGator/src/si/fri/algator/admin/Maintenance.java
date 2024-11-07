@@ -3,12 +3,15 @@ package si.fri.algator.admin;
 import java.io.File;
 import java.io.PrintWriter;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Scanner; 
 import java.util.TreeMap;
+import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import si.fri.algator.database.Database;
@@ -24,10 +27,12 @@ import si.fri.algator.entities.Project;
 import si.fri.algator.entities.VariableType;
 import si.fri.algator.entities.Variables;
 import si.fri.algator.global.ATGlobal;
-import si.fri.algator.users.UsersTools;
 
 import static si.fri.algator.admin.Tools.copyFile;
 import static si.fri.algator.admin.Tools.getSubstitutions;
+import si.fri.algator.ausers.AUsersDAO;
+import si.fri.algator.ausers.CanUtil;
+import si.fri.algator.ausers.dto.DTOEntity;
 import si.fri.algator.entities.Entity;
 
 /**
@@ -72,7 +77,11 @@ public class Maintenance {
     return "0:Project created.";
   }
   
-  public static String createProject(String username, String proj_name) {
+  public static String createProject(String uid, String proj_name) {
+    if (!CanUtil.can(uid, "e0_P", "can_add_project")) {
+      return String.format("3:Access denied"); 
+    }
+    
     String dataroot = ATGlobal.getALGatorDataRoot();
     String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(dataroot, proj_name));
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
@@ -87,7 +96,7 @@ public class Maintenance {
     try {
       File projFolderFile = new File(projRoot);
       if (projFolderFile.exists()) {
-        return String.format("1:Project %s already exists!\n", proj_name);
+        return String.format("1:Project %s already exists!", proj_name);
       }      
       
       projFolderFile.mkdirs();
@@ -111,14 +120,17 @@ public class Maintenance {
       copyFile("templates/P_TC.html", projDocFolder, "testcase.html", substitutions);
       copyFile("templates/P_AAA.html", projDocFolder, "algorithm.html", substitutions);
       copyFile("templates/P_REF.html", projDocFolder, "references.html", substitutions);
-
-      if (Database.isDatabaseMode()) {
-        UsersTools.setProjectPermissions(username, proj_name);
-      }
     } catch (Exception e) {
       return String.format("2: Can not create project: " + e.toString());
     }
-    return String.format("0:Project %s created.", proj_name);
+    String result = String.format("0:Project %s created.", proj_name);
+    if (!Database.isAnonymousMode()) {
+      String eid = substitutions.get("<eid>");
+      String addToDBMsg=AUsersDAO.addEntity(DTOEntity.ETYPE_Project, proj_name, eid, uid,  "e0", true);
+      if (addToDBMsg.startsWith("14:")) result += " Entity not added to DB.";
+      else if (!addToDBMsg.startsWith("0:")) result = addToDBMsg;
+    } 
+    return result;
   }
 
   public static String addParameter(String username, String proj_name) {
@@ -437,10 +449,7 @@ public class Maintenance {
     } catch (Exception e) {
       return "2:Invalid indicator description string (not a json?).";
     }
-    
-    System.out.println("Adding indicator " + indName);
-
-    
+        
     // read opts  (if opt is an invalid json string or property 
     // edit is missing, the default value is used)
     boolean edit=false;
@@ -599,8 +608,8 @@ public class Maintenance {
     String dataroot = ATGlobal.getALGatorDataRoot();
     String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(dataroot, projName));
 
-    if (Database.isDatabaseMode() && !UsersTools.can_user(username, "can_write", projName)) 
-      return "1:User " + username + " does not have permitions to add indicator tests.";
+    //if (Database.isDatabaseMode() && !UsersTools.can_user(username, "can_write", projName)) 
+    //  return "1:User " + username + " does not have permitions to add indicator tests.";
     
     try {
       boolean projectExists = new File(ATGlobal.getPROJECTfilename(dataroot, projName)).exists();
@@ -647,8 +656,8 @@ public class Maintenance {
     String dataroot = ATGlobal.getALGatorDataRoot();
     String projSrcFolder = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(dataroot, projName));
 
-    if (Database.isDatabaseMode() && !UsersTools.can_user(username, "can_write", projName)) 
-      return "1:User " + username + " does not have permitions to add generators.";
+    //if (Database.isDatabaseMode() && !UsersTools.can_user(username, "can_write", projName)) 
+    //  return "1:User " + username + " does not have permitions to add generators.";
     
     System.out.println("Adding test case generator " + genName);    
     
@@ -774,8 +783,13 @@ public class Maintenance {
     }
   }
   
-  public static String createAlgorithm(String username, String proj_name, String alg_name) {
+  public static String createAlgorithm(String uid, String proj_name, String alg_name) {
     String dataroot = ATGlobal.getALGatorDataRoot();
+    EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
+    if (!CanUtil.can(uid, eProject.getString("eid"), "can_add_algorithm")) {
+      return String.format("3:Access denied"); 
+    }    
+
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
     String algRoot = ATGlobal.getALGORITHMroot(projRoot, alg_name);
     String algSrc = ATGlobal.getALGORITHMsrc(projRoot, alg_name);
@@ -787,15 +801,13 @@ public class Maintenance {
     // first create project if it does not exist
     File projFolderFile = new File(projRoot);
     if (!projFolderFile.exists()) {
-      String msg = createProject(username, proj_name);
+      String msg = createProject(uid, proj_name);
       if (msg.charAt(0)!='0') {
         return msg;
       }
     }
 
-    System.out.println("Adding algorithm " + alg_name);
     try {
-
       File algFolderFile = new File(algRoot);
       if (algFolderFile.exists()) {
         return String.format("1:Algorithm %s already exists!\n", alg_name);
@@ -807,23 +819,76 @@ public class Maintenance {
       copyFile("templates/AAA.html", algDocFolder, "algorithm.html", substitutions);
       copyFile("templates/A_REF.html", algDocFolder, "references.html", substitutions);
 
-      EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
       ArrayList a = new ArrayList<String>(Arrays.asList(eProject.getStringArray(EProject.ID_Algorithms)));
       a.add(alg_name);
       eProject.set(EProject.ID_Algorithms, a.toArray());
       eProject.saveEntity();
-
-      if (Database.isDatabaseMode()) {
-        UsersTools.setEntityPermissions(username, proj_name, alg_name, 2);
+      
+      String result = String.format("0:Algorithm %s created.", alg_name);
+      if (!Database.isAnonymousMode()) {
+        String eid    = substitutions.get("<eid>");
+        String parent = eProject.getString(Entity.ID_EID);
+        String addToDBMsg=AUsersDAO.addEntity(DTOEntity.ETYPE_Algorithm, alg_name, eid, uid,  parent, true);
+        if (addToDBMsg.startsWith("14:")) result += " Entity not added to DB.";
+        else if (!addToDBMsg.startsWith("0:")) result = addToDBMsg;
       }
+      return result;
     } catch (Exception e) {      
       return String.format("2:Can not create algorithm: " + e.toString());
     }
-    return "0:Algorithm added";
   }
+  public static String removeAlgorithm(String uid, String projectName, String algorithmName) {
+    String dataroot    = ATGlobal.getALGatorDataRoot();
+    String projectRoot = ATGlobal.getPROJECTroot(dataroot, projectName);
 
-  public static String createTestset(String username, String proj_name, String testset_name) {
+    File aFile = new File(ATGlobal.getALGORITHMfilename(projectRoot, algorithmName));
+    if (!aFile.exists())
+      return "4:Algorithm does not exist.";
+
+    EAlgorithm algorithm = new EAlgorithm(aFile);
+    String eid = algorithm.getString("eid");
+    
+    if (!CanUtil.can(uid, eid, "can_write"))
+      return "1: Access denied.";   
+
+    try {  
+      EProject   project   = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, projectName)));
+
+      String msg = "";
+      // remove from "Algorithms"
+      JSONArray algorithms = project.getField(EProject.ID_Algorithms);
+      if (algorithms!= null) for (int i=0; i<algorithms.length(); i++) {
+        if (algorithmName.equals(algorithms.get(i))) {
+          algorithms.remove(i); msg += "Removed from Algorithms. "; break;
+        }
+      }      
+      project.saveEntity();
+      
+      String algFolderName=ATGlobal.getALGORITHMroot(projectRoot, algorithmName);
+      Tools.deleteDirectory(Paths.get(algFolderName));
+      
+      if (new File(algFolderName).exists())
+        return "2: Can not delete algorithm's configuration folder.";
+
+      msg+="Algorithm's configuration folder deleted. ";
+      
+      String rmFromDBMsg=AUsersDAO.removeEntity(eid);
+      if (rmFromDBMsg.startsWith("0:"))
+        return "0:"+msg;
+      else return rmFromDBMsg;
+    } catch (Exception e) {
+      return "3:Can not remove algorithm: " + e.toString();
+    }
+  }  
+
+  public static String createTestset(String uid, String proj_name, String testset_name) {
     String dataroot = ATGlobal.getALGatorDataRoot();
+    
+    EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
+    if (!CanUtil.can(uid, eProject.getString("eid"), "can_add_testset")) {
+      return String.format("3:Access denied"); 
+    }        
+    
     String projRoot = ATGlobal.getPROJECTroot(dataroot, proj_name);
     String testsRoot = ATGlobal.getTESTSroot(dataroot, proj_name);
     String testsDocFolder = ATGlobal.getTESTSdoc(dataroot, proj_name);
@@ -832,7 +897,6 @@ public class Maintenance {
     substitutions.put("<TS>", testset_name);
 
     try {
-
       File testsetFolderFile = new File(testsRoot);
       if (!testsetFolderFile.exists()) {
         testsetFolderFile.mkdirs();
@@ -846,20 +910,25 @@ public class Maintenance {
 
       copyFile("templates/TS.html", testsDocFolder, testset_name + ".html", substitutions);
 
-      EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
       ArrayList ts = new ArrayList<String>(Arrays.asList(eProject.getStringArray(EProject.ID_TestSets)));
       ts.add(testset_name);
       eProject.set(EProject.ID_TestSets, ts.toArray());
-      eProject.saveEntity();
-
-      if (Database.isDatabaseMode()) {
-        UsersTools.setEntityPermissions(username, proj_name, testset_name, 3);
+      eProject.saveEntity(); 
+      
+      String result = String.format("0:Testset %s created.", testset_name);
+      if (!Database.isAnonymousMode()) {
+        String eid    = substitutions.get("<eid>");
+        String parent = eProject.getString(Entity.ID_EID);
+        String addToDBMsg=AUsersDAO.addEntity(DTOEntity.ETYPE_Testset, testset_name, eid, uid,  parent, true);
+        if (addToDBMsg.startsWith("14:")) result += " Entity not added to DB.";
+        else if (!addToDBMsg.startsWith("0:")) result = addToDBMsg;
       }
+      return result;          
     } catch (Exception e) {      
       return String.format("2: Can not create testset: " + e.toString());
     }
-    return "0:Testset created.";
   }
+  
   public static String removeTestset(String projectName, String testsetName) {
     String dataroot = ATGlobal.getALGatorDataRoot();
     
@@ -904,6 +973,8 @@ public class Maintenance {
 
     HashMap<String, String> substitutions = getSubstitutions(projName);
     substitutions.put("<TP>", presenterName);
+    
+    String presenterEID = substitutions.get("<eid>");
 
     // first create project if it does not exist
     File projFolderFile = new File(projRoot);
@@ -953,7 +1024,7 @@ public class Maintenance {
     } catch (Exception e) {
       return "3:Can not create presenter: " + e.toString();
     }
-    return "0:"+presenterName;
+    return "0:"+String.format("{\"Name\":\"%s\", \"eid\":\"%s\"}", presenterName, presenterEID);
   }
 
   public static String getNextAvailablePresenterName(String proj_name, int type) {
@@ -1117,5 +1188,10 @@ public class Maintenance {
       }
       return alg.toJSONString();
     }
+  }
+  
+  public static void main(String[] args) {
+    System.out.println(createAlgorithm("u_42", "P42", "testI"));
+    System.out.println(removeAlgorithm("u_42", "P42", "testI"));
   }
 }

@@ -7,6 +7,7 @@ import si.fri.algator.entities.EGenerator;
 import si.fri.algator.entities.ETestCase;
 import si.fri.algator.entities.EVariable;
 import si.fri.algator.entities.Project;
+import si.fri.algator.entities.VariableType;
 import si.fri.algator.entities.Variables;
 import si.fri.algator.global.ErrorStatus;
 
@@ -78,23 +79,28 @@ public abstract class AbstractTestCase implements Serializable {
         generatingParameters.addProperty(PROPS, "Type", type);
         
         Variables pars = project.getTestCaseDescription().getParameters();        
-        if (genPar != null) for (int i = 0; i < genPar.length; i++) {
-          String paramValue = null; if (parts.length > 2+i)  paramValue = parts[2+i]; 
-          EVariable param   = pars.getVariable(genPar[i]);
-          if (param != null){
-            // če v seznamu parametrov obstaja parameter z imenom trenutnega "generating parametra", potem
-            // ustvarim klon parametra iz seznama in mu dodalim vrednost (na ta način v klon prenesem tudi 
-            // metadata in s tem mehanizem določanja privzetih vrednosti)
-            EVariable newParam = new EVariable(genPar[i], param.getType(), null);
-            newParam.setMetaData(param.getMetaData()); 
-            if (paramValue==null || paramValue.isEmpty()) 
-              newParam.setValue(param.getDefaultValue());
-            else 
-              newParam.setValue(paramValue);
-            generatingParameters.addVariable(newParam); 
-          } else
-            generatingParameters.setVariable(genPar[i], paramValue); 
-        }
+        if (genPar != null) 
+          for (int i = 0; i < genPar.length; i++) {
+            String paramValue = null; if (parts.length > 2+i)  paramValue = parts[2+i]; 
+            EVariable param   = pars.getVariable(genPar[i]);
+            if (param != null){
+              // če v seznamu parametrov obstaja parameter z imenom trenutnega "generating parametra", potem
+              // ustvarim klon parametra iz seznama in mu dodalim vrednost (na ta način v klon prenesem tudi 
+              // metadata in s tem mehanizem določanja privzetih vrednosti)
+              EVariable newParam = new EVariable(genPar[i], param.getType(), null);
+              newParam.setMetaData(param.getMetaData()); 
+              if (!VariableType.valueIsOfType(paramValue, param.getType())) {
+                ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, String.format("Invalid type of parameter '%s', expecting '%s', got '%s'", param.getName(), param.getType(), paramValue) );
+                return null;                
+              }
+              if (paramValue==null || paramValue.isEmpty()) 
+                newParam.setValue(param.getDefaultValue());
+              else 
+                newParam.setValue(paramValue);
+              generatingParameters.addVariable(newParam); 
+            } else
+              generatingParameters.setVariable(genPar[i], paramValue); 
+          }
         return generateTestCase(type, generatingParameters);
       } else {
         ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "Invalid generator definition for type " + type);

@@ -20,7 +20,7 @@ public class ASGlobal {
    */
   public static final String REQ_WHO              = "WHO";            // no parameters
   public static final String REQ_STATUS           = "STATUS";         // no parameters
-
+  public static final String REQ_DBDATA           = "DBDATA";         // no parameters
   
   public static final String REQ_GET_TASKS        = "GETTASKS";       // parameters: optional json(type=active,closed,archived)
   public static final String REQ_ADD_TASK         = "ADDTASK";        // parameters: json(project(required), algorithm(required), testset(required), mtype (default:em), priority (default: 5), family (default: ""))
@@ -36,7 +36,6 @@ public class ASGlobal {
   public static final String REQ_QUERY            = "QUERY";          // parameters: json(projectName, query, ComputerID, Parameters)
   public static final String REQ_ADMIN_PRINTPATHS = "PRINTPATHS";     // no parameters
   public static final String REQ_ADMIN_PRINTLOG   = "PRINTLOG";       // parameters: numberOfLogs (default: 10)
-  public static final String REQ_USERS            = "USERS";          // users (povezava do programa algator.Users)
   public static final String REQ_ADMIN            = "ADMIN";          // admin (povezava do programa algator.Admin)  
   public static final String REQ_GETFILE          = "GETFILE";        // parameters: json(ProjectName, fileName), result: file content 
   public static final String REQ_SAVEFILE         = "SAVEFILE";       // parameters: json(ProjectName, fileName, length, content)
@@ -55,6 +54,7 @@ public class ASGlobal {
   
   public static final String REQ_GETDATA          = "GETDATA";         // json (Type, ...)
   public static final String REQ_ALTER            = "ALTER";           // json (Type, ...)
+  public static final String REQ_DB               = "DB";              // json (Type, ...)
   
   public static final String REQ_UPLOAD_STATIC    = "UPLOADSTATIC";    // Files, Data
   

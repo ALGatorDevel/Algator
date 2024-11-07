@@ -425,6 +425,11 @@ public class ATGlobal {
   
   
   /************* presenters  *+++++++++++++++++++++*/
+  public static boolean presenterExists(String data_root, String projName, String prName) {
+    File f = new File(getPRESENTERFilename(data_root, projName, prName));
+    return f.exists();
+  }
+
   public static String getPRESENTERSroot(String data_root, String projectName) {
     String projectRoot = getPROJECTroot(data_root, projectName);
     return getPRESENTERSroot(projectRoot);

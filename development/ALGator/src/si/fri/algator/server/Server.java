@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.MultipartConfigElement;
+import si.fri.algator.ausers.AUsersHelper;
 import si.fri.algator.entities.EAlgatorConfig;
 import si.fri.algator.global.ATGlobal;
 import static spark.Spark.*;
@@ -74,11 +75,13 @@ public class Server {
 
       String path = req.pathInfo().toUpperCase();
       if (path.length() > 0 && path.charAt(0)=='/') path = path.substring(1);
+            
+      String uid = AUsersHelper.getUIDFromHeaders(req);
       
       if (!ASGlobal.nonlogableRequests.contains(path)) 
-          ASLog.log("[REQUEST]:  " + path + " " + pParams);
+          ASLog.log("[REQUEST from "+uid+"]:  " + path + " " + pParams);
       
-      String response = processor.processRequest(path, pParams, req, res);
+      String response = processor.processRequest(path, pParams, req, res, uid);
       if (response.startsWith("{"))
         res.header("Content-type", "application/json");
               
@@ -86,7 +89,7 @@ public class Server {
           ASLog.log(String.format("[RESPONSE]: %s", response.replaceAll("\n", "; ")));
       }
 
-      return response;
+      return response;  
     });  
     
     // allow OPTIONS queries (before POST requests)

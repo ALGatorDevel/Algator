@@ -1,9 +1,11 @@
 {
   "Presenter": {
-    "Name":   "<TP>",
-    "Title":  "t_<TP>",
+    "eid":    "<eid>",
+        
+    "Title":        "t_<TP>",
     "ShortTitle":   "st_<TP>",
     "Description":  "d_<TP>",
+    
     "Query"   : {}, 
 
     "Layout"  : []

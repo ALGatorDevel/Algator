@@ -33,7 +33,7 @@ public enum VariableType {
     }
   }
 
-  static VariableType getType(String typeDesc) {
+  public static VariableType getType(String typeDesc) {
     for (VariableType rst : VariableType.values()) {
       if (typeDesc.equals(rst.toString())) {
         return rst;
@@ -59,6 +59,27 @@ public enum VariableType {
         return "";
     }
     return null;
+  }
+  
+  public static boolean valueIsOfType(String value, VariableType type) {
+    switch (type) {
+      case INT: case COUNTER: case TIMER:
+        try {
+          Integer.parseInt(value);
+          return true;
+        } catch (Exception e) {
+          return false;
+        }
+      case DOUBLE:
+        try {
+          Double.parseDouble(value);
+          return true;
+        } catch (Exception e) {
+          return false;
+        }
+      default: 
+        return true;
+    }
   }
 
 }

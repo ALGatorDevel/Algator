@@ -6,6 +6,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -13,12 +18,31 @@ import java.util.Scanner;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import si.fri.algator.ausers.AUsersTools;
 
 /**
  *
  * @author tomaz
  */
 public class Tools {
+
+  public static void deleteDirectory(Path path) throws IOException {
+    Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        Files.delete(file);
+        return FileVisitResult.CONTINUE;
+      }
+
+      @Override
+      public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+        Files.delete(dir);
+        return FileVisitResult.CONTINUE;
+      }
+    });
+  }
+
   public static HashMap<String, String> getSubstitutions(String proj_name) {
     StringBuffer lc = new StringBuffer(proj_name);
     lc.setCharAt(0, Character.toLowerCase(proj_name.charAt(0)));
@@ -30,6 +54,7 @@ public class Tools {
     substitutions.put("<PPP>", proj_name);
     substitutions.put("<pPP>", projNameCamelCase);
     substitutions.put("<today>", sdf.format(new Date()));
+    substitutions.put("<eid>", AUsersTools.getUniqueDBid("e_"));
 
     // substitutions.put("\r", "\n");   
     return substitutions;
@@ -77,7 +102,7 @@ public class Tools {
     writeFile(new File(outputFolder, outputFileName).getAbsolutePath(), absAlg);
   }
 
-  public static String encodeFileToBase64Binary(String fileName)  {
+  public static String encodeFileToBase64Binary(String fileName) {
     try {
       File file = new File(fileName);
       byte[] encoded = Base64.encodeBase64(FileUtils.readFileToByteArray(file));
@@ -86,5 +111,5 @@ public class Tools {
       return "Error: " + e.toString();
     }
   }
-  
+
 }

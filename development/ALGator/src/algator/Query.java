@@ -176,7 +176,7 @@ public class Query {
   }
 
   private static void printUsage() {
-    Scanner sc = new Scanner((new Chart()).getClass().getResourceAsStream("/data/QueryUsage.txt")); 
+    Scanner sc = new Scanner((new Query()).getClass().getResourceAsStream("/data/QueryUsage.txt")); 
     while (sc.hasNextLine())
       System.out.println(sc.nextLine());   
     sc.close();

@@ -32,13 +32,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import si.fri.algator.admin.Maintenance;
 import si.fri.algator.admin.Tools;
+import si.fri.algator.ausers.CanUtil;
 
 import si.fri.algator.entities.CompCap;
 import si.fri.algator.entities.EAlgatorConfig;
 import si.fri.algator.entities.EAlgorithm;
 import si.fri.algator.entities.EComputer;
 import si.fri.algator.entities.EGenerator;
-import si.fri.algator.entities.EPresenter;
 import si.fri.algator.entities.EPresenterN;
 import si.fri.algator.entities.EProject;
 import si.fri.algator.entities.ETestCase;
@@ -175,7 +175,11 @@ public class ASTools {
   }
   
 /**** Supporting methods for getData request    */
-  public static String getProjectsData() {
+  
+  /**
+   * Returns a list of all "visible" projects.
+   */
+  public static String getProjectsData(String uid) {
     String projectsRoot = ATGlobal.getPROJECTSfolder(ATGlobal.getALGatorDataRoot());
     String[] projects = new File(projectsRoot).list((dir,name) -> 
       { File proj = new File(dir, name);
@@ -184,24 +188,77 @@ public class ASTools {
                new File(new File(proj, ATGlobal.ATDIR_projConfDir), ATGlobal.getPROJECTConfigName()).exists();
       });
     
-    // TODO:  filter-out projects according to user rights   
+    // TODO:  filter-out projects according to user rights 
+    ArrayList<String> readableProjects = new ArrayList();
+    for (String project : projects) {
+      EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(
+              ATGlobal.getALGatorDataRoot(), project.substring(5))));
+      String eid = eProject.getString(Entity.ID_EID);
+      if (CanUtil.can(uid, eid, "can_read")) readableProjects.add(eProject.getName());
+    }
     return jAnswer(OK_STATUS, "Projects", 
-        new JSONArray(Arrays.asList(projects).stream().map(s->s.substring(5)).collect(Collectors.toList())).toString()
+        new JSONArray(readableProjects).toString()
     );  
   }
-  public static String getProjectData(String projectName) {
-    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
-      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");
-    
+  
+  public static JSONObject getProjectJSON(String uid, String projectName) {
     String fileName = ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projectName);
     EProject project = new EProject(new File(fileName));
     
-    // tole dodam, da v rezultat urinem tudi podatek o racunalnikih
     JSONObject result = new JSONObject(project.toJSONString());
+    if (!CanUtil.can(uid, result.optString("eid", ""), "can_read"))
+      return new JSONObject();
+    
+    String data_root = ATGlobal.getALGatorDataRoot();
+    String proot = ATGlobal.getPROJECTroot(data_root, projectName);
+
+    // remove "non-existing" or "non-visible" algorithms
+    JSONArray algs = result.getJSONArray(EProject.ID_Algorithms);
+    if (algs!=null) for (int i=algs.length()-1; i>=0; i--) {
+      if (ATGlobal.algorithmExists(data_root, projectName, algs.getString(i))) {
+        String aName = ATGlobal.getALGORITHMfilename(proot, algs.getString(i));
+        EAlgorithm ea = new EAlgorithm(new File(aName));
+        String eid = ea.getString("eid");
+        if (!CanUtil.can(uid, eid, "can_read")) algs.remove(i);
+      } else algs.remove(i);
+    }
+    // remove "non-existing" or "non-visible" testsets
+    JSONArray tsts = result.getJSONArray(EProject.ID_TestSets);
+    if (tsts!=null) for (int i=tsts.length()-1; i>=0; i--) {
+      if (ATGlobal.testsetExists(data_root, projectName, tsts.getString(i))) {
+        String tName = ATGlobal.getTESTSETfilename(data_root,projectName, tsts.getString(i));
+        ETestSet et = new ETestSet(new File(tName));
+        String eid = et.getString("eid");
+        if (!CanUtil.can(uid, eid, "can_read")) tsts.remove(i);
+      } else tsts.remove(i);
+    }
+    // remove "non-existing" or "non-visible" testsets
+    JSONArray prts = result.getJSONArray(EProject.ID_MainProjPresenters);
+    if (prts!=null) for (int i=prts.length()-1; i>=0; i--) {
+      if (ATGlobal.presenterExists(data_root, projectName, prts.getString(i))) {
+        String pName = ATGlobal.getPRESENTERFilename(data_root,projectName, prts.getString(i));
+        EPresenterN ep = new EPresenterN(new File(pName));
+        String eid = ep.getString("eid");
+        if (!CanUtil.can(uid, eid, "can_read")) prts.remove(i);
+      } else prts.remove(i);
+    }
+        
+    return result;
+  }
+  
+  public static String getProjectData(String uid, String projectName) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");
+    
+    JSONObject result = getProjectJSON(uid, projectName);
+
+    // POPRAVI! Dodaj le tiste računalnike, ki so že izvajali teste za ta problem
     JSONArray  compArray = new JSONArray(Arrays.asList(new String[]{"F0.C0", "F0.C1", "F1.C1", "F1.C2"}));
     result.put("Computers", compArray);
-    return jAnswer(OK_STATUS, String.format("Project '%s'.", projectName), /*project.toJSONString()*/ result.toString());
+    
+    return jAnswer(OK_STATUS, String.format("Project '%s'.", projectName), result.toString());
   }
+  
   public static String getAlgorithmData(String projectName, String algorithmName, boolean deep) {
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
       return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");
@@ -335,8 +392,6 @@ public class ASTools {
     }
     result.put("Parameters", jParams);
     
-            
-    
     String[] mTypes = {"em", "cnt", "jvm"};
     for (String mType : mTypes) {
       try {
@@ -420,11 +475,11 @@ public class ASTools {
   
 /**** Supporting methods for alter request    */
   
-  public static String newProject(String projectName) {
+  public static String newProject(String uid, String projectName) {
     if (ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
       return sAnswer(2, String.format("Project '%s' already exists.",projectName), "");    
     
-    String result = Maintenance.createProject("", projectName);
+    String result = Maintenance.createProject(uid, projectName);
     return parsedAnswer(result,"Project created.","Error creating project."); 
   }
 
@@ -474,7 +529,7 @@ public class ASTools {
     String presenterFilename = ATGlobal.getPRESENTERFilename(ATGlobal.getALGatorDataRoot(), projectName, presenterName);
     try {
       JSONObject presenter = new JSONObject();
-      presenter.put(EPresenter.ID_PresenterParameter, presenterData);
+      presenter.put(EPresenterN.ID_PresenterParameter, presenterData);
       
       PrintWriter pw = new PrintWriter(presenterFilename);
       pw.println(presenter.toString(2)); 
@@ -516,6 +571,14 @@ public class ASTools {
     return parsedAnswer(result,"Parameter saved.","Error saving parameter."); 
   }
 
+  public static String newAlgorithm(String uid, String projectName, String algorithmName) {     
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    
+    String result = Maintenance.createAlgorithm(uid, projectName, algorithmName);
+    return parsedAnswer(result,"Algorithm added.", "Error adding algorithm.");     
+  }
+  
   public static String saveAlgorithm(String projectName, String algorithmName, JSONObject algorithmData) {
     String algorithmFilename = ATGlobal.getALGORITHMfilename(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName), algorithmName);
     String result = saveJSONProperties(
@@ -547,14 +610,18 @@ public class ASTools {
  
     return parsedAnswer(result,"Algorithm properties saved." + fileSaved, "Error saving testset properties."); 
   }
-
+  public static String removeAlgorithm(String uid, String projectName, String algorithmName) {
+    if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
+      return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
+    String result = Maintenance.removeAlgorithm(uid, projectName, algorithmName);    
+    return parsedAnswer(result, "Algorithm removed.", "Error removing algorithm.");
+  }  
   
-  public static String newTestset(String projectName, String testsetName) {     
+  public static String newTestset(String uid, String projectName, String testsetName) {     
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName))
       return sAnswer(2, String.format("Project '%s' does not exist.",projectName), "");    
     
-    String username = "";
-    String result = Maintenance.createTestset(username, projectName, testsetName);
+    String result = Maintenance.createTestset(uid, projectName, testsetName);
     return parsedAnswer(result,"Testset added.", "Error adding testset.");     
   }
   
@@ -1456,10 +1523,6 @@ public class ASTools {
   }
   
   public static void main(String[] args) {
-    JSONObject json = new JSONObject();
-    json.put("Description", "opisfd sdf sds");json.put("Author", "lojze");json.put("Type", "abra");json.put("Name", "tralala");
-    System.out.println(
-      replaceJSONArrayElement("D:\\Users\\tomaz\\OneDrive\\ULFRI\\ALGATOR_ROOT\\data_root\\projects\\PROJ-BasicSort\\proj\\testcase.json", "TestCase","Parameters", "Name","tralala", json)
-    );
+    System.out.println(getProjectData("u_42", "BasicSort"));
   }
 }

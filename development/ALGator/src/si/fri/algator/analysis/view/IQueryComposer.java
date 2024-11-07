@@ -2,7 +2,6 @@ package si.fri.algator.analysis.view;
 
 import java.awt.event.ActionListener;
 import si.fri.algator.analysis.TableData;
-import si.fri.algator.entities.EPresenter;
 import si.fri.algator.entities.EQuery;
 import si.fri.algator.entities.Project;
 

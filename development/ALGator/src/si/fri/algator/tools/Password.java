@@ -86,8 +86,10 @@ public class Password {
     System.out.println(checkPassword(goodHash, "pojedina"));
     
     System.out.println(goodHash);
-    System.out.println(encript("pojedina"));
-    
+    String enc = encript("pojedina");
+    System.out.println("Encripted: " + enc);
+    System.out.println("Good (pujs): " + checkPassword(enc, "pujs"));
+    System.out.println("Good (pojedina): " + checkPassword(enc, "pojedina"));
   }
 
 }

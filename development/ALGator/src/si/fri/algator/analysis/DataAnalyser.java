@@ -672,20 +672,35 @@ public class DataAnalyser {
 
         // scans outParams and find its value for every algorithm-testset-test
         for (NameAndAbrev outPar : outPars) {
-          String name = outPar.getName();
+          String name = outPar.getName().replaceAll(" ", "");
           String[] exp = name.split(operators);
-          if (exp.length > 1) {
+          if (exp.length > 1 || name.contains("@")) {
             name = AlgInterpreter.prepareExpression(name);
           }
           for (NameAndAbrev alg : algs) {
             Object value = "?";
-            if (results.get(alg.getName()).getResult(key) != null) {
+            Variables ps2 = results.get(alg.getName()).getResult(key);            
+            if (ps2 != null) {
               try {
-                if (exp.length > 1) {
+                if (exp.length > 1 || name.contains("@")) {
                   value = getCalcField(name, results, sortedPars, key, algs, alg);
+                  
+                  // tole dodam, da se v tabelo rezultatov (spremenljivk) zapiše tudi pravkar izračunana vrednost
+                  // posledica: potem lahko v izračunih uporabljam tudi nove spremenljivke: 
+                  // @Tmin AS X, @Tmin AS Y, @X+@Y AS Z
+                  EVariable newVar = new EVariable(); 
+                  String newParName = outPar.getAbrev();
+                  newVar.setName(newParName);
+                  VariableType vt = VariableType.DOUBLE;
+                  if (outPar.getType() != null) vt = VariableType.getType(outPar.getType());
+                  if (vt.equals(VariableType.INT)) value = ((Double)value).intValue();
+                  if (vt.equals(VariableType.STRING)) value = Double.toString((double)value);
+                  newVar.setType(vt); // default vrednost vseh "novih" parametrov je double
+                  newVar.setValue(value);
+                  ps2.addVariable(newVar);                  
+                  sortedPars.add(newParName);
                 } else {
-                  Variables ps2 = results.get(alg.getName()).getResult(key);
-                  EVariable parameter = ps2.getVariable(name);
+                  EVariable parameter = ps2.getVariable(name); 
                   value = parameter.getValue();
                 }
               } catch (Exception e) {

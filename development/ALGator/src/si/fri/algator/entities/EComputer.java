@@ -2,8 +2,8 @@ package si.fri.algator.entities;
 
 import java.io.Serializable;
 import java.util.TreeSet;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.json.JSONArray;
+import si.fri.algator.ausers.AUsersTools;
 
 /**
  *
@@ -40,7 +40,7 @@ public class EComputer extends Entity  implements Serializable {
   }
 
   public void assignUniqueID() {
-    set(ID_ComputerUID, RandomStringUtils.random(10,true, true));
+    set(ID_ComputerUID, AUsersTools.getUniqueDBid("c_"));
   }
   
   public TreeSet<CompCap> getCapabilities() {    

@@ -180,7 +180,11 @@ public class ExternalExecute {
       return;
     }
 
-    run(path);
+    try {
+      run(path);
+    } catch (Exception e) {
+      System.out.println("Error running algorithm: " + e);
+    }
   }
   
 }

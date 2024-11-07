@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import si.fri.algator.tools.ATTools;
@@ -16,7 +17,7 @@ import si.fri.algator.global.ErrorStatus;
 
 /**
  * Entity represents a low-level class needed to implement an entity like
- * ATProject, ATAlgorithm, ATParameter, ... Entity loads an entity from a file
+ * EProject, EAlgorithm, EParameter, ... Entity loads an entity from a file
  * or from a JSON string. The fields of an entity are set through the
  * constructor's fieldName parameter. The method initFromJSON reads all these
  * fields from JSON description of an entity and fills the map with correspnding
@@ -32,11 +33,15 @@ public class Entity implements Cloneable, Serializable {
 
   // The name of the entity (property Name)
   public static final String ID_NAME = "Name";
-
+  
+  // The unique id of an entity. It is used for reference. Once assigned, it can not be changed. 
+  public static final String ID_EID        = "eid";
+  public static final String EID_UNDEFINED = "e?";
+  
   /**
-   * The ID of an entity in an JSON file
+   * The ID of an entity in an JSON file (like "Config", "Project", "Algorithm", ...)
    */
-  protected String entity_id;
+  protected String entity_type_id;
 
   /**
    * The folder of the entity file (if entity was read from a file), null
@@ -77,6 +82,7 @@ public class Entity implements Cloneable, Serializable {
   public Entity() {
     fieldNames = new String[0];    
     fields = new HashMap();
+    representatives = new ArrayList<>();    
   }
 
   public Entity(String entityID, String[] fieldNames) {
@@ -85,7 +91,7 @@ public class Entity implements Cloneable, Serializable {
   
   /**
    * 
-   * @param entityID
+   * @param entityTypeID
    * 
    * @param fieldNames  imena lastnosti v JSON datoteki. Vrstni red lastnosti je pomemben zaradi toString
    * zapisa (ker sem json objekt popravil tako, da uporablja LinkedList, se lastnosti pri toString berejo v
@@ -94,22 +100,23 @@ public class Entity implements Cloneable, Serializable {
    * @param defaultValues privzete vrednosti za posamezno lastnost. Če uporabnik želi, da ALGator sam ustvari 
    * JSON objekt (z new <X>Entity()) z vsemi lastnostmi, mora določiti privzete vrednosti; na podlagi teh 
    * vrednosti ALGator tudi ve, kakšnega tipa je lastnost (npr. String, int, JSONObject, JSONArray, ...). 
-   * Primer: glej entiteto ELOcalConfig
+   * Primer: glej entiteto ELocalConfig
    */
-  public Entity(String entityID, String[] fieldNames, Object[] defaultValues) {
+  public Entity(String entityTypeID, String[] fieldNames, Object[] defaultValues) {
     this();
 
-    entity_id = entityID;
+    entity_type_id = entityTypeID;
     entity_name = unknown_value;
-    this.fieldNames = fieldNames;
+    
+    // add ID_EID at the begining of fieldNames array
+    this.fieldNames = Stream.concat(Stream.of(ID_EID), Arrays.stream(fieldNames)).toArray(String[]::new);
+    fields.put(ID_EID, EID_UNDEFINED);
     
     // add default values, if they are provided
     if (defaultValues.length == fieldNames.length)
       for (int i = 0; i < fieldNames.length; i++) {
         fields.put(fieldNames[i], defaultValues[i]);
-      }
-
-    representatives = new ArrayList<>();
+      }    
   }
   
   public void addFieldName(String fieldName) {
@@ -159,13 +166,13 @@ public class Entity implements Cloneable, Serializable {
         return ErrorStatus.getLastErrorStatus();
       
       JSONObject queryObject = new JSONObject(vsebina);
-      if (entity_id == null || entity_id.isEmpty()) {
+      if (entity_type_id == null || entity_type_id.isEmpty()) {
         return initFromJSON(queryObject.get("Query").toString());
       }
 
-      String entity = queryObject.optString(entity_id);
+      String entity = queryObject.optString(entity_type_id);
       if (entity.isEmpty()) {
-        throw new Exception("Token '" + entity_id + "' does not exist.");
+        throw new Exception("Token '" + entity_type_id + "' does not exist.");
       }
 
       return initFromJSON(entity);
@@ -229,8 +236,7 @@ public class Entity implements Cloneable, Serializable {
     File f = new File(entity_file_name);
     try (PrintWriter pw = new PrintWriter(f)) {
       pw.println(toJSONString(true));
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
   }
 
   public String toJSONString() {
@@ -262,7 +268,7 @@ public class Entity implements Cloneable, Serializable {
     }
     if (wrapWithEntity) {
       JSONObject wrapped = new JSONObject();
-      wrapped.put(entity_id, result);
+      wrapped.put(entity_type_id, result);
       return wrapped;
     } else {
       return result;
@@ -375,7 +381,6 @@ public class Entity implements Cloneable, Serializable {
   }
 
   public void setRepresentatives(String... fields) {
-    representatives = new ArrayList<>();
     for (String string : fields) {
       representatives.add(string);
     }
@@ -388,7 +393,7 @@ public class Entity implements Cloneable, Serializable {
       desc += (desc.isEmpty() ? "" : ", ") + rep + "=" + fields.get(rep);
     }
 
-    return entity_id + "[" + desc + "]";
+    return entity_type_id + "[" + desc + "]";
   }
 
   @Override

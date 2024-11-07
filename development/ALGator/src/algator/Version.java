@@ -3,11 +3,11 @@ package algator;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import si.fri.algator.ausers.AUsersTools;
 import si.fri.algator.database.Database;
-import si.fri.algator.entities.ELocalConfig;
 import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
-import si.fri.algator.users.UsersDatabase;
+
 
 /**
  *
@@ -42,10 +42,10 @@ public class Version {
     
     try {
       Statement stmt = (Statement) conn.createStatement();    
-      ResultSet rs = stmt.executeQuery("SELECT * FROM auth_user");
-      System.out.print("Users in database: ");
+      ResultSet rs = stmt.executeQuery("SELECT * FROM authuser_user");
+      System.out.print("Users in database:  ");
       while (rs.next()) {
-          System.out.print(rs.getString("username") + " ");
+          System.out.print(rs.getString("username") + (rs.isLast() ? "" :", "));
       }
       System.out.println("");
     } catch (Exception e) {
@@ -58,14 +58,15 @@ public class Version {
     System.out.println();
     System.out.println("ALGATOR_ROOT:       " + ATGlobal.getALGatorRoot());
     System.out.println("ALGATOR_DATA_ROOT:  " + ATGlobal.getALGatorDataRoot());
-    System.out.println("ALGATOR_DATA_LOCAL: " + ATGlobal.getALGatorDataLocal());         
+    System.out.println("ALGATOR_DATA_LOCAL: " + ATGlobal.getALGatorDataLocal());  
+    System.out.println("Anonymous mode:     " + Database.isAnonymousMode());
     
-    if (Database.isDatabaseMode() && !UsersDatabase.databaseAndTablesExist()) {
-      ATLog.log("The database is not initialized. Use 'java algator.Admin -init' before the first usage of ALGator.",0  );
+    if (!Database.isAnonymousMode() && !AUsersTools.databaseAndTablesExist()) {
+      ATLog.log("The database is not initialized.",0  );
       return;
     }  
     
-    if (Database.isDatabaseMode())
+    if (!Database.isAnonymousMode())
       printUsers();
   }
   

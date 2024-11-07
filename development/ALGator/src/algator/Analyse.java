@@ -153,7 +153,7 @@ public class Analyse {
   }
 
   private static void printUsage() {
-    Scanner sc = new Scanner((new Chart()).getClass().getResourceAsStream("/data/AnalyseUsage.txt")); 
+    Scanner sc = new Scanner((new Analyse()).getClass().getResourceAsStream("/data/AnalyseUsage.txt")); 
     while (sc.hasNextLine())
       System.out.println(sc.nextLine());    
   }

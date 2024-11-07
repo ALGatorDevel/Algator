@@ -1,5 +1,6 @@
 import si.fri.algator.entities.Variables;
 import static si.fri.algator.execute.AbstractTestCase.PROPS;
+import static si.fri.algator.execute.AbstractTestCase.TESTS_PATH;
 import si.fri.algator.execute.AbstractTestCaseGenerator;
 
 /**
@@ -10,6 +11,9 @@ import si.fri.algator.execute.AbstractTestCaseGenerator;
 public class TestCaseGenerator_<TTT> extends AbstractTestCaseGenerator {    
   @Override
   public TestCase generateTestCase(Variables generatingParameters) {
+    // all testset input files are located in testsFolder and its subfolders
+    String testsFolder = generatingParameters.getVariable(TESTS_PATH,    "").getStringValue();
+
     // read params from generatingParameters
     <params>
 

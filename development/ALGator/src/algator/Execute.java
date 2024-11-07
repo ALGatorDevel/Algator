@@ -150,7 +150,7 @@ public class Execute {
   }
 
   private static void printUsage() {
-    Scanner sc = new Scanner((new Chart()).getClass().getResourceAsStream("/data/ExecutorUsage.txt")); 
+    Scanner sc = new Scanner((new Execute()).getClass().getResourceAsStream("/data/ExecutorUsage.txt")); 
     while (sc.hasNextLine())
       System.out.println(sc.nextLine());   
     sc.close();

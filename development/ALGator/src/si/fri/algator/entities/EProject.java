@@ -1,6 +1,8 @@
 package si.fri.algator.entities;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -54,10 +56,19 @@ public class EProject extends Entity {
 	);
    setRepresentatives(ID_Author);
   }
+
+  private static String extractProjectNameFromFileName(String fileName, String defaultName) {
+    Pattern pattern = Pattern.compile(".*[\\\\/]PROJ-([^\\\\/]+)[\\\\/].*");     
+    Matcher matcher = pattern.matcher(fileName.toString());
+    return (matcher.matches() ? matcher.group(1) : defaultName);
+  }
   
   public EProject(File fileName) {
     this();
     initFromFile(fileName);
+    
+    // name of a project is in path (not in "Name" property)
+    fields.put(ID_NAME, extractProjectNameFromFileName(fileName.toString(), getName()));
   }
   
   
@@ -118,5 +129,4 @@ public class EProject extends Entity {
   public String getOutputClassname() {
     return /* getName() +*/ "Output";
   }
-    
 }

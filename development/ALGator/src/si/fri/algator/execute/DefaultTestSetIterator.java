@@ -46,7 +46,7 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
     // to sem odstranil, ker se sicer napaka kopičijo (nihče jih ne postavi na "", 
     // spodnji spstem pa jih samo dodaja, po nekaj klicih dobiš " sdfd (sdfsd (sdas (....))))"
     //String oldMsg = ErrorStatus.getLastErrorMessage();
-    String msg = String.format("Invalid input data in file %s in line %d.", testFileName, lineNumber);
+    String msg = String.format("Invalid generator or input line - can not generate testcase from line %d of file %s.", lineNumber, testFileName);
     //if (ErrorStatus.getLastErrorStatus()!=ErrorStatus.STATUS_OK && !oldMsg.isEmpty())
     //  msg += " ("+oldMsg+")";
     

@@ -24,11 +24,11 @@ public class NameAndAbrev {
       String parts [] = nameAndAbrev.split(AS);
     name = parts[0];
     
-    // name can contain information about the type
-    if (name.contains(" ")) {
-      String [] nt = name.split("[ ]");      
-      type         = nt[0];
-      name         = nt[1];
+    // name can contain information about the type (int, double, string)
+    if (name.startsWith("int ") || name.startsWith("double ") || name.startsWith("string ")) {
+      int pos = name.indexOf(" ");
+      type         = name.substring(0, pos);
+      name         = name.substring(pos+1, name.length());
     }
     
     if (parts.length > 1)

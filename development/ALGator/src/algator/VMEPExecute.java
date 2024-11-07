@@ -115,7 +115,7 @@ public class VMEPExecute {
   private static void printUsage() {
     System.out.println(introMsg + "\n");
     
-    Scanner sc = new Scanner((new Chart()).getClass().getResourceAsStream("/data/VMEPExecutorUsage.txt")); 
+    Scanner sc = new Scanner((new VMEPExecute()).getClass().getResourceAsStream("/data/VMEPExecutorUsage.txt")); 
     while (sc.hasNextLine())
       System.out.println(sc.nextLine());
     

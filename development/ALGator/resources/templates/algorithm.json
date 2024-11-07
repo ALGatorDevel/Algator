@@ -1,9 +1,9 @@
 {
   "Algorithm" : {	
-
-   "Name"           : "<AAA>",
+   "eid"            : "<eid>",
+        
    "ShortName"      : "algorithm_short_name",             
-   "Description"    : "algorithm_dascription",
+   "Description"    : "algorithm_description",
    "Author"         : "author_name",
    "Date"           : "<today>",
 

@@ -1,7 +1,6 @@
 package si.fri.algator.server;
 
 import algator.Admin;
-import algator.Users;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -9,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import static si.fri.algator.server.ASTools.OK_STATUS;
@@ -33,6 +31,10 @@ import si.fri.algator.global.ErrorStatus;
 import si.fri.algator.tools.ATTools;
 import si.fri.algator.tools.SortedArray;
 import static si.fri.algator.admin.Maintenance.synchronizators;
+import si.fri.algator.ausers.AUsersTools;
+import si.fri.algator.ausers.CanUtil;
+import si.fri.algator.ausers.dto.DTOUser;
+import si.fri.algator.database.Database;
 import spark.Request;
 import spark.Response;
 
@@ -48,7 +50,7 @@ public class RequestProcessor {
     this.server = server;
   }
     
-  public String processRequest(String command, String pParams, Request request, Response response) {
+  public String processRequest(String command, String pParams, Request request, Response response, String uid) {
     // najprej pocistim morebitne pozabljene ukaze in datoteke
     ASCommandManager.sanitize();
 
@@ -75,7 +77,10 @@ public class RequestProcessor {
 
       // prints server status; no parameters  
       case ASGlobal.REQ_STATUS:
-        return serverStatus();      
+        return serverStatus(); 
+        
+      case ASGlobal.REQ_DBDATA:
+        return notAnonymous();
         
       case ASGlobal.REQ_ADMIN_PRINTPATHS:
         return getServerPaths();
@@ -87,10 +92,14 @@ public class RequestProcessor {
         return getTimeStamp();
         
       case ASGlobal.REQ_GETDATA:
-        return getData(jObj);  
+        return getData(uid, jObj);  
 
       case ASGlobal.REQ_ALTER:
-        return alter(jObj);          
+        return alter(uid, jObj);    
+        
+      case ASGlobal.REQ_DB:
+        return db_request(jObj, uid);    
+        
         
       // return the list of all tasks in the queue; no parameters  
       case ASGlobal.REQ_GET_TASKS:
@@ -137,9 +146,6 @@ public class RequestProcessor {
       case ASGlobal.REQ_QUERY:
         return runQuery(jObj);   
         
-      case ASGlobal.REQ_USERS:
-        return users(pParams);
-
       case ASGlobal.REQ_ADMIN:
         return admin(pParams);
         
@@ -201,6 +207,10 @@ public class RequestProcessor {
        ip, server.getServerRunningTime(), Thread.currentThread().getId(), r, p, q, pa);
   }
   
+  public String notAnonymous() {
+    return Database.isAnonymousMode() ? "false" : "true";
+  }
+  
   public String getTimeStamp() {
     return iAnswer(OK_STATUS, "Tmestamp", new Date().getTime());
   }
@@ -232,7 +242,7 @@ public class RequestProcessor {
    *   - Type=ProjectProps
    * @return json data
    */
-  public String getData(JSONObject jObj) {
+  public String getData(String uid, JSONObject jObj) {
     if (!jObj.has("Type")) 
       return sAnswer(1, "Invalid parameter. Expecting JSON with \"Type\" property.", "");
 
@@ -240,11 +250,11 @@ public class RequestProcessor {
     switch (type) {
     
       case "Projects":
-        return ASTools.getProjectsData();
+        return ASTools.getProjectsData(uid);
       case "Project":
         if (!jObj.has("ProjectName"))
           return sAnswer(1, "getData of type=Project requires 'ProjectName' property.", "");
-        return ASTools.getProjectData(jObj.getString("ProjectName"));
+        return ASTools.getProjectData(uid, jObj.getString("ProjectName"));
       case "Algorithm":
         if (!(jObj.has("ProjectName")&& jObj.has("AlgorithmName")))
           return sAnswer(1, "getData of type=Algorithm requires 'ProjectName' and 'AlgorithmName' properties.", "");
@@ -283,7 +293,7 @@ public class RequestProcessor {
     }    
   }
   
-  public String alter(JSONObject jObj) {
+  public String alter(String uid, JSONObject jObj) {
     if (!(jObj.has("Action")&&jObj.has("ProjectName")))
       return sAnswer(1, "Invalid parameter. Expecting JSON with 'Action' and 'ProjectName' properties.", "");
     
@@ -299,7 +309,7 @@ public class RequestProcessor {
         case "NewProject":
           if (!jObj.has("ProjectName"))
             return sAnswer(1, "Alter of type=NewProject requires 'ProjectName'  property.", "");
-          return ASTools.newProject(jObj.getString("ProjectName"));          
+          return ASTools.newProject(uid, jObj.getString("ProjectName"));          
 
         case "SaveProjectGeneral":
           if (!jObj.has("Data"))
@@ -342,6 +352,10 @@ public class RequestProcessor {
             return sAnswer(1, "Alter of type=RemoveParameter requires 'ProjectName' and 'ParameterName' properties.", "");
           return ASTools.removeParameter(jObj.getString("ProjectName"), jObj.getString("ParameterName"));        
 
+        case "NewAlgorithm":
+          if (!jObj.has("AlgorithmName"))
+            return sAnswer(1, "Alter of type=NewAlgorithm requires 'ProjectName' and 'AlgorithmName' properties.", "");
+          return ASTools.newAlgorithm(uid, jObj.getString("ProjectName"), jObj.getString("AlgorithmName"));                                      
         case "SaveAlgorithm":
           if (!(jObj.has("AlgorithmName")&&jObj.has("Algorithm")))
             return sAnswer(1, "Alter of type=SaveAlgorithm requires 'ProjectName' 'AlgorithmName' and 'Algorithm' properties.", "");
@@ -350,12 +364,16 @@ public class RequestProcessor {
             return sAnswer(2, "Algorithm not a JSON.", "");            
           }
           return ASTools.saveAlgorithm(jObj.getString("ProjectName"), jObj.getString("AlgorithmName"), algorithm);                
+        case "RemoveAlgorithm":
+          if (!jObj.has("AlgorithmName"))
+            return sAnswer(1, "Alter of type=RemoveAlgorithm requires 'ProjectName' and 'AlgorithmName' properties.", "");
+          return ASTools.removeAlgorithm(uid, jObj.getString("ProjectName"), jObj.getString("AlgorithmName"));        
 
           
         case "NewTestset":
           if (!jObj.has("TestsetName"))
             return sAnswer(1, "Alter of type=NewTestset requires 'ProjectName' and 'TestsetName' properties.", "");
-          return ASTools.newTestset(jObj.getString("ProjectName"), jObj.getString("TestsetName"));                            
+          return ASTools.newTestset(uid, jObj.getString("ProjectName"), jObj.getString("TestsetName"));                            
         case "SaveTestset":
           if (!(jObj.has("TestsetName")&&jObj.has("Testset")))
             return sAnswer(1, "Alter of type=SaveTestset requires 'ProjectName' 'TestsetName' and 'Testset' properties.", "");
@@ -407,6 +425,27 @@ public class RequestProcessor {
     }
   }
   
+  // testne funkcije, se ne bodo uporabljale v produkciji
+  public String db_request(JSONObject jObj, String uid) {
+    if (!jObj.has("Action"))
+      return sAnswer(1, "Invalid parameter. Expecting JSON with 'Action' property.", "");
+    
+    String action = jObj.optString("Action", "").toUpperCase();
+    switch (action) { 
+      case "GETUSERS":
+        ArrayList<DTOUser> users = AUsersTools.readUsers();
+        String ans="";for (DTOUser user : users) ans +=(ans.isEmpty()? "" : ", ") + user.toString();
+        return sAnswer(OK_STATUS, "Users", "["+ans+"]");
+      case "CAN":        
+        String eid      = jObj.optString("eid", "");
+        String codename = jObj.optString("codename", "");
+        String can      = String.format("can('%s', '%s', '%s')", uid, eid, codename);
+        return sAnswer(OK_STATUS, can, CanUtil.can(uid, eid, codename)?"true":"false");
+        
+        default: return sAnswer(1, "Unknown type '"+action+"'.", "");                
+    }   
+  }
+
   
   /**
    * Create a new task and add it to waiting queue. Call: addTask project_name
@@ -874,8 +913,8 @@ public class RequestProcessor {
         config.set(si.fri.algator.entities.EAlgatorConfig.ID_Computers, ja); 
       }
 
-      // set the unique id for this computer (this wil be the identifier in requests)
-      computer.put(EComputer.ID_ComputerUID, RandomStringUtils.random(10, true, true));
+      // set the unique id for this computer (this will be the identifier in requests)
+      computer.put(EComputer.ID_ComputerUID, AUsersTools.getUniqueDBid("c_"));
       ja.put(computer);
       config.saveEntity();
 
@@ -975,15 +1014,6 @@ public class RequestProcessor {
     return sAnswer(OK_STATUS, "Minor", diff.toString());
   }  
   
-  public String users(String params) {
-    String[] args = params.split(" ");
-    String response = Users.do_users(args).trim();
-    while (response.endsWith("\n")) {
-      response = response.substring(0, response.length() - 1);
-    }
-    return response;
-  }
-
   public String admin(String params) {
     String[] args = params.split(" ");
     String response = Admin.do_admin(args).trim();
