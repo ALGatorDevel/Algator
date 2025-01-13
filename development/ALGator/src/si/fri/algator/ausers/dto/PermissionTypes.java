@@ -14,10 +14,12 @@ import si.fri.algator.database.Database;
  */
 public class PermissionTypes {
 
-  static HashMap<String, DTOPermissionType> pTypes;
+  static boolean pTypesRead = false;
+  static HashMap<String, DTOPermissionType> pTypes = new HashMap<>();
+  
 
   public static HashMap<String, DTOPermissionType> getAllPermissionTypes() {
-    if (pTypes == null) {
+    if (!pTypesRead) {
       HashMap<String, DTOPermissionType> permissionTypeMap = new HashMap<>();
       Connection conn = Database.getConnectionToDatabase();
 
@@ -33,16 +35,16 @@ public class PermissionTypes {
 
           permissionTypeMap.put(dto.getCodename(), dto);
         }
-      } catch (Exception e) {
-      }
+        pTypesRead = true;
+      } catch (Exception e) {}
       pTypes = permissionTypeMap;
     }
     return pTypes;
   }
   
-  public static long getPermissionValue(String codename) {
-    HashMap<String, DTOPermissionType> pTypes = getAllPermissionTypes();
-    DTOPermissionType pt = pTypes.getOrDefault(codename, null);
+  public static long getValue(String codename) {
+    HashMap<String, DTOPermissionType> pTyp = getAllPermissionTypes();
+    DTOPermissionType pt = pTyp.getOrDefault(codename, null);
     return pt == null ? 0 : pt.getValue();
   }
   
@@ -50,7 +52,7 @@ public class PermissionTypes {
     Scanner sc = new Scanner(System.in);
     while (true) {
       String cn = sc.next();
-      System.out.println(getPermissionValue(cn));
+      System.out.println(getValue(cn));
     }
   }
 }

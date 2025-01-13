@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.TreeSet;
@@ -32,7 +33,10 @@ public class Entity implements Cloneable, Serializable {
   public static final String unknown_value = "?";
 
   // The name of the entity (property Name)
-  public static final String ID_NAME = "Name";
+  public static final String ID_NAME          = "Name";
+  
+  public static final String ID_LAST_MODIFIED = "LastModified";
+  
   
   // The unique id of an entity. It is used for reference. Once assigned, it can not be changed. 
   public static final String ID_EID        = "eid";
@@ -108,8 +112,9 @@ public class Entity implements Cloneable, Serializable {
     entity_type_id = entityTypeID;
     entity_name = unknown_value;
     
-    // add ID_EID at the begining of fieldNames array
-    this.fieldNames = Stream.concat(Stream.of(ID_EID), Arrays.stream(fieldNames)).toArray(String[]::new);
+    // add ID_EID and ID_LAST_MODIFIED at the begining of fieldNames array
+    String[] imdtFieldNames = Stream.concat(Stream.of(ID_LAST_MODIFIED), Arrays.stream(fieldNames)).toArray(String[]::new);
+    this.fieldNames = Stream.concat(Stream.of(ID_EID), Arrays.stream(imdtFieldNames)).toArray(String[]::new);
     fields.put(ID_EID, EID_UNDEFINED);
     
     // add default values, if they are provided
@@ -147,6 +152,12 @@ public class Entity implements Cloneable, Serializable {
     set(ID_NAME, name);
   }
 
+  public String getEID() {
+    String eid = getField(ID_EID);
+    if (eid == null || eid.isEmpty()) eid = EID_UNDEFINED;
+    return eid;
+  }
+  
   /**
    * Reads a JSON file. If entity_id=="", then whole file represents an JSON
    * object to be read (i.e. the file contains only this object); else, the file
@@ -285,8 +296,11 @@ public class Entity implements Cloneable, Serializable {
   }
   
   public String getString(String fieldKey) {
+    return getString(fieldKey, unknown_value);
+  }
+  public String getString(String fieldKey, String defaultValue) {
     Object value = fields.get(fieldKey);
-    return value != null && value instanceof String ? (String) value : unknown_value;
+    return value != null && value instanceof String ? (String) value : defaultValue;
   }
   
   public void clear(String fieldKey) {
@@ -403,5 +417,10 @@ public class Entity implements Cloneable, Serializable {
     myClone.fieldNames = (String[]) this.fieldNames.clone();
     myClone.representatives = (ArrayList) this.representatives.clone();
     return myClone;
+  }
+  
+  // implementation dependant; each entity should check for itself
+  public long getLastModified(String projectName, String entityName) {
+    return 0;
   }
 }

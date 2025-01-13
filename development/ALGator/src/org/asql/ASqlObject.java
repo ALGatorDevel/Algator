@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import si.fri.algator.analysis.DataAnalyser;
 import si.fri.algator.analysis.TableData;
+import si.fri.algator.ausers.dto.DTOUser;
 import si.fri.algator.entities.EQuery;
 import si.fri.algator.entities.Project;
 import si.fri.algator.tools.ATTools;
@@ -193,7 +194,7 @@ public class ASqlObject {
         if (queries == null || queries.length == 1) {
             EQuery eQuery = new EQuery();
             eQuery.initFromJSON(getJSONString(project));
-            return DataAnalyser.runQuery(project.getEProject(), eQuery, (String) eQuery.get(EQuery.ID_ComputerID));
+            return DataAnalyser.runQuery(DTOUser.USER_ALGATOR, project.getEProject(), eQuery, (String) eQuery.get(EQuery.ID_ComputerID));
         } else {
             HashMap<String, TableData> results = new HashMap<>();
             TableData currentTd = null;
@@ -210,7 +211,7 @@ public class ASqlObject {
                 ASqlObject lo = new ASqlObject(query);
                 EQuery eQuery = new EQuery();
                 eQuery.initFromJSON(lo.getJSONString(project));
-                currentTd = DataAnalyser.runQuery(project.getEProject(), eQuery, (String) eQuery.get(EQuery.ID_ComputerID), results);
+                currentTd = DataAnalyser.runQuery(DTOUser.USER_ALGATOR, project.getEProject(), eQuery, (String) eQuery.get(EQuery.ID_ComputerID), results);
                 results.put(varName, currentTd);
             }
             return currentTd;

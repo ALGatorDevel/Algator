@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
+import javax.swing.JOptionPane;
 import org.apache.commons.io.FileUtils;
 import si.fri.algator.server.ASTask;
 import si.fri.algator.server.ASTools;
@@ -24,6 +25,7 @@ import si.fri.algator.entities.VariableType;
 import si.fri.algator.entities.Variables;
 import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
+import si.fri.algator.global.Answer;
 import si.fri.algator.tools.ATTools;
 import si.fri.algator.global.ErrorStatus;
 import static si.fri.algator.tools.ATTools.getTaskResultFileName;
@@ -34,7 +36,7 @@ import static si.fri.algator.tools.ATTools.getTaskResultFileName;
  */
 public class Executor {
 
-  public static ErrorStatus projectMakeCompile(String data_root, String projectName, boolean alwaysCompile) {
+  public static Answer projectMakeCompile(String data_root, String projectName, boolean alwaysCompile) {
     EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(data_root, projectName)));    
     return projectMakeCompile(eProject, alwaysCompile);
   }  
@@ -45,7 +47,7 @@ public class Executor {
    * (the compilations takes place although the classes already exist and are up
    * to date).
    */
-  public static ErrorStatus projectMakeCompile(EProject projekt, boolean alwaysCompile) {
+  public static Answer projectMakeCompile(EProject projekt, boolean alwaysCompile) {
     String projRoot = projekt.getProjectRootDir();
 
     // the classes to be compiled
@@ -77,24 +79,25 @@ public class Executor {
 
     String missingSource = ATTools.sourcesExists(projSrc, sources);
     if (missingSource != null) {
-      return ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_SOURCES_DONT_EXIST, missingSource);
+      return new Answer(ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_SOURCES_DONT_EXIST, missingSource));
     }
 
     // compare the creation date of the files
     if (!alwaysCompile && !ATTools.isSourceNewer(projSrc, projBin, sources)) {
-      return ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK,
-              String.format("Compile project '%s' - nothing to be done.", projekt.getName()));
+      return new Answer(ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK,
+              String.format("Compile project '%s' - nothing to be done.", projekt.getName())));
     }
 
     String projJARs = ATTools.buildJARList(projekt.getStringArray(EProject.ID_ProjectJARs), ATGlobal.getPROJECTlib(projRoot));
     for (int i = 0; i < sources.length; i++) sources[i] = sources[i] + ".java";
-    ErrorStatus err = ATTools.compile(projSrc, sources,
+    Answer answer = ATTools.compile(projSrc, sources,
             projBin, new String[]{}, projJARs, String.format("project '%s'", projekt.getName()));
 
-    return ErrorStatus.setLastErrorMessage(err, "");
+    ErrorStatus.setLastErrorMessage(answer.status, "");
+    return answer;
   }
 
-  public static ErrorStatus algorithmMakeCompile(String data_root, String projName, String algName, MeasurementType mType, boolean alwaysCompile) {
+  public static Answer algorithmMakeCompile(String data_root, String projName, String algName, MeasurementType mType, boolean alwaysCompile) {
     String projectRoot    = ATGlobal.getPROJECTroot(data_root, projName);
     EProject eProject     = new EProject  (new File(ATGlobal.getPROJECTfilename(data_root, projName)));    
     EAlgorithm eAlgorithm = new EAlgorithm(new File(ATGlobal.getALGORITHMfilename(projectRoot, algName)));    
@@ -109,7 +112,7 @@ public class Executor {
    * omitted (the compilations takes place although the classes already exist
    * and are up to date).
    */
-  public static ErrorStatus algorithmMakeCompile(EProject eProjekt, EAlgorithm eAlgorithm, MeasurementType mType, boolean alwaysCompile) {
+  public static Answer algorithmMakeCompile(EProject eProjekt, EAlgorithm eAlgorithm, MeasurementType mType, boolean alwaysCompile) {
     String projRoot = eProjekt.getProjectRootDir();
 
     String projBin = ATGlobal.getPROJECTbin(eProjekt.getName());
@@ -128,17 +131,17 @@ public class Executor {
     // test for sources
     String missingSource = ATTools.sourcesExists(algSrc, new String[]{algClass});
     if (missingSource != null) {
-      return ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_SOURCES_DONT_EXIST, missingSource);
+      return new Answer(ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_SOURCES_DONT_EXIST, missingSource));
     }
 
     // compare the creation date of the files
     if (!alwaysCompile && !ATTools.isSourceNewer(algSrc, algBin, new String[]{algClass})) {
-      return ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK,
-              String.format("Compiling algorithm  '%s' - nothing to be done.", algName));
+      return new Answer(ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK,
+              String.format("Compiling algorithm  '%s' - nothing to be done.", algName)));
     }
 
     String algJARs = ATTools.buildJARList(eProjekt.getStringArray(EProject.ID_AlgorithmJARs), ATGlobal.getPROJECTlib(projRoot));
-    ErrorStatus err = ATTools.compile(algSrc, new String[]{algClass + ".java"},
+    Answer err = ATTools.compile(algSrc, new String[]{algClass + ".java"},
             algBin, new String[]{projBin}, algJARs, String.format("algorithm '%s'", algName));
 
     return err;
@@ -254,12 +257,11 @@ public class Executor {
       CExecutor.runWithLimitedTime(project.getName(), algName, testSetName, mType, testRepeat*timeLimit, numberOfInstances);
         
     } else {    //java
-    
-      if (projectMakeCompile(project.getEProject(), alwaysCompile) != ErrorStatus.STATUS_OK) {
+      if (projectMakeCompile(project.getEProject(), alwaysCompile).status != ErrorStatus.STATUS_OK) {
         return ErrorStatus.getLastErrorStatus();
       }
 
-      if (algorithmMakeCompile(project.getEProject(), eAlgorithm, mType, alwaysCompile) != ErrorStatus.STATUS_OK) {
+      if (algorithmMakeCompile(project.getEProject(), eAlgorithm, mType, alwaysCompile).status != ErrorStatus.STATUS_OK) {
         return ErrorStatus.getLastErrorStatus();
       }
 
@@ -303,10 +305,10 @@ public class Executor {
       }
     } // end java execution
       
-
     ErrorStatus lastError = ErrorStatus.getLastErrorStatus();
     if (lastError.isOK()) {  
-      if (task != null) ASTools.logTaskStatus(task,  ASTaskStatus.COMPLETED, null, ATGlobal.getThisComputerID());
+      // spodnji ukaz ustvari "null-null-null-null" datoteko
+      // if (task != null) ASTools.logTaskStatus(task,  ASTaskStatus.COMPLETED, null, ATGlobal.getThisComputerID());        
       return ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, runningMsg + " - done.");
     } else  {// execution failed or was paused
       if (task != null)  ASTools.logTaskStatus(task,  lastError.taskWasQueued() ? ASTaskStatus.QUEUED : ASTaskStatus.FAILED, lastError.toString(), ATGlobal.getThisComputerID());

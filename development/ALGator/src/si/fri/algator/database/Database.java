@@ -23,40 +23,57 @@ public class Database {
   private static   String CONN_STRING  = "";
   public  static   String DATABASE     = "";
   
-  private static final   String OPTIONS      = "?serverTimezone=UTC";
- 
+  private static final   String OPTIONS      = "?serverTimezone=UTC";  
   
-
-  private static String anonymousFileName     = "anonymous";
-  private static boolean anonymousModeChecked = false;
-  private static boolean anonymousMode        = false;
-  // This method returns true if a file "$ALGATOR_ROOT/anonymous"  exists.
-  // If this file exists, ALGator will not try to connect to MySQL server.
-  // In anonymous mode all DB-related actions will be skipped, and all 
-  // permissions (method can()) will be approved. In anonymous mode user 
-  // can de everything. 
-  public static boolean isAnonymousMode() {
-    if (!anonymousModeChecked) {
-      File anonymousFile = new File(new File(ATGlobal.getALGatorRoot()), anonymousFileName);
-      anonymousMode = anonymousFile.exists();
-      anonymousModeChecked = true;
+ /*
+  // data source (connections pool)
+  static HikariDataSource connectionPool;
+  private static void initConnectionPool() {
+    if (USERNAME.isEmpty() || PASSWORD.isEmpty() || CONN_STRING.isEmpty() || DATABASE.isEmpty()) {
+        load_prop();  
     }
-    return anonymousMode;
+    HikariConfig config = new HikariConfig();
+    config.setJdbcUrl(CONN_STRING + "/" + DATABASE); // Replace with your database URL
+    config.setUsername(USERNAME); // Replace with your username
+    config.setPassword(PASSWORD); // Replace with your password
+    config.setMaximumPoolSize(10); // Maximum number of connections in the pool
+    config.setMinimumIdle(2); // Minimum number of idle connections
+    config.setIdleTimeout(30000); // Idle timeout (30 seconds)
+    config.setConnectionTestQuery("SELECT 1"); // Test query to validate connections
+    config.setConnectionTimeout(1000);
+    connectionPool = new HikariDataSource(config);
   }
-
+   
+  public static Connection getConnectionToDatabase() {
+    if (isAnonymousMode()) return null;                
+    try {
+      if (connectionPool == null)
+        initConnectionPool();
+      return connectionPool.getConnection();
+    } catch (Exception e1) {
+      return null;
+    }
+  }
+*/
+  
+  // getConnectionToDatabase sem po novem implementiral s pomočjo zHikariCP, ki
+  // povezave vrača iz bazena, pri tem pa preverja "delovanje" povezav, 
+  // nedelujoče izloča in jih zamenjuje z uporabnimi
   public static Connection getConnectionToDatabase() {
     if (isAnonymousMode()) return null;                
 
-    if (conn == null) try {
-      if (USERNAME.isEmpty() || PASSWORD.isEmpty() || CONN_STRING.isEmpty() || DATABASE.isEmpty()) {
-        load_prop();  
-      }
+    try {
+      if (conn == null || conn.isClosed()) {
+        if (USERNAME.isEmpty() || PASSWORD.isEmpty() || CONN_STRING.isEmpty() || DATABASE.isEmpty()) {
+          load_prop();  
+        }
 
-      if (USERNAME.isEmpty() || PASSWORD.isEmpty() || CONN_STRING.isEmpty() || DATABASE.isEmpty()) {
-        ATLog.log("Settings for database connection missing or incorrect.", 1);
-        return null;
+        if (USERNAME.isEmpty() || PASSWORD.isEmpty() || CONN_STRING.isEmpty() || DATABASE.isEmpty()) {
+          ATLog.log("Settings for database connection missing or incorrect.", 1);
+          return null;
+        }
+        conn = DriverManager.getConnection(CONN_STRING + "/" + DATABASE + OPTIONS, USERNAME, PASSWORD);
       }
-      conn = DriverManager.getConnection(CONN_STRING + "/" + DATABASE + OPTIONS, USERNAME, PASSWORD);
     } catch (SQLException e) {
       ATLog.log(e.toString(), 1);
     }
@@ -99,4 +116,22 @@ public class Database {
        ATLog.log("ALGator is running in the non-database mode.", 0);    
     return true;
   } 
+  
+  //////////////// **** ANONYMOUS mode checking **** //////////////////
+  private static String anonymousFileName     = "anonymous";
+  private static boolean anonymousModeChecked = false;
+  private static boolean anonymousMode        = false;
+  // This method returns true if a file "$ALGATOR_ROOT/anonymous"  exists.
+  // If this file exists, ALGator will not try to connect to MySQL server.
+  // In anonymous mode all DB-related actions will be skipped, and all 
+  // permissions (method can()) will be approved. In anonymous mode user 
+  // can de everything. 
+  public static boolean isAnonymousMode() {
+    if (!anonymousModeChecked) {
+      File anonymousFile = new File(new File(ATGlobal.getALGatorRoot()), anonymousFileName);
+      anonymousMode = anonymousFile.exists();
+      anonymousModeChecked = true;
+    }
+    return anonymousMode;
+  }
 }

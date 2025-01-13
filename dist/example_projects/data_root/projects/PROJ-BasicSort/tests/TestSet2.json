@@ -1,6 +1,6 @@
 {
   "TestSet": {
-    "Name"             : "TestSet2",
+    "eid"              : "e_106",
 
     "ShortName"        : "TS2",
     "Description"      : "Test cases of middle size (from 10.000 to 30.000)",

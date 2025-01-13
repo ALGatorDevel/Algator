@@ -242,12 +242,12 @@ public class ExecuteOne {
         return;
     }
     
-    
+    String testsetName = eTestSet.getName(); if (testsetName == null || testsetName.isEmpty()) testsetName = "unknown";
     URL[] urls = New.getClassPathsForProjectAlgorithm(project, algName);
     String currentJobID = New.generateClassloaderAndJobID(urls);    
     String testCaseClassName = project.getEProject().getTestCaseClassname();
     
-    AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).getTestCase(project, test, path);
+    AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).getTestCase(project, test, path, testsetName);
     
     Variables resultVariables = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, mType, eTestSet.getName(), 1, timesToExecute, 100, null, null);
     

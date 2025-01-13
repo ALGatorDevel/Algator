@@ -495,6 +495,7 @@ public class Execute {
     } else {
       ErrorStatus error = ErrorStatus.STATUS_OK;
       
+      String errors = "";
       for (int i = 0; i < eAlgs.size(); i++) {
 	for (int j = 0; j < eTests.size(); j++) {
           ATLog.setPateFilename(ATGlobal.getTaskHistoryFilename(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType.getExtension()));
@@ -506,7 +507,15 @@ public class Execute {
           if (task!=null && error.equals(ErrorStatus.PROCESS_QUEUED))
             System.exit(242); // signal to the caller that task was queued
             
+          if (!error.equals(ErrorStatus.STATUS_OK)) {
+            errors += (errors.isEmpty() ? "" : ";") + error;
+            // če je prišlo do kakršnekoli napake, to sporočim tako, da končam z 242
+            System.exit(error.ordinal());
+          }
 	}        
+      }
+      if (!errors.isEmpty()) {
+        ATLog.log(errors, whereToPrint);
       }
     }
   }

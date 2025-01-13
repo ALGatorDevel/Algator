@@ -1,13 +1,15 @@
 {
   "Presenter": {
-    "eid":    "<eid>",
-        
-    "Title":        "t_<TP>",
-    "ShortTitle":   "st_<TP>",
-    "Description":  "d_<TP>",
-    
-    "Query"   : {}, 
+    "eid"        : "<eid>",
 
-    "Layout"  : []
+    "Author"     : "<author_name>",
+    "Date"       : "<date>",
+
+    "Title"      : "t_<TP>",
+    "ShortTitle" : "st_<TP>",
+    "Description": "d_<TP>",
+
+    "Query"      : {}, 
+    "Layout"     : []
   }
 }

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.TreeMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import si.fri.algator.ausers.CanUtil;
 import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
 import si.fri.algator.global.ErrorStatus;
@@ -65,8 +66,7 @@ public class Project {
     // read the algorithms
     String [] algNames = eProject.getStringArray(EProject.ID_Algorithms);
     for(String algName : algNames) {   
-      String algFilename = ATGlobal.getALGORITHMfilename(eProject.getProjectRootDir(), algName);
-      EAlgorithm eAlgorithm = new EAlgorithm(new File(algFilename));
+      EAlgorithm eAlgorithm = EAlgorithm.getAlgorithm(projectName, algName);
       if (ErrorStatus.getLastErrorStatus().isOK()) {
 	algorithms.put(algName, eAlgorithm);
       } else
@@ -76,8 +76,7 @@ public class Project {
     // read the testsets 
     String [] tsNames = eProject.getStringArray(EProject.ID_TestSets);
     for(String tsName : tsNames) {   
-      String tsFilename = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataLocal(), eProject.getName(), tsName);
-      ETestSet eTestset = new ETestSet(new File(tsFilename));
+      ETestSet eTestset = ETestSet.getTestset(projectName, tsName);
       if (ErrorStatus.getLastErrorStatus().isOK()) {
 	testsets.put(tsName, eTestset);
       } else
@@ -207,11 +206,15 @@ public class Project {
     });
   }
   
-  public static JSONObject getProjectsAsJSON() {
-      JSONArray ja = new JSONArray();
-      for (String project : getProjects()) {
-        ja.put(project.replaceAll("^PROJ-", ""));
-      }     
-      return new JSONObject().put("Projects", ja);    
+  // return names of all projects visible to uid
+  public static JSONObject getProjectsAsJSON(String uid) {
+    JSONArray ja = new JSONArray();
+    for (String project : getProjects()) {
+      String projName = project.replaceAll("^PROJ-", "");
+      String peid = EProject.getProject(projName).getEID();
+      if (CanUtil.can(uid, peid, "can_read"))
+        ja.put(projName);
+    }
+    return  new JSONObject().put("Projects", ja);          
   } 
 }

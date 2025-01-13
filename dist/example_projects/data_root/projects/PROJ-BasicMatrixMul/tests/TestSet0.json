@@ -1,6 +1,6 @@
 {
   "TestSet": {
-    "Name"             : "TestSet0",
+    "eid"              : "e_114",
 
     "ShortName"        : "TS0",
     "Description"      : "Basic tests to check the correctness of the project and algorithms",

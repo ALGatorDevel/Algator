@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -27,20 +28,18 @@ import si.fri.algator.ausers.AUsersTools;
  */
 public class Tools {
 
-  public static void deleteDirectory(Path path) throws IOException {
-    Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-      @Override
-      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        Files.delete(file);
-        return FileVisitResult.CONTINUE;
-      }
-
-      @Override
-      public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-        Files.delete(dir);
-        return FileVisitResult.CONTINUE;
-      }
-    });
+  public static void deleteDirectory(File folder) throws IOException {
+     File[] files = folder.listFiles();
+        if (files != null) { // Checks for null in case folder is empty
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDirectory(file); // Recursively delete subdirectories
+                } else {
+                    file.delete(); // Delete file
+                }
+            }
+        }
+        folder.delete(); // Finally delete the empty folder
   }
 
   public static HashMap<String, String> getSubstitutions(String proj_name) {
@@ -76,7 +75,8 @@ public class Tools {
       // first creates a folder ...
       String filePath = FilenameUtils.getFullPath(fileName);
       File filePathFile = new File(filePath);
-      filePathFile.mkdirs();
+      if (!filePathFile.exists())
+        filePathFile.mkdirs();
 
       // ... then writes a content
       PrintWriter pw = new PrintWriter(fileName);

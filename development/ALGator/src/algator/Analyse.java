@@ -30,6 +30,7 @@ import si.fri.algator.analysis.timecomplexity.Data;
 import si.fri.algator.analysis.timecomplexity.GA;
 import si.fri.algator.analysis.timecomplexity.OutlierDetector;
 import si.fri.algator.analysis.timecomplexity.PowerLawFunction;
+import si.fri.algator.ausers.dto.DTOUser;
 
 /**
  *
@@ -360,7 +361,7 @@ public class Analyse {
               String[] indicators = new String[]{"*EM AS *EM"};
               String yColumn = String.format("%s.%s", algs[0], observedValue);
               EQuery q = new EQuery(algs, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
-              si.fri.algator.analysis.TableData td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+              si.fri.algator.analysis.TableData td = DataAnalyser.runQuery(DTOUser.USER_ALGATOR, project.getEProject(), q, computerID);
               int yIndex = td.header.indexOf(yColumn);
 
               double M = parameters.getVariable("M").getDoubleValue();
@@ -379,11 +380,11 @@ public class Analyse {
               algs = new String[]{algorithms.get(0)};
               testSet = parameters.getVariable("testSet").getStringValue();
               observedValue = parameters.getVariable("observedValue").getStringValue();
-              testSets = new String[]{String.format("%s AS %s", testSet, testSet)};
+              testSets = new String[]{String.format("%s", testSet, testSet)};
               indicators = new String[]{"*EM AS *EM"};
               yColumn = String.format("%s.%s", algs[0], observedValue);
               q = new EQuery(algs, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
-              td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+              td = DataAnalyser.runQuery(DTOUser.USER_ALGATOR, project.getEProject(), q, computerID);
               yIndex = td.header.indexOf(yColumn);
 
               M = parameters.getVariable("M").getDoubleValue();
@@ -404,7 +405,7 @@ public class Analyse {
               indicators = new String[]{"*EM AS *EM"};
               yColumn = String.format("%s.%s", algs[0], observedValue);
               q = new EQuery(algs, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
-              td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+              td = DataAnalyser.runQuery(DTOUser.USER_ALGATOR, project.getEProject(), q, computerID);
               yIndex = td.header.indexOf(yColumn);
               xIndex = td.header.indexOf("N");
 
@@ -429,7 +430,7 @@ public class Analyse {
               indicators = new String[]{"*EM AS *EM"};
               yColumn = String.format("%s.%s", algs[0], observedValue);
               q = new EQuery(algs, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
-              td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+              td = DataAnalyser.runQuery(DTOUser.USER_ALGATOR, project.getEProject(), q, computerID);
               yIndex = td.header.indexOf(yColumn);
               xIndex = td.header.indexOf("N");
 
@@ -457,7 +458,7 @@ public class Analyse {
               for (String alg : algorithms){
                 yColumn = String.format("%s.%s", alg, observedValue);
                 q = new EQuery(new String[]{alg}, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
-                td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+                td = DataAnalyser.runQuery(DTOUser.USER_ALGATOR, project.getEProject(), q, computerID);
                 yIndex = td.header.indexOf(yColumn);
                 xIndex = td.header.indexOf("N");
                 d = Data.dataFromTableData("test",td,xIndex,yIndex);
@@ -470,12 +471,12 @@ public class Analyse {
               algs = new String[]{algorithms.get(0)};
               testSet = parameters.getVariable("testSet").getStringValue();
               observedValue = parameters.getVariable("observedValue").getStringValue();
-              testSets = new String[]{String.format("%s AS %s", testSet, testSet)};
+              testSets = new String[]{String.format("%s", testSet, testSet)};
               indicators = new String[]{"*EM AS *EM"};
               String data = parameters.getVariable("data").getStringValue();
               yColumn = String.format("%s.%s", algs[0], observedValue);
               q = new EQuery(algs, testSets,params,indicators,groupBy,sortBy,filter,count,computerID);
-              td = DataAnalyser.runQuery(project.getEProject(), q, computerID);
+              td = DataAnalyser.runQuery(DTOUser.USER_ALGATOR, project.getEProject(), q, computerID);
               yIndex = td.header.indexOf(yColumn);
 
 

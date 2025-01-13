@@ -1,7 +1,7 @@
 {"Algorithm": {
-  "Name": "BasicMUL",
+  "eid":"e_111",
   "ShortName": "algorithm_short_name",
-  "Description": "algorithm_dascription",
+  "Description": "algorithm_description",
   "Author": "author_name",
   "Date": "10, 2019",
   "Language": "Java",

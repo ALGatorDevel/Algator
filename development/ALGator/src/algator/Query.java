@@ -37,6 +37,7 @@ import si.fri.algator.analysis.complexity.FittingFunction;
 import si.fri.algator.analysis.complexity.FunctionType;
 import si.fri.algator.analysis.timecomplexity.Data;
 import si.fri.algator.analysis.timecomplexity.OutlierDetector;
+import si.fri.algator.ausers.dto.DTOUser;
 
 /**
  *
@@ -571,6 +572,6 @@ public class Query {
         
     
     EQuery eq = new EQuery(sAlgs, sTsts, par, ind, groupBy, filter, sortBy, "0", compID);
-    return DataAnalyser.runQuery(projekt.getEProject(), eq, "");
+    return DataAnalyser.runQuery(DTOUser.USER_ALGATOR, projekt.getEProject(), eq, "");
   }
 }

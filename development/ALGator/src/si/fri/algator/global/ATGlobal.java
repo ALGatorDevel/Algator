@@ -49,6 +49,10 @@ public class ATGlobal {
   
   public static final String AT_FILEEXT_testset      = "json"; // atts
   public static final String AT_FILEEXT_testsetdata  = "txt";  
+  public static final String AT_DEFAULT_testsetres   = "Testset_"; // foldername for common resources
+  public static final String AT_FOLDERNAME_testsetres= "_files"; // atts
+  
+
   public static final String AT_FILEEXT_query        = "json"; // atqd
   public static final String AT_FILEEXT_presenter    = "json"; // atpd
 
@@ -62,6 +66,7 @@ public class ATGlobal {
   public static final String ATDIR_binDir         = "bin";
   public static final String ATDIR_testsDir       = "tests";
   public static final String ATDIR_resultsDir     = "results";
+  public static final String ATDIR_resultsTaskDir = "rtasks";
   public static final String ATDIR_algsDir        = "algs";
   public static final String ATDIR_algDir         = "ALG-%s";
   public static final String ATDIR_queryDir       = "queries";
@@ -160,7 +165,12 @@ public class ATGlobal {
     return getTaskLogFolder() + File.separator + 
        String.format("%s-%s-%s-%s.status", project, algorithm, testset, mtype);
   }
-
+  
+  public static String getNonexecTaskStatusFilename(String project, String taskID) {
+    return getTaskLogFolder() + File.separator + 
+       String.format("%s-%s.status", project, taskID);
+  }
+  
   public static String getTaskHistoryFilename(String project, String algorithm, String testset, String mtype) {
     return getTaskLogFolder() + File.separator + 
        String.format("%s-%s-%s-%s.history", project, algorithm, testset, mtype);
@@ -268,6 +278,10 @@ public class ATGlobal {
     return projectRoot + File.separator + ATDIR_projConfDir + File.separator + ATDIR_libDir;
   }
 
+  public static String getPROJECTlibPath(String projectName) {
+    return getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName) +
+             File.separator + ATDIR_projConfDir + File.separator + ATDIR_libDir;
+  }
   
   public static String getPROJECTdoc(String data_root, String projName) {
     return getPROJECTConfigFolder(data_root, projName) + File.separator + ATDIR_docFolder;
@@ -328,6 +342,19 @@ public class ATGlobal {
   public static String getTESTSETfilename(String data_root, String projectName, String testSetName) {
     return getTESTSroot(data_root, projectName) + File.separator + testSetName + "." + AT_FILEEXT_testset;
   }
+  
+  public static String getTESTSETRecourcesFilename(String data_root, String projectName, String testSetName) {
+    return getTESTSETRecourcesFilename(getTESTSroot(data_root, projectName), testSetName);
+  }
+  // returns folder of tests resources (main project's test resources folder)
+  public static String getTESTSETRecourcesFilename(String testsRoot) {
+    return getTESTSETRecourcesFilename(testsRoot, AT_DEFAULT_testsetres);
+  }
+  // returns folder of testset's resources
+  public static String getTESTSETRecourcesFilename(String testsRoot, String testSetName) {
+    return testsRoot + File.separator + testSetName + AT_FOLDERNAME_testsetres;
+  }
+  
   /**
    * Returns the name of a test set data (txt) file. 
    */
@@ -370,7 +397,20 @@ public class ATGlobal {
     return getRESULTSroot(projectRoot, computerID) + File.separator + algName + "-" + testSetName + "." + measurementType.getExtension();
   }
 
+  
+  public static String getRESULTMiscPath(String projName, String computerID) {
+    String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projName);
+    String miscPath = getRESULTSroot(projectRoot, computerID) + File.separator + ATDIR_resultsTaskDir;
+    File miscFile   = new File(miscPath);
+    if (!miscFile.exists()) miscFile.mkdirs();
+    
+    return miscPath;
+  }
+  public static String getRESULTMiscFilename(String projName, String computerID, String taskID, String taskType) {
+    return getRESULTMiscPath(projName, computerID) + File.separator + taskType+ "_" + taskID;
+  }
 
+  
   /**
    * The name of a file on tmpFolder to hold info of one test
    * @return 

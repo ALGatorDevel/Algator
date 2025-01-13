@@ -22,6 +22,7 @@ import si.fri.algator.tools.UniqueIDGenerator;
 public class DefaultTestSetIterator  extends AbstractTestSetIterator {
 
   private   Scanner inputSource;       // scanner used to iterate throught the Description file
+  protected String  testsetName;       // name of the testset
   protected String  testFileName;      // the name of the file this iterator reads from
   protected String  filePath;          // path of a description file
   
@@ -59,7 +60,7 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
    */
   public void initIterator() {
     if (testSet != null) {
-      String fileName = testSet.getTestSetDescriptionFile();
+      String fileName    = testSet.getTestSetDescriptionFile();
 
       try {
         if (fileName == null) 
@@ -67,7 +68,8 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
       
         filePath = testSet.entity_rootdir;      
         testFileName = filePath + File.separator + fileName;
-      
+        testsetName = testSet.getName();
+
         inputSource = new Scanner(new File(testFileName));
 	lineNumber=0;        
       } catch (Exception e) {
@@ -131,7 +133,7 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
       if (testCaseInstance == null)
         testCaseInstance = New.testCaseInstance(currentJobID, testCaseClassName);
       
-      testCase = testCaseInstance.getTestCase(project, currentInputLine, filePath);
+      testCase = testCaseInstance.getTestCase(project, currentInputLine, filePath, testsetName);
       if (testCase == null) {
         reportInvalidDataFormat();
         return null;

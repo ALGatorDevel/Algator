@@ -22,8 +22,10 @@ public enum MeasurementType  {
   }
   
   static public MeasurementType mtOf(String mt) {
-    if (mt.equalsIgnoreCase("cnt")) return MeasurementType.CNT;
-    if (mt.equalsIgnoreCase("jvm")) return MeasurementType.JVM;
+    if (mt != null) {
+      if (mt.equalsIgnoreCase("cnt")) return MeasurementType.CNT;
+      if (mt.equalsIgnoreCase("jvm")) return MeasurementType.JVM;
+    }
     return MeasurementType.EM;
   }
 

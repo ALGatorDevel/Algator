@@ -18,10 +18,10 @@ public class DTOGroup {
   }
     
   public static DTOGroup getEveryoneGroup() {
-    return new DTOGroup(GROUP_EVERYONE, "Everyone", DTOUser.USER_ROOT);
+    return new DTOGroup(GROUP_EVERYONE, "Everyone", DTOUser.USER_ALGATOR);
   }
   public static DTOGroup getAnonymousGroup() {
-    return new DTOGroup(GROUP_ANONYMOUS, "Anonymous", DTOUser.USER_ROOT);
+    return new DTOGroup(GROUP_ANONYMOUS, "Anonymous", DTOUser.USER_ALGATOR);
   }
   
     private String id;

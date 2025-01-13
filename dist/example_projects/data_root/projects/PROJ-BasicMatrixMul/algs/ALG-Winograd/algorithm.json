@@ -1,5 +1,5 @@
 {"Algorithm": {
-  "Name": "Winograd",
+  "eid":"e_113",  
   "ShortName": "WMM",
   "Description": "Winograd's algorithm",
   "Author": "Luka Pirc",

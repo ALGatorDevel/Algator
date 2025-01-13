@@ -5,7 +5,9 @@ import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.ArrayUtils;
+import si.fri.algator.ausers.CanUtil;
 import si.fri.algator.global.ATGlobal;
+import static si.fri.algator.server.ASTools.sAnswer;
 
 /**
  * Razred se uporablja za poganjanje ALGator ukazov (Execute, Analyse) preko spleta.
@@ -28,7 +30,9 @@ public class ASCommandManager {
   // prihodnjič primerjam z novim outputom; če sta enaka, potem metoda getOutput vrne OUTPUT_NOT_CHANGED
   private static ConcurrentHashMap<Integer, String> prevCommandOutput  = new ConcurrentHashMap<>();
   
-  public static String execute(String prms) {
+  public static String execute(String uid, String prms) {
+    if (!CanUtil.can(uid, "e0_S", "full_control")) return sAnswer(99, "execute: " + "Access denied.", "Access denied.");
+
     sanitize();
     
     String [] params = prms.split(" ");

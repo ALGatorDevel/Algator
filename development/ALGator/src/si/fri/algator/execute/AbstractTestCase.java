@@ -21,7 +21,8 @@ public abstract class AbstractTestCase implements Serializable {
   // name of the properties field in a test case
   public static final String PROPS = ETestCase.TESTCASE_PROPS;
   
-  public static final String TESTS_PATH = "_tests_path_";
+  public static final String TESTS_PATH   = "_tests_path_";
+  public static final String TESTSET_NAME = "_testset_name_";
   
   private AbstractInput  input;
   private AbstractOutput expectedOutput;
@@ -56,7 +57,7 @@ public abstract class AbstractTestCase implements Serializable {
   }
   
   
-  public  AbstractTestCase getTestCase(Project project, String testCaseDescriptionLine, String path) {   
+  public  AbstractTestCase getTestCase(Project project, String testCaseDescriptionLine, String path, String testsetName) {   
     String[] parts = testCaseDescriptionLine.split(":");
     
     // which type of generator should be used to generate test case? default: TYPE0
@@ -71,7 +72,9 @@ public abstract class AbstractTestCase implements Serializable {
         String [] genPar = gen.getGeneratingParameters();
                 
         Variables generatingParameters = new Variables();
-        generatingParameters.setVariable(TESTS_PATH, path);        
+        generatingParameters.setVariable(TESTS_PATH,   path); 
+        generatingParameters.setVariable(TESTSET_NAME, testsetName); 
+        
         if (parts.length > 1) 
           generatingParameters.setVariable("Test", parts[1]);
         
@@ -89,7 +92,7 @@ public abstract class AbstractTestCase implements Serializable {
               // metadata in s tem mehanizem določanja privzetih vrednosti)
               EVariable newParam = new EVariable(genPar[i], param.getType(), null);
               newParam.setMetaData(param.getMetaData()); 
-              if (!VariableType.valueIsOfType(paramValue, param.getType())) {
+              if (paramValue!=null && !VariableType.valueIsOfType(paramValue, param.getType())) {
                 ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, String.format("Invalid type of parameter '%s', expecting '%s', got '%s'", param.getName(), param.getType(), paramValue) );
                 return null;                
               }

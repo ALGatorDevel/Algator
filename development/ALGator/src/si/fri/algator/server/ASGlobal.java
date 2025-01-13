@@ -28,6 +28,8 @@ public class ASGlobal {
   public static final String REQ_CLOSE_TASK       = "CLOSETASK";      // parameters: json(ExitCode, TaskId, Message)
   public static final String REQ_TASK_STATUS      = "TASKSTATUS";     // parameters: json(TaskID)
   public static final String REQ_PAUSE_TASK       = "PAUSETASK";      // parameters: json(TaskID)
+  public static final String REQ_GETTASKRESULT    = "GETTASKRESULT";  // parameters: json(TaskID)
+
   public static final String REQ_CANCEL_TASK      = "CANCELTASK";     // parameters: json(TaskID)
   public static final String REQ_RESUME_TASK      = "RESUMETASK";     // parameters: json(TaskID)
   public static final String REQ_TASK_RESULT      = "TASKRESULT";     // parameters: json(ComputerUID, TaskID, TestNo, Result)
@@ -57,6 +59,7 @@ public class ASGlobal {
   public static final String REQ_DB               = "DB";              // json (Type, ...)
   
   public static final String REQ_UPLOAD_STATIC    = "UPLOADSTATIC";    // Files, Data
+  public static final String REQ_UPLOAD_MULTIPART = "UPLOADMULTI";     // upload from 
   
   // dodana funkcionalnost za poganjanje ALGator ukazov (execute, analyse, ...) v svojem procesu. Za podrobnosti glej komentar v ADECommand
   public static final String COMMAND              = "COMMAND";        // parameters: run / status / output / stop + params

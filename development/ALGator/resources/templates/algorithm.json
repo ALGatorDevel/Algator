@@ -4,9 +4,8 @@
         
    "ShortName"      : "algorithm_short_name",             
    "Description"    : "algorithm_description",
-   "Author"         : "author_name",
-   "Date"           : "<today>",
-
+   "Author"         : "<author_name>",
+   "Date"           : "<date>",
 
    "Language"       : "Java",
   
@@ -14,6 +13,5 @@
 
    "AlgorithmDescHTML" : "algorithm.html",
    "AlgorithmRefHTML"  : "references.html"
-
   }
 } 

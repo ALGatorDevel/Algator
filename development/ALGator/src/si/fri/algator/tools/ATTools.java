@@ -32,7 +32,6 @@ import org.json.JSONObject;
 import si.fri.algator.entities.EComputer;
 import si.fri.algator.entities.EComputerFamily;
 import si.fri.algator.entities.EAlgatorConfig;
-import static si.fri.algator.entities.EAlgatorConfig.ID_DBServer;
 import si.fri.algator.entities.EProject;
 import si.fri.algator.entities.EQuery;
 import si.fri.algator.entities.ETestSet;
@@ -40,6 +39,7 @@ import si.fri.algator.entities.MeasurementType;
 import si.fri.algator.entities.NameAndAbrev;
 import si.fri.algator.entities.Project;
 import si.fri.algator.global.ATGlobal;
+import si.fri.algator.global.Answer;
 
 /**
  *
@@ -108,6 +108,20 @@ public class ATTools {
     return ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, "");
   }
 
+  private static String getCompileInfo(List<String> options, String[] sources, boolean result) {
+    StringBuilder info = new StringBuilder();
+
+    info.append("Source files:\n\n");
+    for (String file : sources) {
+        info.append(" - ").append(file).append("\n");
+    }
+    info.append("\n Options: \n\n").append(String.join(" ", options)).append("\n");
+
+    info.append("\nCompilation ").append(result ? "succeeded." : "failed: \n\n");
+    
+    return info.toString();
+  }
+  
   /**
    *
    * @param sourcePath path to source files
@@ -117,11 +131,11 @@ public class ATTools {
    * @param msg message substring to be displayed in log file
    * @return
    */
-  public static ErrorStatus compile(String srcPath, String[] sources, String destPath,
+  public static Answer compile(String srcPath, String[] sources, String destPath,
           String[] classpaths, String jars, String msg) {
     // a path has to be at least 10 charaters long to prevent errors (i.e deleting root folder)
     if (destPath.length() < 10) {
-      return ErrorStatus.ERROR_INVALID_DESTPATH;
+      return new Answer(ErrorStatus.ERROR_INVALID_DESTPATH);
     }
     File destPathF = new File(destPath);
     // if folder exists, delete it ...
@@ -132,12 +146,15 @@ public class ATTools {
     destPathF.mkdirs();
 
     if (!destPathF.exists()) {
-      return ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_CREATEDIR, destPath);
+      return new Answer(ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_CREATEDIR, destPath));
     }
 
     // build a classpath
     StringBuilder sb = new StringBuilder();
     
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    Writer wos = new OutputStreamWriter(os);
+
     String pathSeparator = System.getProperty("path.separator"); 
     String[] classPathEntries = System.getProperty("java.class.path") .split(pathSeparator);  
     for (String classPathEntry : classPathEntries) {
@@ -169,15 +186,14 @@ public class ATTools {
 
     options.add("-g");          // debug option
 
-    ByteArrayOutputStream os = new ByteArrayOutputStream();
-    Writer wos = new OutputStreamWriter(os);
-
     JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
     StandardJavaFileManager fileManager = javac.getStandardFileManager(null /* diagnosticlistener */, null, null);
     JavaCompiler.CompilationTask task = javac.getTask(wos, fileManager, null /* diagnosticlistener */, options, null, fileManager.getJavaFileObjectsFromFiles(srcFiles));
 
     Boolean compileOK = task.call();
 
+    String compileMsg = getCompileInfo(options, sources, compileOK);
+    
     if (!compileOK) {
       String error = os.toString();
       //Ziga Zorman:  fixed BUG - on windows escape the File.separator chars in regex otherwise an exception for invalid pattern will be thrown
@@ -185,9 +201,10 @@ public class ATTools {
       String escapedSrcPath = (srcPath + File.separator).replaceAll("\\\\", "\\\\\\\\");
       error = error.replaceAll(escapedSrcPath, "");
 
-      return ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_COMPILE, error);
-    }
-    return ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Compiling %s  - done.", msg));
+      return new Answer(ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_COMPILE, ""), compileMsg + error);
+    } 
+    try {compileMsg += "\n" + os.toString("UTF-8");} catch (Exception e) {}
+    return new Answer(ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Compiling %s  - done.", msg)), compileMsg);
   }
 
   public static boolean isSourceNewer(String srcDir, String binDir, String[] srcNames) {
@@ -607,6 +624,30 @@ public class ATTools {
     pos = fileName.lastIndexOf(".");
     return (pos != -1) ? fileName.substring(0, pos) : fileName;
   }
+  
+  
+  /**
+   * Extract last folder name from path. Examples:
+   * /home/user/documents/project/file.txt → project
+   * /home/user/documents/project/ → project
+   * C:\Users\User\Documents\Project\File.txt → Project
+   */
+  public static String getLastFolderName(String path) {
+    // Normalize separators to handle both / and \
+    String normalizedPath = path.replace('\\', '/');
+
+    // Find the last separator
+    int lastSeparatorIndex = normalizedPath.lastIndexOf('/');
+    if (lastSeparatorIndex == -1) return ""; // No separators in the path
+
+    // Find the second-to-last separator
+    int secondLastSeparatorIndex = normalizedPath.lastIndexOf('/', lastSeparatorIndex - 1);
+    if (secondLastSeparatorIndex == -1) return ""; // No parent folder
+
+    // Extract and return the last folder name
+    return normalizedPath.substring(secondLastSeparatorIndex + 1, lastSeparatorIndex);
+  }
+
 
   /**
    * Strips the file extension
@@ -812,6 +853,17 @@ public class ATTools {
       line = line.replaceAll(dateL, "\""+ dateS +"\"");
     }
     return line;
+  }
+  
+  public static void main(String[] args) {
+// /home/user/documents/project/file.txt → project
+// /home/user/documents/project/ → project
+// C:\Users\User\Documents\Project\File.txt → Project    
+//    System.out.println(getLastFolderName("C:\\ALGATOR_ROOT\\data_root\\projects\\PROJ-Sort\\algs\\ALG-QuickSort\\algorithm.json"));
+
+// d:\Users\tomaz\OneDrive\ULFRI\ALGATOR_ROOT\data_root\projects\PROJ-MnozenjeStevil\tests\TestSet5.json
+
+    System.out.println(extractFileNamePrefix(new File("d:\\Users\\tomaz\\OneDrive\\ULFRI\\ALGATOR_ROOT\\data_root\\projects\\PROJ-MnozenjeStevil\\tests\\TestSet5.json")));
   }
 
 }

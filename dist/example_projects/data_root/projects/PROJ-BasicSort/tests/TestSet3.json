@@ -1,6 +1,6 @@
 {
   "TestSet": {
-    "Name"             : "TestSet3",
+    "eid"              : "e_107",
 
     "ShortName"        : "TS3",
     "Description"      : "Test set containing sorted arrays",

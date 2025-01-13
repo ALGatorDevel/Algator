@@ -69,6 +69,9 @@ public class Server {
 //      request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(tmpUploadLocation, maxFileSize, maxRequestSize, fileSizeThreshold));      
     });
 
+    post("/uploadmulti", (req, res) -> {
+      return ASTools.uploadMultipart(req);
+    });
     
     post("/*", (req, res) -> {
       String pParams = req.body();

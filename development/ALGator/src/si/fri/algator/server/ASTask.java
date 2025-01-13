@@ -9,17 +9,24 @@ import si.fri.algator.entities.MeasurementType;
  * @author tomaz
  */
 public class ASTask extends Entity implements Comparable<ASTask> {    
-  public static final String ID_ADETask          = "STask";
+  public static final String     ID_ADETask          = "STask";
   
   // Fields
-  public static final String ID_TaskID           = "TaskID";           // unique identifier
+  public static final String ID_TaskID           = Entity.ID_EID;      // unique identifier
+
+  public static final String ID_TaskType         = "TaskType";         // String (Execute (default) | Compile | RunOne | ...)
+  public static final String ID_TaskType_Execute = "Execute";          
+  public static final String ID_TaskType_Compile = "Compile";          
+  public static final String ID_TaskType_RunOne  = "RunOne";
   
   public static final String ID_Project          = "Project";          // String
+  public static final String ID_Project_EID      = "peid";             // String
   public static final String ID_Algorithm        = "Algorithm";        // String
+  public static final String ID_Algorithm_EID    = "aeid";             // String
   public static final String ID_Testset          = "Testset";          // String
+  public static final String ID_Testset_EID      = "teid";             // String
   public static final String ID_MType            = "MType";            // String
-  public static final String ID_Family           = "Family";           // String (family to execute the task; if blank - any appropriate family is OK)
-  
+  public static final String ID_Family           = "Family";           // String (family to execute the task; if blank - any appropriate family is OK)  
   
   public static final String ID_Status           = "Status";           // String
   public static final String ID_Progress         = "Progress";         // Integer - number of tests sucessfully completed
@@ -29,13 +36,14 @@ public class ASTask extends Entity implements Comparable<ASTask> {
   public static final String ID_Priority         = "Priority";         // Integer - 0 (low) ... infty (high); 5 default
   public static final String ID_Msg              = "Msg";              // String (info about status if available)
   
+  
+  
     
   public ASTask() {
     super(ID_ADETask, 
-	 new String [] {ID_TaskID, ID_Status, ID_Progress, ID_Project, ID_Algorithm, ID_Testset, ID_MType, ID_Family, ID_CreationDate, ID_StatusDate, ID_ComputerUID, ID_Priority, ID_Msg},
-       new Object [] {"",        "",        0,           "",         "",           "",         "em",     "",        0,               0,             "",             5,           ""});
-    
-   
+	 new String [] {ID_TaskType,         ID_Status, ID_Progress, ID_Project, ID_Project_EID, ID_Algorithm, ID_Algorithm_EID, ID_Testset, ID_Testset_EID, ID_MType, ID_Family, ID_CreationDate, ID_StatusDate, ID_ComputerUID, ID_Priority, ID_Msg},
+         new Object [] {ID_TaskType_Execute, "",        "",        0,           "",         "pe?",          "",           "ae?",            "",         "te?",          "em",     "",        0,               0,             "",             5,           ""});
+       
     setRepresentatives(ID_Project, ID_Algorithm, ID_Testset, ID_MType, ID_ComputerUID, ID_Status, ID_Priority, ID_CreationDate, ID_StatusDate, ID_Progress, ID_Msg);    
   }
   
@@ -96,6 +104,9 @@ public class ASTask extends Entity implements Comparable<ASTask> {
     return getFieldAsLong(ID_StatusDate);
   }
   
+  public long getTaskCreationDate() {
+    return getFieldAsLong(ID_CreationDate);
+  }
   
   public MeasurementType getMType() {
     MeasurementType mt = MeasurementType.UNKNOWN;

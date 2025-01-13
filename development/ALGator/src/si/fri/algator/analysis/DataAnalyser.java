@@ -11,16 +11,21 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import si.fri.algator.ausers.CanUtil;
 import si.fri.algator.entities.DeparamFilter;
+import si.fri.algator.entities.EAlgorithm;
 import si.fri.algator.entities.EVariable;
 import si.fri.algator.entities.EProject;
 import si.fri.algator.entities.EQuery;
 import si.fri.algator.entities.EResult;
 import si.fri.algator.entities.ETestCase;
+import si.fri.algator.entities.ETestSet;
+import si.fri.algator.entities.Entity;
 import si.fri.algator.entities.MeasurementType;
 import si.fri.algator.entities.NameAndAbrev;
 import si.fri.algator.entities.Variables;
@@ -291,7 +296,7 @@ public class DataAnalyser {
    * method returns its content, else it runs a query, writes the result to file
    * and returns the result.
    */
-  public static String getQueryResultTableAsString(String projectname, String query, String[] params, String computerID) {
+  public static String getQueryResultTableAsString(String uid, String projectname, String query, String[] params, String computerID) {
     if (projectname == null || projectname.isEmpty() || query == null || query.isEmpty()) {
       return "";
     }
@@ -299,13 +304,13 @@ public class DataAnalyser {
     if (query.startsWith("{")) {
       EProject project = new EProject(new File(ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projectname)));
       EQuery eQuery = new EQuery(query, params);
-      return runQuery(project, eQuery, computerID).toString();
+      return runQuery(uid, project, eQuery, computerID).toString();
     } else {
       try {
         String queryname = query;
         String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectname);
         {
-          TableData td = runQuery(projectname, queryname, params, computerID);
+          TableData td = runQuery(uid, projectname, queryname, params, computerID);
           String result = td.toString();
           return result;
         }
@@ -338,7 +343,7 @@ public class DataAnalyser {
         break;
       }
     }
-    if (containsAll) { // merge both - allParameters and current parameters
+    if (containsAll) { // merge both - allEntities and current entities
       String[] newEtts = new String[etts.length + allEntities.length];
       System.arraycopy(allEntities, 0,  newEtts, 0, allEntities.length);
       System.arraycopy(etts,        0 , newEtts, allEntities.length, etts.length); 
@@ -354,36 +359,39 @@ public class DataAnalyser {
     return etts;
   }
 
-  public static TableData runQuery(String projectname, String queryname, String computerID) {
-    return runQuery(projectname, queryname, null, computerID);
+  public static TableData runQuery(String uid, String projectname, String queryname, String computerID) {
+    return runQuery(uid, projectname, queryname, null, computerID);
   }
 
-  public static TableData runQuery(String projectname, String queryname, String[] params, String computerID) {
+  public static TableData runQuery(String uid, String projectname, String queryname, String[] params, String computerID) {
     EProject project = new EProject(new File(ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projectname)));
     File qFIle = new File(ATGlobal.getQUERYfilename(project.getProjectRootDir(), queryname));
     EQuery query = new EQuery(qFIle, params);
 
-    return runQuery(project, query, computerID);
+    return runQuery(uid, project, query, computerID);
   }
 
-  public static TableData runQuery(EProject project, EQuery query, String computerID) {
-    return runQuery(project, query, computerID, null);
+  public static TableData runQuery(String uid, EProject project, EQuery query, String computerID) {
+    return runQuery(uid, project, query, computerID, null);
   }
-
+  
   /**
    * Methos runs a given query. For NO_COUNT queries it calls runQuery_NO_COUNT
    * once, while for COUNT queries runQuery_NO_COUNT is called n times (n=number
    * of algorithm selected in query) and the results are joint into a single
    * tableData
    */
-  public static TableData runQuery(EProject project, EQuery query, String computerID, Map<String, TableData> queryResults) {
+  public static TableData runQuery(String uid, EProject project, EQuery query, String computerID, Map<String, TableData> queryResults) {
     if (!query.isCount()) {
-      return runQuery_NO_COUNT(project, query, computerID, queryResults);
+      return runQuery_NO_COUNT(uid, project, query, computerID, queryResults);
     } else {
 
       TableData result = new TableData();
 
       String algorithms[] = getQueryEntities(project, query, EQuery.ID_Algorithms, EProject.ID_Algorithms);
+      algorithms = CanUtil.filterPermitted(uid, algorithms,
+         name -> {return EAlgorithm.getAlgorithm(project.getName(), name).getEID();}
+      );
 
       String[] origQueryFilter = query.getStringArray(EQuery.ID_Filter);
 
@@ -407,7 +415,7 @@ public class DataAnalyser {
           JSONArray enALgoritemJArray = new JSONArray(enAlgoritemArray);
           query.set(EQuery.ID_Algorithms, enALgoritemJArray);
           query.set(EQuery.ID_Filter, new JSONArray(curFilter.getFilter()));
-          TableData dataForAlg = runQuery_NO_COUNT(project, query, computerID);
+          TableData dataForAlg = runQuery_NO_COUNT(uid, project, query, computerID);
           int algCount = (dataForAlg != null && dataForAlg.data != null) ? dataForAlg.data.size() : 0;
           line.add(algCount);
         }
@@ -417,11 +425,11 @@ public class DataAnalyser {
     }
   }
 
-  public static TableData runQuery_NO_COUNT(EProject eProject, EQuery query, String computerID) {
-    return runQuery_NO_COUNT(eProject, query, computerID, null);
+  public static TableData runQuery_NO_COUNT(String uid, EProject eProject, EQuery query, String computerID) {
+    return runQuery_NO_COUNT(uid, eProject, query, computerID, null);
   }
 
-  public static TableData runQuery_NO_COUNT(EProject eProject, EQuery query, String computerID, Map<String, TableData> queryResults) {
+  public static TableData runQuery_NO_COUNT(String uid, EProject eProject, EQuery query, String computerID, Map<String, TableData> queryResults) {
     TableData td = null;
 
     if (td != null && (queryResults == null || queryResults.size() == 0)) {
@@ -437,14 +445,21 @@ public class DataAnalyser {
       if (queryComputerID != null && !queryComputerID.isEmpty()) {
         computerID = queryComputerID;
       } else // če comupterID v poizvedbi ni naveden, pa uporabim podani computerID; če je ta prazen pa thisComputerID
-      if (computerID == null || "".equals(computerID)) {
-        computerID = ATGlobal.getThisComputerID();
-      }
+        if (computerID == null || "".equals(computerID)) {
+          computerID = ATGlobal.getThisComputerID();
+        }
 
       String algorithms[] = getQueryEntities(eProject, query, EQuery.ID_Algorithms, EProject.ID_Algorithms);
+      algorithms = CanUtil.filterPermitted(uid, algorithms,
+         name -> {return EAlgorithm.getAlgorithm(eProject.getName(), name).getEID();}
+      );      
       NameAndAbrev[] algs = query.getNATabFromJSONArray(algorithms);
 
       String tsts[] = getQueryEntities(eProject, query, EQuery.ID_TestSets, EProject.ID_TestSets);
+      tsts = CanUtil.filterPermitted(uid, tsts,
+         name -> {return ETestSet.getTestset(eProject.getName(), name).getEID();}
+      );
+      
       NameAndAbrev[] testsets = query.getNATabFromJSONArray(tsts);
 
       boolean combinedQuery = queryResults != null && queryResults.size() > 0;

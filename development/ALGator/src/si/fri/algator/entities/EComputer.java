@@ -55,4 +55,7 @@ public class EComputer extends Entity  implements Serializable {
     return computerCapabilities;
   }
   
+  public String getFCName() {
+    return String.format("%s.%s", getString(ID_FamilyID), getString(ID_ComputerID));
+  }
 }

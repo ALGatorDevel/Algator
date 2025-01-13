@@ -10,6 +10,7 @@ public class DTOUser {
   public final static String USER_ROOT       = "u0_ro0jpj4wp";
   public final static String USER_ANONYMOUS  = "u1_an1s7eko9";
   public final static String USER_ALGATOR    = "u2_al2f5a19g";
+  public final static String USER_CLIENT     = "u3_cl13n7l6x";
 
   
   private String  uid;

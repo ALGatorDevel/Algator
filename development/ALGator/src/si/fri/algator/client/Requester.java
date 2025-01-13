@@ -16,6 +16,8 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
+import si.fri.algator.ausers.EntitiesDAO;
+import si.fri.algator.ausers.dto.DTOUser;
 import si.fri.algator.server.ASGlobal;
 import si.fri.algator.entities.EAlgatorConfig;
 import si.fri.algator.entities.ELocalConfig;
@@ -112,6 +114,9 @@ public class Requester {
       con.setConnectTimeout(3000); 
       con.setReadTimeout   (3000);
       con.setRequestMethod ("POST");
+      
+      con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=utf-8");
+      con.setRequestProperty("burden", DTOUser.USER_CLIENT);
 
       if (!body.isEmpty()) {  // add post request parameters
         con.setDoOutput(true);

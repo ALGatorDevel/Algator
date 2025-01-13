@@ -31,14 +31,14 @@ public class EAlgatorConfig extends Entity  implements Serializable {
   public static final String ID_ALGatorServerPort = "ALGatorServerPort";     // int
 
   
-  public EAlgatorConfig() {  
+  private EAlgatorConfig() {  
    super(ID_ResultParameter, 
 	 new String [] {ID_Families, ID_Computers, ID_DBServer, ID_ALGatorServerName, ID_ALGatorServerPort});
   
    setRepresentatives(ID_ALGatorID, ID_Families);
   }
   
-  public EAlgatorConfig(File fileName) {
+  private EAlgatorConfig(File fileName) {
     this();
     initFromFile(fileName);
   }
@@ -92,7 +92,10 @@ public class EAlgatorConfig extends Entity  implements Serializable {
   }
   
   public static EAlgatorConfig getConfig() {
-    return new EAlgatorConfig(new File(ATGlobal.getGlobalConfigFilename()));
-    
+    if (config==null) {
+      File algatorConfigFilename = new File(ATGlobal.getGlobalConfigFilename());
+      config = new EAlgatorConfig(algatorConfigFilename);
+    }
+    return config;
   }  
 }

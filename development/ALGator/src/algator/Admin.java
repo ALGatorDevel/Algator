@@ -3,6 +3,8 @@ package algator;
 import java.io.ByteArrayOutputStream;
 import java.io.Console;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Scanner;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -27,6 +29,8 @@ import static si.fri.algator.admin.Maintenance.createPresenter;
 import static si.fri.algator.admin.Maintenance.createTestset;
 import static si.fri.algator.admin.Maintenance.getInfo;
 import static si.fri.algator.admin.Maintenance.removePresenter;
+import si.fri.algator.ausers.dto.DTOUser;
+import si.fri.algator.entities.EPresenter;
 
 
 /**
@@ -153,8 +157,11 @@ public class Admin {
    *
    * @param args
    */
-  public static void main(String args[]) {  
+  public static void main(String args[]) {      
     System.out.println(introMsg + "\n");
+    
+    String date = new SimpleDateFormat("MM/dd/YYYY HH:mm").format(new Date());
+
     
     Options options = getOptions();
 
@@ -206,7 +213,7 @@ public class Admin {
         String project   = (curArgs.length != 0) ? curArgs[0] : "";
         String algorithm = line.hasOption("algorithm") ? line.getOptionValue("algorithm") : "";
         
-        String info = getInfo(project, algorithm, line.hasOption("extinfo"));
+        String info = getInfo(DTOUser.USER_ALGATOR, project, algorithm, line.hasOption("extinfo"));
         System.out.println(info);
         
         return;
@@ -219,7 +226,7 @@ public class Admin {
           System.out.println("Invalid project name");
           printMsg(options); 
         } else {
-          System.out.println(createProject(username, curArgs[0]));
+          System.out.println(createProject(DTOUser.USER_ALGATOR, curArgs[0], "algator", date));
           return;
         }
       }
@@ -229,7 +236,7 @@ public class Admin {
           System.out.println("Invalid project name");
           printMsg(options); 
         } else {
-          System.out.println(createAll(username, curArgs[0]));
+          System.out.println(createAll(DTOUser.USER_ALGATOR, curArgs[0], "algator", date));
           return;
         }
       }
@@ -241,9 +248,9 @@ public class Admin {
           return;
         } else {
           if (curArgs.length == 1)
-            System.out.println(addParameter(username, curArgs[0]));
+            System.out.println(addParameter(curArgs[0]));
           else 
-            System.out.println(addParameter(username, curArgs[0], curArgs[1], curArgs.length > 2 ? curArgs[2] : ""));
+            System.out.println(addParameter(curArgs[0], curArgs[1], curArgs.length > 2 ? curArgs[2] : ""));
           return;
         }
       }
@@ -254,9 +261,9 @@ public class Admin {
           return;
         } else {
           if (curArgs.length == 1)
-            System.out.println(addIndicator(username, curArgs[0]));
+            System.out.println(addIndicator(curArgs[0]));
           else 
-            System.out.println(addIndicator(username, curArgs[0], curArgs[1], curArgs.length > 2 ? curArgs[2] : ""));
+            System.out.println(addIndicator(curArgs[0], curArgs[1], curArgs.length > 2 ? curArgs[2] : ""));
           return;
         }
       }
@@ -266,7 +273,7 @@ public class Admin {
           System.out.println("Invalid number of parameters (required: project_name indicator_name)");
           return;
         } else {
-          System.out.println(addIndicatorTest(username, curArgs[0], curArgs[1]));
+          System.out.println(addIndicatorTest(curArgs[0], curArgs[1]));
           return;
         }
       }
@@ -276,7 +283,7 @@ public class Admin {
           System.out.println("Invalid number of parameters (required: project_name type_name comma_separated_list_of_parameters)");
           return;
         } else {
-          System.out.println(addTestCaseGenerator(username, curArgs[0], curArgs[1], curArgs[2].split(",")));
+          System.out.println(addTestCaseGenerator(curArgs[0], curArgs[1], curArgs[2].split(",")));
           return;
         }
       }
@@ -286,7 +293,7 @@ public class Admin {
           System.out.println("Invalid project or algorithm name");
           printMsg(options); 
         } else {
-          System.out.println(createAlgorithm(username, curArgs[0], curArgs[1]));
+          System.out.println(createAlgorithm(username, curArgs[0], curArgs[1], "algator", date));
           return;
         }
       }
@@ -296,7 +303,7 @@ public class Admin {
           System.out.println("Invalid project or test set name");
           printMsg(options); 
         } else {
-          System.out.println(createTestset(username, curArgs[0], curArgs[1]));
+          System.out.println(createTestset(username, curArgs[0], curArgs[1], "algator", date));
           return;
         }
       }
@@ -314,7 +321,7 @@ public class Admin {
           if (line.hasOption("pType"))
             try{type=Integer.parseInt(line.getOptionValue("pType"));} catch (Exception e) {}
           
-          String result = createPresenter(username, curArgs[0], presenterName, type);
+          String result = createPresenter(username, curArgs[0], presenterName, type, "algator", date);
           if (result!=null) System.out.println(result);
           return;
         }
@@ -324,8 +331,11 @@ public class Admin {
 	if (curArgs.length != 2) {
           System.out.println("Invalid number of parameters (exactly two required)");
           printMsg(options); 
-        } else {          
-          System.out.println(removePresenter(curArgs[0], curArgs[1]));
+        } else {    
+          String projectName   = curArgs[0]; 
+          String presenterName = curArgs[1]; 
+          String eid = EPresenter.getPresenter(projectName, presenterName).getEID();
+          System.out.println(removePresenter(eid, projectName, presenterName));
           return;
         }
       }

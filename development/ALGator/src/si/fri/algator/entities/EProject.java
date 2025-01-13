@@ -3,6 +3,7 @@ package si.fri.algator.entities;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import si.fri.algator.global.ATGlobal;
 
 /**
  *
@@ -31,20 +32,13 @@ public class EProject extends Entity {
   public static final String ID_MainProjPresenters    = "MainProjPresenters";   // String []
   public static final String ID_MainAlgPresenters     = "MainAlgPresenters";    // String []
   
-//  Depricated. In current version, java files MUST be named according to the following :
-//     AlgorithmClass        === <project_name>AbstractAlgorithm.java
-//     TestCaseClass         === <project_name>TestCase.java
-//     TestSetIteratorClass  === <project_name>TestSetIterator.java
-//
-//  Names of these classes are returned by methods getAlgorithmClassname(), getTestCaseClassname() 
-//    and getTestSetIteratorClassName() 
-//
-//  public static final String ID_AlgorithmClass        = "AlgorithmClass";       // String
-//  public static final String ID_TestCaseClass         = "TestCaseClass";        // String
-//  public static final String ID_TestSetIteratorClass  = "TestSetIteratorClass"; // String
-  
-  
-  
+  // returns an EProject with given name in current data_root folder
+  public static EProject getProject(String projectName) {
+    String data_root = ATGlobal.getALGatorDataRoot();
+    EProject prj = new EProject(new File(ATGlobal.getPROJECTfilename(data_root, projectName)));
+    prj.set(ID_LAST_MODIFIED, prj.getLastModified(projectName, ""));
+    return prj;
+  } 
   
   public EProject() {
    super(ID_Project, 
@@ -54,7 +48,7 @@ public class EProject extends Entity {
                         ID_EMExecFamily, ID_CNTExecFamily, ID_JVMExecFamily, 
                         ID_ProjPresenters, ID_AlgPresenters, ID_MainProjPresenters, ID_MainAlgPresenters}
 	);
-   setRepresentatives(ID_Author);
+   setRepresentatives(ID_NAME, ID_Author);
   }
 
   private static String extractProjectNameFromFileName(String fileName, String defaultName) {
@@ -129,4 +123,18 @@ public class EProject extends Entity {
   public String getOutputClassname() {
     return /* getName() +*/ "Output";
   }
+  
+  @Override
+  // last project change is considered as date of last source file change
+  public long getLastModified(String projectName, String entityName) {
+    String fileName  = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName));
+    File   srcFolder = new File(fileName);
+    String[] files = srcFolder.list();
+    
+    long last = 0;
+    for (String file : files) {
+      last = Math.max(last, new File(srcFolder, file).lastModified()/1000);
+    }
+    return last;
+  }  
 }

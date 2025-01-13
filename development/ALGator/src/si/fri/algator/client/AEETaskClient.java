@@ -22,6 +22,8 @@ import static si.fri.algator.server.ASTools.decodeAnswer;
 import si.fri.algator.server.ASTask;
 import si.fri.algator.entities.CompCap;
 import si.fri.algator.entities.EComputer;
+import si.fri.algator.execute.Executor;
+import si.fri.algator.global.Answer;
 
 /**
  *
@@ -179,6 +181,7 @@ public class AEETaskClient {
     // define a new computer
     if (tcIDX == 0) {
       boolean computerOK = false;
+      
       String id="", desc="", ip="", cap="1100";
       while (!computerOK) {        
         System.out.println("\n  Enter information (ID, name, description, ip, capabilities) for this computer:");
@@ -188,12 +191,12 @@ public class AEETaskClient {
         System.out.print  ("      IP address ["+ip+"] : ");    String tip = sc.nextLine(); ip = tip.isEmpty() ? ip : tip;
         System.out.print  ("      Capabilities (EM, CNT, JVM, QUICK; Example: 1100 for EM and CNT) ["+cap+"] : ");    String tcap = sc.nextLine(); cap = tcap.isEmpty() ? cap : tcap;
         
-        JSONObject jFamily = new JSONObject();
-        jFamily.put(EComputer.ID_Name, "Computer-" + id);
-        jFamily.put(EComputer.ID_FamilyID, familyID);
-        jFamily.put(EComputer.ID_ComputerID, id);
-        jFamily.put(EComputer.ID_Desc, desc);
-        jFamily.put(EComputer.ID_IP, ip);
+        JSONObject jComputer = new JSONObject();
+        jComputer.put(EComputer.ID_Name, "Computer-" + id);
+        jComputer.put(EComputer.ID_FamilyID, familyID);
+        jComputer.put(EComputer.ID_ComputerID, id);
+        jComputer.put(EComputer.ID_Desc, desc);
+        jComputer.put(EComputer.ID_IP, ip);
         
         JSONArray caps = new JSONArray();if (cap.length()==4){
           if (cap.charAt(0)=='1')caps.put(CompCap.EM);
@@ -201,9 +204,9 @@ public class AEETaskClient {
           if (cap.charAt(2)=='1')caps.put(CompCap.JVM);
           if (cap.charAt(3)=='1')caps.put(CompCap.QUICK);
         }
-        jFamily.put(EComputer.ID_Capabilities, caps);
+        jComputer.put(EComputer.ID_Capabilities, caps);
         
-        answer = Requester.askALGatorServer(server, port, ASGlobal.REQ_ADDCOMPUTER + " " + jFamily.toString(0));
+        answer = Requester.askALGatorServer(server, port, ASGlobal.REQ_ADDCOMPUTER + " " + jComputer.toString(0));
         jAns = decodeAnswer(answer);
         if (jAns.getInt(ID_STATUS) != 0) {
           System.out.println("\n  ... " + jAns.getString(ID_MSG));
@@ -221,7 +224,7 @@ public class AEETaskClient {
         computerUID = jjans.getString(EComputer.ID_ComputerUID);
       } catch (Exception e) {}
       
-      if (computerUID==null || computerUID.length() != 10) {
+      if (computerUID==null || computerUID.length() != 14) {
         System.out.println("Invalid computer UID: " + computerUID);
         return;
       }
@@ -242,9 +245,46 @@ public class AEETaskClient {
     System.out.println("  ... OK; information saved\n");
   }
   
+  
+  // Misc. tasks like Compile, RunOne, ...
+  private static int runMiscTask(ASTask task) {
+    String taskResult = "Task " + task.getString(ASTask.ID_TaskType, "?") + ".";
+
+    // run a misc task
+    String taskType = task.getString(ASTask.ID_TaskType, "NONE");
+    switch (taskType) {
+      case "Compile": 
+        Answer ans = Executor.projectMakeCompile(ATGlobal.getALGatorDataRoot(), task.getString("Project"), true);
+        taskResult = ans.message;
+        break;
+      default: return 300;
+    }
+    
+
+    JSONObject jObj = new JSONObject();
+    jObj.put(ASTask.ID_ComputerUID, task.getComputerUID());
+    jObj.put(ASTask.ID_TaskID, task.getTaskID());
+    jObj.put(ASTask.ID_TaskType, task.getString(ASTask.ID_TaskType, "?"));
+    jObj.put("Result", taskResult);
+
+    // send an answer
+    String algatorServerName = ELocalConfig.getConfig().getALGatorServerName();
+    int    algatorServerPort = ELocalConfig.getConfig().getALGatorServerPort();
+    String sResponse = Requester.askALGatorServer(algatorServerName, algatorServerPort, "TASKRESULT " + jObj.toString());
+    try {
+      JSONObject jAns = new JSONObject(sResponse);
+      if (jAns.getInt("Status")==0)
+        return 0;
+    } catch (Exception e) {}
+    
+    // "Can't execute misc. task"
+    return 300;
+  }    
+
+  
   /**
    * Exit values: 0 ... OK
-   *              200 ...   invalid nimber of parameters
+   *              200 ...   invalid number of parameters
    *              201 ...   unknown error
    *              other ... error reported by algator.Execute (ErrorStatus)
    * @param task
@@ -375,8 +415,11 @@ public class AEETaskClient {
               }
             } catch (Exception e) {}
             if (task != null) {
-              int exitCode = runTask(task);
-              
+              int exitCode;
+              if (task.getString(ASTask.ID_TaskType, ASTask.ID_TaskType_Execute).equals(ASTask.ID_TaskType_Execute))
+                exitCode = runTask(task);
+              else
+                exitCode = runMiscTask(task);
               
               if (exitCode == 242) {
                 // 242 means that task was paused by server; this is a signal 
@@ -396,6 +439,8 @@ public class AEETaskClient {
                   case 208: exitMsg = "Problems with vmep configuration."; break;
                   case 214: exitMsg = "Problems with project synchronization."; break;
                   case 215: exitMsg = "The database is not initialized."; break;
+                  case 300: exitMsg = "Can't execute misc. task"; break;
+                  default: exitMsg  = "Error code: " + exitCode; 
                 }
                 JSONObject answer = new JSONObject();
                 answer.put("ExitCode", exitCode); 
