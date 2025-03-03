@@ -199,7 +199,7 @@ public class Requester {
       }
             
       if (line.hasOption("init")) {
-        AEETaskClient.initTaskClient();
+        AEETaskClient.initTaskClient(serverName, port);
         return;
       }       
       

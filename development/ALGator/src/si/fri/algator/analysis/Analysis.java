@@ -45,7 +45,7 @@ public class Analysis {
   public static ArrayList<Variables> runOne(String data_root, Project project, ArrayList<String> algorithms, Variables defaultParams, int timeLimit, int timesToExecute, MeasurementType mType, String instanceID, int whereToPrint, boolean asJSON) {
     ArrayList<Variables> results = new ArrayList<>();
     
-    if (!Executor.projectMakeCompile(data_root, project.getName(), false).equals(ErrorStatus.STATUS_OK))
+    if (!Executor.projectMakeCompile(data_root, project.getName(), false, null).equals(ErrorStatus.STATUS_OK))
       return results;
 
     int testID = 0;
@@ -155,7 +155,7 @@ public class Analysis {
   }
 
   public static ArrayList<Variables> getParameterLimit(String data_root, Project project, ArrayList<String> algorithms, String paramName, Variables parameters, int timeLimit, String instanceID, int whereToPrint, Notificator notificator, boolean asJSON) {
-    Executor.projectMakeCompile(data_root, project.getName(), false);
+    Executor.projectMakeCompile(data_root, project.getName(), false, null);
 
     ArrayList<Variables> results = new ArrayList<>();
     

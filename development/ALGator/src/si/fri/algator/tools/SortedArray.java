@@ -2,6 +2,7 @@ package si.fri.algator.tools;
 
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Predicate;
 
 /**
  * Synchronized ArrayList with elements sorted according to their compareTO method. 
@@ -41,5 +42,9 @@ public class SortedArray<E extends Comparable> implements Iterable<E>{
   
   public E get(int i) {
     return (E) data.get(i);
+  }
+  
+  public void removeIf(Predicate filter) {
+    data.removeIf(filter);
   }
 }

@@ -1,13 +1,9 @@
-{
-  "TestSet": {
-    "eid"              : "e_106",
-
-    "ShortName"        : "TS2",
-    "Description"      : "Test cases of middle size (from 10.000 to 30.000)",
-    "N"                : "105",
-    "TestRepeat"       : "30",
-    "TimeLimit"        : "5",
-
-    "TestSetDescHTML"  : "TestSet2.html"
-  }
-}
+{"TestSet": {
+  "Author": "tomaz",
+  "Date": "January 2024",
+  "ShortName": "TS2",
+  "Description": "Test cases of middle size (from 10.000 to 30.000).",
+  "N": 105,
+  "TestRepeat": 5,
+  "TimeLimit": 5
+}}

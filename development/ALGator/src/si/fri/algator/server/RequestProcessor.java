@@ -4,6 +4,8 @@ import algator.Admin;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
@@ -126,6 +128,11 @@ public class RequestProcessor {
       case ASGlobal.REQ_RESUME_TASK:
         return changeTaskStatus(uid, jObj, ASTaskStatus.UNKNOWN);
 
+      case ASGlobal.REQ_SET_TASK_PRIORITY:
+        return changeTaskPriority(uid, jObj);
+        
+        
+
       // storest the result of a test and tells client what to do next
       case ASGlobal.REQ_TASK_RESULT:
         return taskResult(uid, jObj);
@@ -187,6 +194,12 @@ public class RequestProcessor {
       case ASGlobal.REQ_GETRESULTUPDATE:
         return getResultUpdate(uid, jObj);
         
+      case ASGlobal.REQ_GETAWRESULTS:
+        return getAWResults(uid, jObj);
+      
+      case ASGlobal.REQ_GETRESULTFILE:
+        return getResultFile(uid, jObj);
+                                
       case ASGlobal.REQ_UPLOAD_STATIC:
         return ASTools.uploadStatic(uid, jObj);
                
@@ -532,28 +545,41 @@ public class RequestProcessor {
         return sAnswer(1, "Invalid parameter. Expecting JSON with \"Project\", \"Algorithm\" and \"Testset\" properties.", "");
       }
 
-      String mType = jObj.has(ASTask.ID_MType) ? jObj.getString(ASTask.ID_MType) : MeasurementType.EM.toString();
+      String mType = MeasurementType.mtOf(jObj.getString(ASTask.ID_MType)).getExtension();
+
       String taskOK = ASTools.checkTaskAndGetFamily(jObj.getString(ASTask.ID_Project), jObj.getString(ASTask.ID_Algorithm),jObj.getString(ASTask.ID_Testset), mType);
       if (!taskOK.startsWith("Family:")) {
         return sAnswer(2, "Invalid task. " + taskOK, "");
       }
-
+      
+      // here taskOK equals "Family:familyName" (which can be empty). If family in 
+      // task is not explicitely set, we set it to "familyName" 
+      if (!jObj.has(ASTask.ID_Family) || jObj.getString(ASTask.ID_Family).isEmpty()) {
+        String fP[] = taskOK.split(":");
+        jObj.put(ASTask.ID_Family, fP.length > 1 ? fP[1] : "");
+      }
+      
       String projectName   = jObj.getString(ASTask.ID_Project);
       String peid          = EProject.getProject(projectName).getEID(); 
       String algorithmName = jObj.getString(ASTask.ID_Algorithm);
       String aeid          = EAlgorithm.getAlgorithm(projectName, algorithmName).getEID(); 
       String testsetName   = jObj.getString(ASTask.ID_Testset);
       String teid          = ETestSet.getTestset(projectName, testsetName).getEID(); 
-
-      if (canExecuteTask(uid, aeid, teid)) {
-        // here taskOK equals "Family:familyName" (which can be empty). If family in 
-        // task is not explicitely set, we set it to "familyName" 
-        if (!jObj.has(ASTask.ID_Family) || jObj.getString(ASTask.ID_Family).isEmpty()) {
-          String fP[] = taskOK.split(":");
-          jObj.put(ASTask.ID_Family, fP.length > 1 ? fP[1] : "");
+                
+      ArrayList<ASTask> existingTasks = ASTools.getTasks(activeTasks, projectName, algorithmName, testsetName, mType);
+      for (ASTask task : existingTasks) {
+        if (task.getFamily().equals(jObj.get(ASTask.ID_Family))) {
+          return sAnswer(3, "Task already exist.", "Can not duplicate task.");
         }
+      }
+      
+      if (CanUtil.canExecuteTask(uid, aeid, teid)) {
+        jObj.put(ASTask.ID_TaskOwner, uid);
         jObj.put(ASTask.ID_TaskType, ASTask.ID_TaskType_Execute);
-        jObj.put(ASTask.ID_Project_EID, peid);jObj.put(ASTask.ID_Algorithm_EID, aeid);jObj.put(ASTask.ID_Testset_EID, teid); 
+        jObj.put(ASTask.ID_Project_EID, peid);
+        jObj.put(ASTask.ID_Algorithm_EID, aeid);
+        jObj.put(ASTask.ID_Testset_EID, teid); 
+        jObj.put(ASTask.ID_MType, mType); 
       } else {
         return sAnswer(99, "AddTask", accessDeniedString);
       }
@@ -564,7 +590,12 @@ public class RequestProcessor {
     ASTask task = new ASTask(jObj.toString());
     task.assignID();
     activeTasks.add(task);
-    ASTools.setTaskStatus(task, ASTaskStatus.PENDING, null, null);
+    
+    if (task.getComputerUID() != null && !task.getComputerUID().isEmpty()) 
+      ASTools.setTaskStatus(task, ASTaskStatus.QUEUED, null, null);
+    else 
+      ASTools.setTaskStatus(task, ASTaskStatus.PENDING, null, null);
+
     return jAnswer(OK_STATUS, "Task added", task.toJSONString(0));      
   }
 
@@ -574,7 +605,7 @@ public class RequestProcessor {
    * testNo).
    *
    * Strežnik -> nastavi task.progress=testNo -> result shrani v datoteko ->
-   * poišlče najbolj "vroč" naslednji task za odjemalca (nextTast) -> če
+   * poišče najbolj "vroč" naslednji task za odjemalca (nextTask) -> če
    * nextTask == currentTask ... pošlje CONTINUE sicer ... task.status nastavi
    * na QUEUED in pošlje BREAK
    *
@@ -592,12 +623,12 @@ public class RequestProcessor {
     String taskType = ASTask.ID_TaskType_Execute;
     try {
       compUID  = jObj.optString(ASTask.ID_ComputerUID, "");
-      taskID   = jObj.optInt(ASTask.ID_TaskID, 0);
+      taskID   = jObj.optInt(ASTask.ID_TaskID, -1);
       testNo   = jObj.optInt("TestNo", -1);
       result   = jObj.optString("Result", "?");
       taskType = jObj.optString(ASTask.ID_TaskType, ASTask.ID_TaskType_Execute);
     } catch (Exception e) { }
-    if (compUID.isEmpty() || taskID == 0 || testNo == 0 || result.isEmpty()) {
+    if (compUID.isEmpty() || taskID < 0 || (taskType.equals(ASTask.ID_TaskType_Execute) && testNo < 0) || result.isEmpty()) {
       return sAnswer(1, ASGlobal.ERROR_INVALID_NPARS, "Expecting JSON with \"" + ASTask.ID_ComputerUID + "\", \"" + ASTask.ID_TaskID + "\", \"TestNo\" and \"Result\" properties.");
     }
 
@@ -680,8 +711,8 @@ public class RequestProcessor {
       task = ASTools.findTask(closedTasks, taskID);
     }
     if (task != null) {
-      String aeid = task.getString(ASTask.ID_Algorithm_EID, Entity.EID_UNDEFINED); 
-      if (CanUtil.can(uid, aeid, "can_execute")) {
+      String peid = task.getString(ASTask.ID_Project_EID, Entity.EID_UNDEFINED); 
+      if (CanUtil.can(uid, peid, "can_read")) {
         return jAnswer(OK_STATUS, "Task status", task.toJSONString(0));
       } else 
         return sAnswer(99, "taskStatus", accessDeniedString);
@@ -722,8 +753,8 @@ public class RequestProcessor {
   }
   
   /**
-   * Finds the next task that can be executed on a computer with given cid    <br>
-   * Call: getTask {ComputerID: cid}                                                    <br>
+   * Finds the next task that can be executed on a computer with given cid  
+   * Call: getTask {ComputerID: cid}                
    * Return: NO_TASKS or Task (json(id proj alg testset mtype, progress))
    */
   public String getTask(String uid, JSONObject jObj) {
@@ -741,8 +772,14 @@ public class RequestProcessor {
       task = ASTools.findFirstTaskForComputer(activeTasks, cuid, true);
     
     if (task != null) {
-      ASTools.setTaskStatus(task, ASTaskStatus.INPROGRESS, null, cuid);
+        ASTools.setTaskStatus(task, ASTaskStatus.INPROGRESS, null, cuid);
       ASTools.setComputerFamilyForProject(task, family);
+      
+      int progress = task.getProgress();
+      // preden oddam task, pobrisem datoteko z rezultati, da se bodo rezultati
+      // tega izvajanja shranili v prazno datoteko (rewrite namesto append)
+      if (progress <= 0)
+        ASTools.removeTaskResultFile(task);
       return jAnswer(0, "Task for computer " + cuid, task.toJSONString(0));
     } else {
       return sAnswer(3, ASGlobal.NO_TASKS, "No tasks available for this computer.");
@@ -788,7 +825,41 @@ public class RequestProcessor {
       return "Task not found.";
     }
   }
+  
+  public String changeTaskPriority(String uid, JSONObject jObj) {
+    String errorAnswer = sAnswer(1, ASGlobal.ERROR_INVALID_NPARS, "Expecting JSON with  \"" + ASTask.ID_TaskID + "\" and \"Priority\" properties.");
 
+    if (!jObj.has(ASTask.ID_TaskID) || !jObj.has(ASTask.ID_Priority)) 
+      return errorAnswer;
+        
+    int taskID   = jObj.optInt(ASTask.ID_TaskID, -1);
+    int priority = jObj.optInt(ASTask.ID_Priority, 5);
+    
+    if (taskID < 0) return errorAnswer;
+        
+    // find a task with a given ID in activeTasks queue    
+    ASTask task = ASTools.findTask(activeTasks, taskID);
+    if (task != null) {
+      String aeid = task.getString(ASTask.ID_Algorithm_EID);
+      if (CanUtil.can(uid, aeid, "can_execute")) {            
+        task.set(ASTask.ID_Priority, priority);
+        activeTasks.touch(task);
+        ASTools.writeADETasks(activeTasks, 0);
+  
+        return sAnswer(0, "OK", "Status changed");
+      } else
+        return sAnswer(99, "ChangeTaskStatus", accessDeniedString);
+    } else {
+      return iAnswer(2, "Task not found.", taskID);
+    }
+  }
+
+  
+  
+  
+  
+  
+  
   /**
    * Changes status - from INPROGRESS, PENDING, QUEUED -- to --> PAUSED or
    * CANCELED - from PAUSED -- to --> PENDING or QUEUED (in this case newStatus
@@ -809,13 +880,13 @@ public class RequestProcessor {
       return errorAnswer;
     }
     int exitCode = 0;
-    try {exitCode = jObj.getInt(ASTask.ID_TaskID);} catch (Exception e) {}
+    try {exitCode = jObj.getInt("ExitCode");} catch (Exception e) {}
         
     // find a task with a given ID in activeTasks queue    
     ASTask task = ASTools.findTask(activeTasks, taskID);
     if (task != null) {
       String aeid           = task.getString(ASTask.ID_Algorithm_EID);
-      if (CanUtil.can(uid, aeid, "can_execute")) {            
+      if (CanUtil.canChangeTaskStatus(uid, task)) {            
         if (newStatus.equals(ASTaskStatus.UNKNOWN)) { // resumeTask called
           // if current status is PAUSED, task is revitalized (to PENDING or QUEUED)
           if (task.getTaskStatus().equals(ASTaskStatus.PAUSED)) {
@@ -829,9 +900,13 @@ public class RequestProcessor {
           }
         } else { // newStatus == CANCELED or PAUSED
           if (task.getTaskStatus().equals(ASTaskStatus.INPROGRESS)) {
-            if (exitCode == 0) // normal "cancelTask" 
+            if (exitCode == 0) { // normal "cancelTask" 
+              // this is new: besides puting task to pausedAndCanceledTasks, 
+              // change also its status to CANCELED
+              task.setTaskStatus(ASTaskStatus.CANCELED);
+              
               pausedAndCanceledTasks.put(task.getTaskID(), newStatus);
-            else { // "cancelTask"  invoked by TaskClient due to execution error 
+            } else { // "cancelTask"  invoked by TaskClient due to execution error 
               ASTools.setTaskStatus(task, newStatus, jObj.optString("Message", ""), null);
             } 
           } else {
@@ -845,19 +920,6 @@ public class RequestProcessor {
     } else {
       return iAnswer(2, "Task not found.", taskID);
     }
-  }
-  
-  private boolean canExecuteTask(String uid, ASTask task) {
-    String aeid = task.getString(ASTask.ID_Algorithm_EID, Entity.EID_UNDEFINED);
-    String teid = task.getString(ASTask.ID_Testset_EID, Entity.EID_UNDEFINED);
-    return canExecuteTask(uid, aeid, teid);
-  }
-  private boolean canExecuteTask(String uid, String aeid, String teid) {
-    long canRead = PermissionTypes.getValue("can_read");
-    long canReadAndExecute = canRead |  PermissionTypes.getValue("can_execute");
-    return uid.equals(DTOUser.USER_CLIENT) ||
-          (CanUtil.can(uid, aeid, canReadAndExecute) &&
-           CanUtil.can(uid, teid, canRead));
   }
   
   public String getTasks(String uid, JSONObject jObj) {    
@@ -881,7 +943,7 @@ public class RequestProcessor {
       Iterator<ASTask> it = tasks.iterator();
       while (it.hasNext()) {
         ASTask task = it.next();        
-        if (canExecuteTask(uid, task)) visibleTasks.add(task);
+        if (CanUtil.canExecuteTask(uid, task)) visibleTasks.add(task);
       }
       
       StringBuilder sb = new StringBuilder();
@@ -1197,7 +1259,110 @@ public class RequestProcessor {
     else
       return sAnswer(OK_STATUS, "NO_CHANGES", "");
   }  
+
+  public String getAWResults(String uid, JSONObject jObj) {     
+    String project = jObj.optString("Project", "");    
+    if (project.isEmpty()) 
+      return sAnswer(1, ASGlobal.ERROR_INVALID_NPARS, "Expecting JSON with \"Project\" and \"MType\" (optional) property.");
+
+    String answerID = jObj.optString("AnswerID", "0");
+        
+    // check for correctness (readability) of algorithms and testsets and transform "*" into list
+    // this is true only at first call (get) and not in subsequential calls (update)
+    boolean isFirstRequest = true;
+    
+    // if answerID exists in awResults, this is subsequential call of getAWResults (update);
+    // parameters of such calls are not passed in request but stored in awResults.
+    if (ASTools.awResults.containsKey(answerID)) {
+      jObj = ASTools.awResults.get(answerID);
+      isFirstRequest = false;
+    }
+
+    // this can happen only in some odd cases; usually when answerID is given,
+    // this is a subsequential call and old results should be available
+    if (!"0".equals(answerID) && isFirstRequest) {
+      return sAnswer(2, "getAWResults: ", "Results for " + answerID + " do not exist.");
+    }
+    
+    JSONArray algorithms = jObj.optJSONArray("Algorithms"); if (algorithms == null) algorithms = new JSONArray();
+    JSONArray testsets   = jObj.optJSONArray("Testsets");   if (testsets   == null) testsets   = new JSONArray();      
+    String mType         = jObj.optString   ("MType", "em");
+    
+    String peid = EProject.getProject(project).getEID();
+    if (!CanUtil.can(uid, peid, "can_read"))
+      return sAnswer(99, "getAWResults: " + accessDeniedString, accessDeniedString);
+    
+    JSONObject resultStatus = ASTools.getAWResults(uid, project, algorithms, testsets, mType, isFirstRequest);
+
+    if (isFirstRequest) // at first request, answerID is generated ...
+      answerID = resultStatus.optString("AnswerID", "0");
+    else  // .. and it is reused in all subsequential calls 
+      resultStatus.put("AnswerID",   answerID);
+    
+    ASTools.awResults.put(answerID, resultStatus);
+
+    if (!isFirstRequest) { // this is update request, send only changed results
+      // make a clone of resultStatus
+      JSONObject oldResults = (JSONObject)jObj.get("Results");
+      JSONObject newResults = (JSONObject)resultStatus.get("Results");
+      resultStatus = new JSONObject(resultStatus.toString());
+      
+      JSONObject updatedResults = new JSONObject();
+
+      Iterator<String> resIt = newResults.keys();
+      while (resIt.hasNext()) {
+        String resultKey = resIt.next();
+        Object resultValue = newResults.get(resultKey);
+        if (!oldResults.has(resultKey) || !oldResults.get(resultKey).toString().equals(resultValue.toString()))
+          updatedResults.put(resultKey, resultValue);
+      } 
+      
+      resultStatus.put("Results", updatedResults); 
+      resultStatus.remove("Algorithms");
+      resultStatus.remove("Testsets");
+      resultStatus.remove("Project");
+      resultStatus.remove("MType");
+    }
+    return jAnswer(OK_STATUS, "AW Result status", resultStatus.toString());
+  }
   
+  
+    // vsebino results datoteke lahko bere le nekdo, ki ima nad projektom "can_read" pravice
+  public String getResultFile(String uid, JSONObject jObj) {
+    String projName  = jObj.optString("Project",   "");
+    String algorithm = jObj.optString("Algorithm", "");
+    String testset   = jObj.optString("Testset",   "");
+    String mt        = jObj.optString("MType",     "").toLowerCase();
+    String compID    = jObj.optString("compID",    "");
+    
+    if (projName.isEmpty() || algorithm.isEmpty() || testset.isEmpty() || mt.isEmpty())
+      return sAnswer(1, ASGlobal.ERROR_INVALID_NPARS, "Expecting JSON with \"Project\", \"Algorithm\", \"Testset\" and \"em\" properties.");
+
+    String peid = EProject.getProject(projName).getEID();
+    if (!CanUtil.can(uid, peid, "can_read")) return sAnswer(99, "getResultFile: " + accessDeniedString, accessDeniedString);
+    
+    Project p = new Project(ATGlobal.getALGatorDataRoot(), projName);
+    
+    String resultFileName;
+    if (compID.isEmpty())
+      resultFileName = ATTools.getTaskResultFileName(p, algorithm, testset, mt);
+    else 
+      resultFileName = ATGlobal.getRESULTfilename(p.getProjectRoot(), algorithm, testset, MeasurementType.mtOf(mt), compID);
+    
+    String answer = ASTools.getFileContent(resultFileName);
+    
+    String fileN = "";
+    try {
+      Path pth = Paths.get(resultFileName);
+      fileN = pth.getParent().getFileName().toString() + "/" + pth.getFileName().toString();
+    } catch (Exception e) {}
+    
+    JSONObject ans = new JSONObject();
+    ans.put("Filename", fileN);
+    ans.put("Content", Base64.getEncoder().encodeToString(answer.getBytes()));
+    return jAnswer(OK_STATUS, "Result file", ans.toString()); 
+  }
+
   public String admin(String uid, String params) {
     if (!CanUtil.can(uid, "e0_S", "full_control")) return sAnswer(99, "admin: " + accessDeniedString, accessDeniedString);
     String[] args = params.split(" ");

@@ -82,7 +82,7 @@ public class AUsersTools {
         } 
       }
     } catch (Exception e) {
-      ATLog.log("Error reading 'authuser_users'. Error: " + e.getMessage(), 0);
+      ATLog.log("Error reading 'ausers_user'. Error: " + e.getMessage(), 0);
     }
     return users;
   }

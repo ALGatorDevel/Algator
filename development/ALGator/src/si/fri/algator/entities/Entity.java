@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.TreeSet;
@@ -82,11 +83,16 @@ public class Entity implements Cloneable, Serializable {
   // a list of representative fields (fields that represent this entity)
   // this list is used to construct toString message
   protected ArrayList<String> representatives;
+  
+  
+  public long lastModified;
 
   public Entity() {
     fieldNames = new String[0];    
     fields = new HashMap();
-    representatives = new ArrayList<>();    
+    representatives = new ArrayList<>();  
+    
+    lastModified = new Date().getTime();
   }
 
   public Entity(String entityID, String[] fieldNames) {
@@ -245,6 +251,11 @@ public class Entity implements Cloneable, Serializable {
       return; // can not save 
     }
     File f = new File(entity_file_name);
+    
+    // create a folder of entity if it does not exist 
+    File parentFile = f.getParentFile();
+    if (!parentFile.exists()) parentFile.mkdirs();
+    
     try (PrintWriter pw = new PrintWriter(f)) {
       pw.println(toJSONString(true));
     } catch (Exception e) {}
@@ -310,6 +321,8 @@ public class Entity implements Cloneable, Serializable {
 
   public void set(String fieldKey, Object object) {
     fields.put(fieldKey, object);
+    
+    lastModified = new Date().getTime();
   }
 
   /**
@@ -419,8 +432,26 @@ public class Entity implements Cloneable, Serializable {
     return myClone;
   }
   
-  // implementation dependant; each entity should check for itself
-  public long getLastModified(String projectName, String entityName) {
-    return 0;
+  // implementation dependant; for "live" entities (like ASTask), this time reflects the 
+  // time of last "set" (field change); for other entities (like EAlgorithm) this time
+  // reflects the time of last change of properties on disk; for such entities, class
+  // must provide type-dependant implementation 
+  public long getLastModified(String projectName, String entityName) {    
+    return lastModified;
+  }
+  
+  
+  // This mechanism ensures that getLastModified() is called only once; for all 
+  // successive calls, the stored result is returned.
+  long lastModifiedStored = -1;
+  public long lastModified(String projectName, String entityName) {
+    if (lastModifiedStored == -1)
+      lastModifiedStored = getLastModified(projectName, entityName);
+    return lastModifiedStored;
+  }
+  
+  // returns a time that passed since last change (in seconds)
+  public long sinceModified() {
+    return (new Date().getTime() - lastModified)/1000;
   }
 }

@@ -1007,15 +1007,9 @@ public class Maintenance {
       String id = EProject.ID_ProjPresenters;
       switch (type) {
         case 0:
-          id = EProject.ID_MainProjPresenters;
-          break;
-        case 1:
           id = EProject.ID_ProjPresenters;
           break;
         case 2:
-          id = EProject.ID_MainAlgPresenters;
-          break;
-        case 3:
           id = EProject.ID_AlgPresenters;
           break;
       }
@@ -1072,10 +1066,8 @@ public class Maintenance {
         break;
     }
         
-    ArrayList<String> tp = new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_MainProjPresenters)));
-    tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_ProjPresenters))));
-    tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_MainAlgPresenters))));
-    tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_AlgPresenters))));
+    ArrayList<String> tp =      new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_ProjPresenters)));
+                      tp.addAll(new ArrayList<>(Arrays.asList(eProject.getStringArray(EProject.ID_AlgPresenters))));
     // add all files in presenter path 
     tp.addAll(Arrays.asList(presenterPath.list())); 
     
@@ -1099,7 +1091,7 @@ public class Maintenance {
 
     try {
       EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(dataroot, proj_name)));
-      String[] presIDs = new String[]{EProject.ID_MainProjPresenters, EProject.ID_ProjPresenters, EProject.ID_MainAlgPresenters, EProject.ID_AlgPresenters};
+      String[] presIDs = new String[]{EProject.ID_ProjPresenters, EProject.ID_AlgPresenters};
       for (String presID : presIDs) {
         ArrayList<String> tp = new ArrayList<>(Arrays.asList(eProject.getStringArray(presID)));
         if (tp.contains(presenter_name)) {
@@ -1162,10 +1154,8 @@ public class Maintenance {
       if (extended) {
         JSONArray mpp = new JSONArray();
 
-        projInfo.put("MainProjPresenters", new JSONArray(project.getEProject().getStringArray(EProject.ID_MainProjPresenters)));
         projInfo.put("ProjPresenters", new JSONArray(project.getEProject().getStringArray(EProject.ID_ProjPresenters)));
-        projInfo.put("MainAlgPresenters", new JSONArray(project.getEProject().getStringArray(EProject.ID_MainAlgPresenters)));
-        projInfo.put("AlgPresenters", new JSONArray(project.getEProject().getStringArray(EProject.ID_AlgPresenters)));
+        projInfo.put("AlgPresenters",  new JSONArray(project.getEProject().getStringArray(EProject.ID_AlgPresenters)));
 
         ETestCase eTestCase = project.getTestCaseDescription();
 

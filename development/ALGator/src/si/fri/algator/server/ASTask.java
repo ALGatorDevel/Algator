@@ -19,6 +19,8 @@ public class ASTask extends Entity implements Comparable<ASTask> {
   public static final String ID_TaskType_Compile = "Compile";          
   public static final String ID_TaskType_RunOne  = "RunOne";
   
+  public static final String ID_TaskOwner        = "TaskOwner";        // String (uid of user, who created task) 
+  
   public static final String ID_Project          = "Project";          // String
   public static final String ID_Project_EID      = "peid";             // String
   public static final String ID_Algorithm        = "Algorithm";        // String
@@ -27,7 +29,7 @@ public class ASTask extends Entity implements Comparable<ASTask> {
   public static final String ID_Testset_EID      = "teid";             // String
   public static final String ID_MType            = "MType";            // String
   public static final String ID_Family           = "Family";           // String (family to execute the task; if blank - any appropriate family is OK)  
-  
+    
   public static final String ID_Status           = "Status";           // String
   public static final String ID_Progress         = "Progress";         // Integer - number of tests sucessfully completed
   public static final String ID_CreationDate     = "CreationDate";     // String - date of creation
@@ -35,16 +37,13 @@ public class ASTask extends Entity implements Comparable<ASTask> {
   public static final String ID_ComputerUID      = "ComputerUID";      // String - computer assigned to this task
   public static final String ID_Priority         = "Priority";         // Integer - 0 (low) ... infty (high); 5 default
   public static final String ID_Msg              = "Msg";              // String (info about status if available)
-  
-  
-  
     
   public ASTask() {
     super(ID_ADETask, 
-	 new String [] {ID_TaskType,         ID_Status, ID_Progress, ID_Project, ID_Project_EID, ID_Algorithm, ID_Algorithm_EID, ID_Testset, ID_Testset_EID, ID_MType, ID_Family, ID_CreationDate, ID_StatusDate, ID_ComputerUID, ID_Priority, ID_Msg},
-         new Object [] {ID_TaskType_Execute, "",        "",        0,           "",         "pe?",          "",           "ae?",            "",         "te?",          "em",     "",        0,               0,             "",             5,           ""});
+	 new String [] {ID_TaskType,         ID_Status, ID_TaskOwner, ID_Progress, ID_Project, ID_Project_EID, ID_Algorithm, ID_Algorithm_EID, ID_Testset, ID_Testset_EID, ID_MType, ID_Family, ID_CreationDate, ID_StatusDate, ID_ComputerUID, ID_Priority, ID_Msg},
+         new Object [] {ID_TaskType_Execute, "",        "",           "",          0,          "pe?",          "",           "ae?",            "",         "te?",          "em",     "",        0,               0,             "",             5,           ""});
        
-    setRepresentatives(ID_Project, ID_Algorithm, ID_Testset, ID_MType, ID_ComputerUID, ID_Status, ID_Priority, ID_CreationDate, ID_StatusDate, ID_Progress, ID_Msg);    
+    setRepresentatives(ID_Project, ID_Algorithm, ID_Testset, ID_MType, ID_ComputerUID, ID_Status, ID_Priority, ID_CreationDate, ID_StatusDate, ID_Progress, ID_Msg);        
   }
   
   /**
@@ -65,7 +64,7 @@ public class ASTask extends Entity implements Comparable<ASTask> {
     initFromJSON(json);
     
     if (this.getField(ID_CreationDate) == null || this.getFieldAsLong(ID_CreationDate)==0)
-      this.set(ID_CreationDate, new Date().getTime());
+      this.set(ID_CreationDate, new Date().getTime());    
   }
 
   public final void assignID() {
@@ -154,13 +153,14 @@ public class ASTask extends Entity implements Comparable<ASTask> {
   }
 
   /**
-   * Compares tasks according to Priority and StatusDate. Positive result means that this has higher priority than t.
+   * Compares tasks according to Priority and dateAdded. 
+   * Positive result means this.priority > t.priority.
    */
   public int compare(ASTask t) {
-    int tP = getFieldAsInt(ID_Priority), oP = t.getFieldAsInt(ID_Priority);
+    int tP = getFieldAsInt(ID_Priority, 5), oP = t.getFieldAsInt(ID_Priority, 5);
     if (tP == oP) {
-      int tD =   getFieldAsInt(ID_StatusDate);
-      int oD = t.getFieldAsInt(ID_StatusDate);
+      int tD =   getFieldAsInt(ID_EID, 0);
+      int oD = t.getFieldAsInt(ID_EID, 0);
       return oD - tD;
     } else 
       return tP-oP;
@@ -173,7 +173,7 @@ public class ASTask extends Entity implements Comparable<ASTask> {
   public int compareTo(ASTask t) {
     try {
       int compare = compare(t);
-      if (compare == 0) {
+      if (compare == 0) {        
         int tS =   getTaskStatus().equals(ASTaskStatus.INPROGRESS) ? 0 : (  getTaskStatus().equals(ASTaskStatus.QUEUED) ? 1 : (  getTaskStatus().equals(ASTaskStatus.PENDING) ? 2 : 3));
         int oS = t.getTaskStatus().equals(ASTaskStatus.INPROGRESS) ? 0 : (t.getTaskStatus().equals(ASTaskStatus.QUEUED) ? 1 : (t.getTaskStatus().equals(ASTaskStatus.PENDING) ? 2 : 3));
         return oS - tS; 

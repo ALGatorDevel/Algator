@@ -5,23 +5,31 @@ import si.fri.algator.global.ErrorStatus;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.tools.JavaCompiler;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
@@ -32,6 +40,7 @@ import org.json.JSONObject;
 import si.fri.algator.entities.EComputer;
 import si.fri.algator.entities.EComputerFamily;
 import si.fri.algator.entities.EAlgatorConfig;
+import si.fri.algator.entities.EAlgorithm;
 import si.fri.algator.entities.EProject;
 import si.fri.algator.entities.EQuery;
 import si.fri.algator.entities.ETestSet;
@@ -46,9 +55,6 @@ import si.fri.algator.global.Answer;
  * @author tomaz
  */
 public class ATTools {
-
-  // nuber of attempt to create dir
-  private static final int TEMP_DIR_ATTEMPTS = 10;
 
   /**
    * Creates a temporary directory.
@@ -69,44 +75,6 @@ public class ATTools {
     return null;
   }
 
-  /**
-   * Copies the source .java files to the working directory and compiles them
-   * into .class files
-   *
-   * @param sources the list of source files
-   * @param workingDir the working directory to copy and compile to
-   * @return {@code ERROR_CANT_COPY} if files can't be copied to the working
-   * directory, {@code ERROR_CANT_COMPILE} if files can't be compiled, otherwise
-   * {@code STATUS_OK}.
-   */
-  //DELA, a brez class path-a
-  public static ErrorStatus compileOld(String sourcePath, String[] sources, File workingDir) {
-    int i = 0;
-    String[] filesToCompile = new String[sources.length];
-    for (String filename : sources) {
-      File inFile = new File(sourcePath + File.separator + filename);
-      File outFile = new File(workingDir + File.separator + filename);
-      try {
-        FileUtils.copyFile(inFile, outFile);
-        filesToCompile[i++] = outFile.getAbsolutePath();
-      } catch (Exception e) {
-        return ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_COPY, e.toString());
-      }
-    }
-
-    String errors = "";
-
-    OutputStream os = new ByteArrayOutputStream();
-    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
-
-    int error_status = javac.run(null, os, os, filesToCompile);
-
-    if (error_status != 0) {
-      String error = os.toString().replaceAll(workingDir.getAbsolutePath(), "File: ");
-      return ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_COMPILE, error);
-    }
-    return ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, "");
-  }
 
   private static String getCompileInfo(List<String> options, String[] sources, boolean result) {
     StringBuilder info = new StringBuilder();
@@ -115,7 +83,7 @@ public class ATTools {
     for (String file : sources) {
         info.append(" - ").append(file).append("\n");
     }
-    info.append("\n Options: \n\n").append(String.join(" ", options)).append("\n");
+    //info.append("\n Options: \n\n").append(String.join(" ", options)).append("\n");
 
     info.append("\nCompilation ").append(result ? "succeeded." : "failed: \n\n");
     
@@ -201,7 +169,7 @@ public class ATTools {
       String escapedSrcPath = (srcPath + File.separator).replaceAll("\\\\", "\\\\\\\\");
       error = error.replaceAll(escapedSrcPath, "");
 
-      return new Answer(ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_COMPILE, ""), compileMsg + error);
+      return new Answer(ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_COMPILE, error), compileMsg + error);
     } 
     try {compileMsg += "\n" + os.toString("UTF-8");} catch (Exception e) {}
     return new Answer(ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Compiling %s  - done.", msg)), compileMsg);
@@ -223,194 +191,25 @@ public class ATTools {
     return false;
   }
 
-  /*  
-  public static ETestSet getFirstTestSetFromProject(String dataroot, String projName) {
-    String projRoot     = ATGlobal.getPROJECTroot    (dataroot, projName);
-    String projFilename = ATGlobal.getPROJECTfilename(dataroot, projName);
-    
-    EProject   eProject = new EProject(new File(projFilename)); 
-    if (ErrorStatus.getLastErrorStatus() != ErrorStatus.STATUS_OK) 
-      return null;
-
-    String [] eTestSetNames = eProject.getStringArray(EProject.ID_TestSets);
-    if (eTestSetNames.length < 1) {
-      ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "No testsets defined in a project");
-      return null;
-    }
-    
-    String testSetFilename = ATGlobal.getTESTSETfilename(dataroot, projName, eTestSetNames[0]);
-    ETestSet testSet = new ETestSet(new File(testSetFilename));
-    if (ErrorStatus.getLastErrorStatus() != ErrorStatus.STATUS_OK)
-      return null;
-    else
-      return testSet;
-  }
-   */
-  /**
-   * Returns all the files that this query depends on. If any of these files
-   * chenges, the query has to be run again.
-   */
-  public static HashSet<String> getFilesForQuery(String projectname, String queryname, String[] params) {
-    HashSet<String> result = new HashSet<>();
-
-    try {
-      Project project = new Project(ATGlobal.getALGatorDataRoot(), projectname);
-      EQuery query = new EQuery(new File(ATGlobal.getQUERYfilename(project.getEProject().getProjectRootDir(), queryname)), params);
-
-      result.add(query.entity_file_name);
-
-      // Project
-      result.addAll(getFilesForProject(project));
-      // Algorithms
-      NameAndAbrev[] algs = query.getNATabFromJSONArray(EQuery.ID_Algorithms);
-      for (NameAndAbrev alg : algs) {
-        result.addAll(getFilesForAlgorithm(project, alg.getName()));
-      }
-      // Algorithms
-      NameAndAbrev[] tss = query.getNATabFromJSONArray(EQuery.ID_TestSets);
-      for (NameAndAbrev ts : tss) {
-        result.addAll(getFilesForTestSet(project, ts.getName()));
-      }
-
-    } catch (Exception e) {
-    }
-
-    return result;
-  }
-
-  private static HashSet<String> getFilesForProject(Project project) {
-    HashSet<String> result = new HashSet<>();
-    if (project == null || project.getEProject() == null) {
-      return result;
-    }
-
-    try {
-      // Project.atp
-      result.add(ATGlobal.getPROJECTfilename(project.getDataRoot(), project.getName()));
-
-      // project src files
-      String algorithm = project.getEProject().getAbstractAlgorithmClassname();
-      String testCase = project.getEProject().getTestCaseClassname();
-      String input = project.getEProject().getInputClassname();
-      String output = project.getEProject().getOutputClassname();
-
-      String projSrc = ATGlobal.getPROJECTsrc(project.getEProject().getProjectRootDir());
-      result.add(projSrc + File.separator + algorithm + ".java");
-      result.add(projSrc + File.separator + testCase + ".java");
-      result.add(projSrc + File.separator + input + ".java");
-      result.add(projSrc + File.separator + output + ".java");
-
-      URL[] proJARs = ATTools.getURLsFromJARs(project.getEProject().getStringArray(EProject.ID_ProjectJARs), ATGlobal.getPROJECTlib(project.getEProject().getProjectRootDir()));
-      for (URL url : proJARs) {
-        result.add(url.toString());
-      }
-
-      URL[] algJARs = ATTools.getURLsFromJARs(project.getEProject().getStringArray(EProject.ID_AlgorithmJARs), ATGlobal.getPROJECTlib(project.getEProject().getProjectRootDir()));
-      for (URL url : algJARs) {
-        result.add(url.getFile());
-      }
-    } catch (Exception e) {
-    }
-    return result;
-  }
-
-  private static HashSet<String> getFilesForAlgorithm(Project project, String algName) {
-    HashSet<String> result = new HashSet<>();
-    try {
-      // <algorithm>.atal
-      result.add(ATGlobal.getALGORITHMfilename(project.getEProject().getProjectRootDir(), algName));
-
-      // MainClass.java
-      String mainClass = project.getAlgorithms().get(algName).getAlgorithmClassname();
-      String srcDir = ATGlobal.getALGORITHMsrc(project.getEProject().getProjectRootDir(), algName);
-      result.add(srcDir + File.separator + mainClass + ".java");
-    } catch (Exception e) {
-    }
-    return result;
-  }
-
-  // Returns all files describing testsets of a given project. The files are taken from data_root (and not data_local) folder 
-  private static HashSet<String> getFilesForTestSet(Project project, String testsetName) {
-    HashSet<String> result = new HashSet<>();
-    try {
-      // TestSetX.atts
-      result.add(ATGlobal.getTESTSETfilename(project.getDataRoot(), project.getName(), testsetName));
-
-      // testsetX.txt
-      String descFile = project.getTestSets().get(testsetName).getTestSetDescriptionFile();
-      result.add(ATGlobal.getTESTSroot(project.getDataRoot(), project.getName()) + File.separator + descFile);
-    } catch (Exception e) {
-    }
-    return result;
-  }
-
-  private static HashSet<String> getFilesForMeasurementType(Project project, String mType) {
-    HashSet<String> result = new HashSet<>();
-    try {
-      // Project-[mtype].atrd
-      result.add(ATGlobal.getRESULTDESCfilename(project.getEProject().getProjectRootDir(), project.getName(), MeasurementType.valueOf(mType)));
-    } catch (Exception e) {
-    }
-    return result;
-  }
 
   /**
-   * Returns filenames of all files composing the
-   * project-algorithm-testset-mtype (apt, atts, atrd, ..., jars, *.java, ...)
-   */
-  private static HashSet<String> getFilesForProjectAlgorithmTestSetMType(Project project, String algName, String testsetName, String mType) {
-    HashSet<String> result = new HashSet<>();
-
-    result.addAll(getFilesForProject(project));
-    result.addAll(getFilesForAlgorithm(project, algName));
-    result.addAll(getFilesForTestSet(project, testsetName));
-    result.addAll(getFilesForMeasurementType(project, mType));
-
-    return result;
-  }
-
-  /**
-   * Compare the date of last change of the file with results with the date of
-   * last change of all files of the project-algoritgm-testset-mtype and returns
-   * true if results file is the youngest file and false otherwise.
+   * Compare the date of last change of project, algorithm and testset with 
+   * the date of change of the file with results
    */
   public static boolean resultsAreUpToDate(Project project, String algorithmName, String testsetName, String mtype) {
     String resultFileName = getTaskResultFileName(project, algorithmName, testsetName, mtype);
     return resultsAreUpToDate(project, algorithmName, testsetName, mtype, resultFileName);
   }
 
-  public static boolean resultsAreUpToDate(Project project, String algorithmName, String testsetName,
-          String mtype, String resultFileName) {
-
-    HashSet<String> depFiles = getFilesForProjectAlgorithmTestSetMType(project, algorithmName, testsetName, mtype);
-    return resultsAreUpToDate(depFiles, resultFileName);
+  public static boolean resultsAreUpToDate(Project project, String algorithmName, String testsetName, String mtype, String resultFileName) {
+    return resultsAreUpToDate(project.getEProject(), 
+      EAlgorithm.getAlgorithm(project.getName(), algorithmName), ETestSet.getTestset(project.getName(), testsetName), resultFileName);
   }
-
-  /**
-   * Compare the date of last change of resultFile with the date of last change
-   * of all files in a given set (depFiles). Method returns true if resultFile
-   * is the youngest.
-   */
-  public static boolean resultsAreUpToDate(HashSet<String> depFiles, String resultFileName) {
-    try {
-      File curFile = new File(resultFileName);
-      if (!curFile.exists()) {
-        return false;
-      }
-
-      for (String file : depFiles) {
-        File f = new File(file);
-        if (!f.exists()) {
-          continue;
-        }
-        if (FileUtils.isFileNewer(f, curFile)) {
-          return false;
-        }
-      }
-      return true;
-    } catch (Exception e) {
-      return false;
-    }
+  public static boolean resultsAreUpToDate(EProject eProj, EAlgorithm eAlg, ETestSet eTst, String resultFileName) {    
+    // when the project-alg-tst was last changed
+    long lastChanged = Arrays.stream(new long[]{eProj.lastModified(eProj.getName(), ""), eAlg.lastModified(eProj.getName(), eAlg.getName()), eTst.lastModified(eProj.getName(), eTst.getName())}).max().getAsLong();
+    
+    return new File(resultFileName).lastModified()/1000 > lastChanged;
   }
 
   /**
@@ -421,132 +220,49 @@ public class ATTools {
     return expectedNumberOfInstances == getNumberOfTests(resultFileName);
   }
 
+  
   /**
-   * Za vse aktualne pare [familyID].[computerID] v folderju
-   * PROJ-[project]/results/[familyID].[computerID] pogleda za obstoj datoteke
-   * [algorithm]-[testset].[mtype]. Če med temi datotekami najde up-to-date
-   * datoteko (ima pravilno število vrstic (zapisno v testset.N) in je mlajša od
-   * konfiguracijksih datotek), vrne njemo ime (če obstaja več takih datotek,
-   * vrne prvo, na katero naleti). Če nobena datoteka ni up-to-date, vrne prvo,
-   * ki ima pravilno število vrstic. Sicer vrne prvo neprazno datoteko. Če pa
-   * tudi nobena neprazna datoteka ne obstaja, vrne ime datoteke na
-   * thisComputerID() ("C0").<br><br>
-   *
-   * Namen: metoda vrne datoteko z rezultati za dan trojček
-   * algoritem-testset-mtype. Ker lahko obstaja več datotek, ki vsebujejo te
-   * rezultate (če so, na primer, različni računalniki izvedli isti task), moram
-   * izbrati eno izmed njih. Izbiram po naslednjem postopku: najprej določim
-   * aktualne družine računalnikov. To je project.family, če obstaja, sicer so
-   * to vse obstoječe družine. Potem za vse računalnike izbranih družin po vrsti
-   * pregledujem datoteke in vrnem PRVO up-todate ali complete ali non-empty
-   * datoteko.
+   * Metoda vrne VSE rezultate izvajanja z različnimi računalniki, torej vse obstoječe 
+   * datoteke z imenom algoritem-testset.mtype. Če je družina (family) podana, vrne samo 
+   * rezultate te družine sicer rezultate vseh družin
+   */
+  public static List<Path> getAllResultFiles(Project project, String algorithmName, String testsetName, String mType, String family) {
+      String parentDir    = ATGlobal.getRESULTSrootroot(project.getProjectRoot());
+      String filename     = ATGlobal.getResultFilenameName(algorithmName, testsetName, mType);
+            
+      // to ensure completness of familyName
+      String familyName   = family.isEmpty() ? "" : family+".";
+      
+      List<Path> files = new ArrayList();
+      try {
+        files = Files.walk(Paths.get(parentDir), 2)
+          .filter(p -> p.getParent() != null && p.getParent().getFileName().toString().startsWith(familyName))
+          .filter(p -> p.getFileName().toString().equals(filename))
+          .collect(Collectors.toList());
+        } catch (IOException e) {}
+    return files;
+  }  
+  
+  /**
+   * This is a simplification of the oldest getTaskResultFileName method. Here the 
+   * resultFileName is the name of the most recent file with results for this family 
+   * (or for any family if family is not set in Project)
+   * 
    */
   public static String getTaskResultFileName(Project project, String algorithmName, String testsetName, String mType) {
-    MeasurementType mt = MeasurementType.UNKNOWN;
-    try {
-      mt = MeasurementType.valueOf(mType.toUpperCase());
-    } catch (Exception e) {
-    }
-
-    String familyName = project.getEProject().getProjectFamily(mt);
-    EAlgatorConfig config = EAlgatorConfig.getConfig();
-
-    // The families that are to be checked
-    TreeSet<String> families = new TreeSet<>();
-    // If family is known, check only results for this family ...
-    if (familyName != null && !familyName.isEmpty()) {
-      families.add(familyName);
-    } else { // ... else check all families        
-      for (EComputerFamily family : config.getFamilies()) {
-        String familyID = family.getField(EComputerFamily.ID_FamilyID);
-        if (familyID != null && !familyID.isEmpty()) {
-          families.add(familyID);
+    String family = project.getEProject().getProjectFamily(mType);
+    List<Path> files = getAllResultFiles(project, algorithmName, testsetName, mType, family);
+    Path mostRecentFile = files.stream()
+      .max(Comparator.comparingLong(p -> {
+        try {
+          return Files.getLastModifiedTime(p).toMillis();
+        } catch (IOException e) {
+          return Long.MIN_VALUE; // Treat errors as oldest
         }
-      }
-    }
-
-    int expectedNumberOfLines = 0;
-    ETestSet testset = project.getTestSets().get(testsetName);
-    if (testset != null) {
-      try {
-        expectedNumberOfLines = testset.getFieldAsInt(ETestSet.ID_N, 0);
-      } catch (Exception e) {
-      }
-    }
-
-    String firstNonEmptyFile = "", firstCompleteFile = "";
-    // loop all families ...
-    for (EComputerFamily compFamily : config.getFamilies()) {
-      String thisFamilyID = compFamily.getField(EComputerFamily.ID_FamilyID);
-      // ... and check all that are in the set "families"
-      if (families.contains(thisFamilyID)) {
-        String threeFiles[]
-                = getTaskResultFilesNameForFamily(project, algorithmName, testsetName, mt, compFamily, expectedNumberOfLines);
-        if (!threeFiles[2].isEmpty()) {
-          // uptodate file was found!
-          return threeFiles[2];
-        }
-        if (firstNonEmptyFile.isEmpty() && !threeFiles[1].isEmpty()) {
-          firstNonEmptyFile = threeFiles[1];
-        }
-        if (firstCompleteFile.isEmpty() && !threeFiles[0].isEmpty()) {
-          firstCompleteFile = threeFiles[0];
-        }
-      }
-    }
-    if (!firstCompleteFile.isEmpty()) {
-      return firstCompleteFile;
-    } else {
-      return firstNonEmptyFile;
-    }
-  }
-
-  /**
-   * Po vrsti za vsak računalnik [comp] iz družine [family] pregleda datoteke
-   * results/[family].[comp]/algorithm-testset.mtype in tri vrne imena datotek:
-   * prvo neprazno datoteko, prvo popolno datoteko in prvi ažurno datoteko, na
-   * katero je naletel med pregledom.
-   */
-  private static String[] getTaskResultFilesNameForFamily(Project project, String algorithmName, String testsetName,
-          MeasurementType mType, EComputerFamily compFamily, int expectedNumberOfTests) {
-
-    String firstNonEmptyFile = "", firstCompletFile = "", firstUptodateFile = "";
-
-    String thisFamilyID = compFamily.getField(EComputerFamily.ID_FamilyID);
-
-    // for all computer in given family ...
-    for (EComputer computer : EAlgatorConfig.getConfig().getComputers()) {
-      // vse računalnike, ki niso v 
-      if (!computer.getField(EComputer.ID_FamilyID).equals(compFamily.get(EComputerFamily.ID_FamilyID))) continue;
-      
-      String computerID = thisFamilyID + "." + computer.getField(EComputer.ID_ComputerID);
-      String resultFileName = ATGlobal.getRESULTfilename(project.getEProject().getProjectRootDir(),
-              algorithmName, testsetName, mType, computerID);
-
-      // check the corresponding [algorithm]-[testset].[mtype] file 
-      File resultFile = new File(resultFileName);
-      if (!resultFile.exists()) {
-        continue;
-      }
-      if ((resultFile.length() > 0) && firstNonEmptyFile.isEmpty()) {
-        firstNonEmptyFile = resultFileName;
-      }
-
-      int numberOfTests = getNumberOfTests(resultFileName);
-      if (numberOfTests == expectedNumberOfTests) {
-        if (firstCompletFile.isEmpty()) {
-          firstCompletFile = resultFileName;
-        }
-
-        if (resultsAreUpToDate(project, algorithmName, testsetName, mType.getExtension(), resultFileName)) {
-          firstUptodateFile = resultFileName;
-          break; // all results are known, method returns
-        }
-      }
-
-    }
-
-    return new String[]{firstNonEmptyFile, firstCompletFile, firstUptodateFile};
+      })).orElse(null);
+    if (mostRecentFile != null)
+      return mostRecentFile.toString();
+    else return "";
   }
 
   /**
@@ -674,54 +390,6 @@ public class ATTools {
     if (!resPath.exists()) resPath.mkdirs();
   }
 
-  /**
-   * Returns true is an aray is sorted
-   *
-   * @param order 1 ... increasing order, -1 ... decreasing order
-   * @return
-   */
-  public static boolean isArraySorted(int tab[], int order) {
-    for (int i = 0; i < tab.length - 1; i++) {
-      if (order * tab[i] > order * tab[i + 1]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Returns a string representation of an array (first 10 elements)
-   */
-  public static <E> String arrarToString(E[] array) {
-    if (array == null) {
-      return "null";
-    }
-
-    int i;
-    String result = "";
-    for (i = 0; i < Math.min(10, array.length); i++) {
-      if (i > 0) {
-        result += ",";
-      }
-      result += array[i].toString();
-    }
-    if (i < array.length) {
-      result += ", ... (" + array.length + " elements)";
-    }
-    return "[" + result + "]";
-  }
-
-  public static String intArrayToString(int[] array) {
-    if (array == null) {
-      return "null";
-    }
-
-    Integer[] tab = new Integer[array.length];
-    for (int i = 0; i < tab.length; i++) {
-      tab[i] = array[i];
-    }
-    return arrarToString(tab);
-  }
 
   /**
    * Builds a list of JARs in the following format: jar_0:jar_1:..., where jar_i
@@ -842,7 +510,6 @@ public class ATTools {
     
     Matcher action = datePat.matcher(line);
     
-    System.out.println(line);
     while (action.find()) {
       String dateL = action.group(1);
       if (dateL == null || dateL.length() < 6) continue;
@@ -863,7 +530,15 @@ public class ATTools {
 
 // d:\Users\tomaz\OneDrive\ULFRI\ALGATOR_ROOT\data_root\projects\PROJ-MnozenjeStevil\tests\TestSet5.json
 
-    System.out.println(extractFileNamePrefix(new File("d:\\Users\\tomaz\\OneDrive\\ULFRI\\ALGATOR_ROOT\\data_root\\projects\\PROJ-MnozenjeStevil\\tests\\TestSet5.json")));
+    // System.out.println(extractFileNamePrefix(new File("d:\\Users\\tomaz\\OneDrive\\ULFRI\\ALGATOR_ROOT\\data_root\\projects\\PROJ-MnozenjeStevil\\tests\\TestSet5.json")));
+    
+    Project p = new Project(ATGlobal.getALGatorDataRoot(), "BasicSort");
+    System.out.println(
+      getTaskResultFileName(p, "BubbleSort", "TestSet110", "em") 
+    );
+ 
   }
+  
+  
 
 }

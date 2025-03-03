@@ -1,26 +1,89 @@
-{
-  "Presenter": {
-    "Name": "mpPresenter1",
-    "Title":        "t_mpPresenter1",
-    "ShortTitle":   "st_mpPresenter1",
-    "Description":  "d_mpPresenter1",
-    "Query"   :     {}, 
-
-    "HasTable":     true, 
-    "Columns" :     [], 
-
-    "HasGraph":       true, 
-    "categoryLabels": false, 
-    "graphType":      "line", 
-    "gridX":          true, 
-    "gridY":          true, 
-    "logScale":       false, 
-    "manData":        {},  
-    "zoom":           true,
-    "subchart":       false, 
-    "xAxis":          "", 
-    "yAxes":          [], 
-    "xAxisTitle":     "x_mpPresenter1", 
-    "yAxisTitle":     "y_mpPresenter1"    
-  }
-}
+{"Presenter": {
+  "Author": "root",
+  "Date": "02/26/2025, 10:40",
+  "Title": "Sorting medium-sized arrays",
+  "ShortTitle": "Medium-sized arrays",
+  "Description": "",
+  "Query": {
+    "Algorithms": ["*"],
+    "ComputerID": "",
+    "Count": false,
+    "Filter": [],
+    "GroupBy": ["N"],
+    "Indicators": [
+      "*EM",
+      "int floor(10000*@Tmin / (@N*@N)) AS C2",
+      "int floor(10000*@Tmin / (@N*log(@N))) AS C1"
+    ],
+    "Parameters": ["N"],
+    "SortBy": [],
+    "TestSets": ["TestSet2"]
+  },
+  "Layout": [
+    [
+      "TextBox_1",
+      "Graph_1"
+    ],
+    [
+      "Graph_2",
+      "TextBox_2"
+    ],
+    [
+      "TextBox_3",
+      "Graph_3"
+    ]
+  ],
+  "Descripotion": "Medium sized arrays (TestSet2)",
+  "Graph_1": {
+    "xAxis": "N",
+    "yAxes": ["*.Tmin"],
+    "graphTypes": "",
+    "xAxisTitle": "",
+    "yAxisTitle": "",
+    "categoryLabels": false,
+    "gridX": false,
+    "gridY": false,
+    "logScale": false,
+    "manData": {},
+    "subchart": false,
+    "zoom": false
+  },
+  "LastModified": 1740574379,
+  "Graph_2": {
+    "xAxis": "N",
+    "yAxes": [
+      "BubbleSort.C2",
+      "InsertionSort.C2"
+    ],
+    "graphTypes": "",
+    "xAxisTitle": "",
+    "yAxisTitle": "",
+    "categoryLabels": false,
+    "gridX": false,
+    "gridY": false,
+    "logScale": false,
+    "manData": {},
+    "subchart": false,
+    "zoom": false
+  },
+  "Graph_3": {
+    "xAxis": "N",
+    "yAxes": [
+      "QuickSort.C1",
+      "JavaSort.C1"
+    ],
+    "graphTypes": "",
+    "xAxisTitle": "",
+    "yAxisTitle": "",
+    "categoryLabels": false,
+    "gridX": false,
+    "gridY": false,
+    "logScale": false,
+    "manData": {},
+    "subchart": false,
+    "zoom": false
+  },
+  "TextBox_1": {"htmltext": "<div>The difference between quadratic and linearithmic algorithms becomes even more evident for arrays of medium size. Notice that BubbleSort is the slowest, while JavaSort is the fastest sorting algorithm in this setup. Excluding the quadratic algorithms (by clicking their icons in the legend) highlights the difference between JavaSort and QuickSort.<\/div>"},
+  "TextBox_2": {"htmltext": "<div>BubbleSort and InsertionSort have quadratic time complexity, i.e.,&nbsp; \\(T(n) \\approxeq C2\\cdot N^2 \\).<\/div><div><br><\/div><div>In this graph, \\(C2\\) represents the constant obtained from the measured time of each test by<\/div><div><br><\/div><div>$$C2 = \\frac{10000 \\cdot T_{\\text{min}}}{N^2}$$<\/div><div><br><\/div><div>where:<\/div><div>- \\(T_{\\text{min}}\\) is the measured minimum time (in micro seconds) for a given test,<\/div><div>- \\(N\\) is the size of the input array.<\/div><div><br><\/div><div><div>Results show that the asymptotic constant \\(C2\\) for BubbleSort is more than 5 times bigger than that for InsertionSort.<\/div><\/div>"},
+  "TextBox_3": {"htmltext": "<div>QuickSort and JavaSort have quadratic time complexity, i.e.,&nbsp; \\(T(n) \\approxeq C1\\cdot N\\cdot \\log(N) \\).<\/div><div><br><\/div><div>In this graph, \\(C1\\) represents the constant obtained from the measured time of each test by<\/div><div><br><\/div><div>$$C1 = \\frac{10000 \\cdot T_{\\text{min}}}{N\\cdot\\log(N)}$$<\/div><div><br><\/div><div>where:<\/div><div>- \\(T_{\\text{min}}\\) is the measured minimum time (in micro seconds) for a given test,<\/div><div>- \\(N\\) is the size of the input array.<\/div><div><br><\/div><div>Results show that the asymptotic constant \\(C1\\) for QuickSort is about 2 times bigger than that for JavaSort. The difference appears to decrease as \\(N\\) increases.<\/div>"}
+}}

@@ -1,7 +1,6 @@
 {"Algorithm": {
-  "eid":"e_102",
   "Author": "tomaz",
-  "Date": "01, 2018",
+  "Date": "January 2024",
   "ShortName": "BBS",
   "Description": "Bubble sort algorithm. Time complexity: n^2",
   "Language": "Java"

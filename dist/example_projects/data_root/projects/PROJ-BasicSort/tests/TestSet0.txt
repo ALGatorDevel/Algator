@@ -6,11 +6,7 @@ Type0
 Type0:test1:10:SOR
 # Type1 test with N=10000, filename=numbers.rnd, Offset=5
 Type1:test3:10000:numbers.rnd:5
-Type1:test4:20000:numbers.rnd:5
-Type1:polde:30000:numbers.rnd:5
+# Type2 test with inline numbers
 Type2::3:4 3 15 6 1 4
+# A default (Type0) test with INV distribution
 Type0::10:INV
-# in next test (empty line) generator uses default values for all parameters
-
-# test, where only test name is defined (other values are default)
-:def

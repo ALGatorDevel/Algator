@@ -32,7 +32,13 @@ public enum ErrorStatus {
     }
   },
 
-    
+  ERROR_CANT_SYNC             {
+    public String toString() {
+      return "Error: Can not sync project";
+    }
+  },
+
+  
   ERROR_CANT_PERFORM_TEST             {
     public String toString() {
       return "Error: Can not perform this test.";

@@ -181,7 +181,11 @@ public class ExternalExecutor {
           System.out.flush();
         }
 
-        printVariables(resultVariables, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), whereToPrint, asJSON);
+        // print variables only in case that task==null; if task!=null this is taskClient version
+        // of execute and results are not written to local results file
+        if (task == null) {
+          printVariables(resultVariables, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), whereToPrint, asJSON);
+        }
         
         taskProgress++;
         if (task!= null) {

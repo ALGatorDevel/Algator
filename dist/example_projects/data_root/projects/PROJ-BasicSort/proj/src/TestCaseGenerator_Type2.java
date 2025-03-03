@@ -1,4 +1,3 @@
-
 import java.util.Arrays;
 import si.fri.algator.entities.EVariable;
 import si.fri.algator.entities.Variables;
@@ -7,9 +6,7 @@ import si.fri.algator.execute.AbstractTestCaseGenerator;
 import si.fri.algator.global.ErrorStatus;
 
 /**
- * Type2  test case generator. 
- * Generator generates input array from a given inline data 
- * (string with space-separated int values)
+ * A generator that accepts numbers as an inline, space-separated string of integers. 
  *
  * @author tomaz
 */
@@ -20,9 +17,6 @@ public class TestCaseGenerator_Type2 extends AbstractTestCaseGenerator {
     int[] array = new int[n];    
     
     String inline = generatingParameters.getVariable("Data", "").getStringValue();
-
-    generatingParameters.addVariable(new EVariable("DIST", "INLINE"));
-
 
     if (inline.isEmpty()) {
       ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "Invalid inline data value");  
@@ -53,7 +47,7 @@ public class TestCaseGenerator_Type2 extends AbstractTestCaseGenerator {
     testcaseParameters.addVariable(new EVariable("DIST", "DATA"));
     testcaseParameters.addProperty(PROPS, "Type", "Type2");        
     basicSortTestCase.getInput().setParameters(testcaseParameters);
-
+    
     // ... and the expected output
     int[] expectedResultArray = array.clone();
     Arrays.sort(expectedResultArray);

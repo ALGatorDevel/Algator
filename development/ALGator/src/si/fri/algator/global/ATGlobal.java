@@ -389,12 +389,20 @@ public class ATGlobal {
     return getRESULTSrootroot(projectRoot) + File.separator + computerID;
   }    
 
+  
+  public static String getResultFilenameName(String algName, String testSetName, String mType) {
+    return getResultFilenameName(algName, testSetName, MeasurementType.mtOf(mType));
+  }
+  public static String getResultFilenameName(String algName, String testSetName, MeasurementType measurementType) {
+    return algName + "-" + testSetName + "." + measurementType.getExtension();
+  }
+  
   /**
    * The name of a file containing results of the execution of the algorithm
    * {@code algName} on test set {@code testSetName}.
    */
   public static String getRESULTfilename(String projectRoot, String algName, String testSetName, MeasurementType measurementType, String computerID) {
-    return getRESULTSroot(projectRoot, computerID) + File.separator + algName + "-" + testSetName + "." + measurementType.getExtension();
+    return getRESULTSroot(projectRoot, computerID) + File.separator + getResultFilenameName(algName, testSetName, measurementType);
   }
 
   

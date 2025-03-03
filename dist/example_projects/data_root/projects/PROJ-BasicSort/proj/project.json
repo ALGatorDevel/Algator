@@ -1,6 +1,7 @@
 {"Project": {
-  "eid" : "e_100",
-  "Description": "Basic sorting algorithms",
+  "LastModified": 1740137909,
+  "ShortTitle": "DEMO: Sorting arrays",
+  "Description": "This project is a demonstration designed to test basic sorting algorithms, such as InsertionSort, BubbleSort, and QuickSort. The goal is to demonstrate the basic functionality of ALGator. The results obtained from running the algorithms highlight the similar behavior of quadratic algorithms and the significant difference when compared to linearithmic algorithms.",
   "Author": "tomaz",
   "Date": "01, 2018",
   "Algorithms": [
@@ -15,17 +16,19 @@
     "TestSet3",
     "TestSet0"
   ],
+  "Tags": [
+    "sorting",
+    "array",
+    "integers"
+  ],
   "ProjectJARs": ["basicsort.jar"],
+  "EMExecFamily": "F1",
+  "CNTExecFamily": "F1",
   "ProjPresenters": [
-    "presenter2",
-    "presenter3"
-  ],
-  "AlgPresenters": ["aPresenter2"],
-  "MainProjPresenters": [
-    "mpPresenter2",
     "mpPresenter3",
-    "mpPresenter4",
-    "mpPresenter5"
+    "mpPresenter1",
+    "mpPresenter5",
+    "mpPresenter2"
   ],
-  "MainAlgPresenters": ["maPresenter1"]
+  "AlgPresenters": []
 }}

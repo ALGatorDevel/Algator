@@ -1,51 +1,35 @@
-{
-  "Presenter": {
-    "Columns": [], 
-    "HasGraph": true, 
-    "HasTable": true, 
-    "Query": {
-      "Algorithms": [
-        "*"
-      ], 
-      "ComputerID": "", 
-      "Count": "0", 
-      "Filter": [
-        "N<=1000"
-      ], 
-      "GroupBy": [
-        "N"
-      ], 
-      "Indicators": [
-        "*EM"
-      ], 
-      "Parameters": [
-        "N"
-      ], 
-      "SortBy": [
-        ""
-      ], 
-      "TestSets": [
-        "TestSet1"
-      ]
-    }, 
-    "ShortTitle": "TS1-Min", 
-    "Title": "Minimal time on TestSet1", 
-    "categoryLabels": false, 
-    "graphType": "line", 
-    "gridX": true, 
-    "gridY": true, 
-    "hasGraph": true, 
-    "hasTable": true, 
-    "logScale": false, 
-    "manData": {}, 
-    "name": "mpPresenter2", 
-    "subchart": false, 
-    "xAxis": "N", 
-    "xAxisTitle": "Problem size (N)", 
-    "yAxes": [
-      "*.Tmin"
-    ], 
-    "yAxisTitle": "Execution time (ms)", 
-    "zoom": true
+{"Presenter": {
+  "Author":"tomaz",
+  "Date":"January 2024",
+
+  "Date": "12/12/2024, 13:32",
+  "Title": "All results",
+  "ShortTitle": "all",
+  "Description": "",
+  "Query": {
+    "Algorithms": ["*"],
+    "Count": false,
+    "Filter": [],
+    "GroupBy": ["N"],
+    "Indicators": ["*EM"],
+    "Parameters": ["N"],
+    "SortBy": [],
+    "TestSets": ["*"]
+  },
+  "Layout": [["Graph_1"]],
+  "Descripotion": "Results of all testsets",
+  "Graph_1": {
+    "xAxis": "N",
+    "yAxes": ["*.Tmin"],
+    "graphTypes": "",
+    "xAxisTitle": "",
+    "yAxisTitle": "",
+    "categoryLabels": false,
+    "gridX": false,
+    "gridY": false,
+    "logScale": false,
+    "manData": {},
+    "subchart": false,
+    "zoom": false
   }
-}
+}}

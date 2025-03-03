@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.MultipartConfigElement;
 import si.fri.algator.ausers.AUsersHelper;
+import si.fri.algator.ausers.AUsersTools;
 import si.fri.algator.entities.EAlgatorConfig;
 import si.fri.algator.global.ATGlobal;
 import static spark.Spark.*;
@@ -18,13 +19,18 @@ import static spark.Spark.*;
  * @author tomaz
  */
 public class Server {
+  
+  private String serverID; 
 
   RequestProcessor processor;   /// processor that processes the requests
   
   private long timeStarted;
   
   public Server() {
-    processor = new RequestProcessor(this);
+    // each server has its own ID
+    this.serverID = AUsersTools.getUniqueDBid("s_");
+            
+    processor = new RequestProcessor(this);    
   }
   
  
@@ -46,29 +52,27 @@ public class Server {
   public void run() {
     timeStarted = new java.util.Date().getTime();
     
-    long maxFileSize         = 100000000; // max upload file size: 100 MB
-    long maxRequestSize      = 100000000; 
-    int fileSizeThreshold    = 1024; 
+    ASCleaner.runCleaningDeamon();
+    
     String tmpUploadLocation = ATGlobal.getALGatorDataLocal() + File.separator + "webupload_tmp";
     
     int port    = EAlgatorConfig.getALGatorServerPort();
-    String host = "localhost";  // =EAlgatorConfig.getALGatorServerName();
+    String host = EAlgatorConfig.getALGatorServerName();
     
     port(port);
-    
-    //ipAddress("localhost");
-    //if (!host.equals("localhost"))
-    //  ipAddress(host);
-
-    ASLog.log(String.format("ALGatorServer Initialized on %s:%s ", host, port));    
+       
+    ASLog.log(String.format("ALGatorServer [%s] initialized on %s:%s ", serverID, host, port));  
     
     threadPool(16);
     
     before((request, response) -> {
-      request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(tmpUploadLocation));    
-//      request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(tmpUploadLocation, maxFileSize, maxRequestSize, fileSizeThreshold));      
+      request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(tmpUploadLocation /*, maxFileSize, maxRequestSize, fileSizeThreshold*/));      
     });
 
+    post("/id", (req, res) -> {
+      return serverID;
+    });
+    
     post("/uploadmulti", (req, res) -> {
       return ASTools.uploadMultipart(req);
     });
@@ -80,6 +84,7 @@ public class Server {
       if (path.length() > 0 && path.charAt(0)=='/') path = path.substring(1);
             
       String uid = AUsersHelper.getUIDFromHeaders(req);
+      //uid += " {"+req.ip()+"} ";
       
       if (!ASGlobal.nonlogableRequests.contains(path)) 
           ASLog.log("[REQUEST from "+uid+"]:  " + path + " " + pParams);

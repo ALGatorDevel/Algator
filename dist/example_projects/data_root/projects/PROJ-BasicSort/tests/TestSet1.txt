@@ -4,7 +4,7 @@ Type1:test2:100:numbers.rnd:790096
 Type1:test3:100:numbers.rnd:941484
 Type1:test4:100:numbers.rnd:478826
 Type1:test5:150:numbers.rnd:938077
-Type1:test6:150:numbers.rnd:392204
+Type1:test6:150:numbers.rnd:392200
 Type1:test7:150:numbers.rnd:833386
 Type1:test8:150:numbers.rnd:943436
 Type1:test9:150:numbers.rnd:3802

@@ -1,13 +1,9 @@
-{
-  "TestSet": {
-    "eid"              : "e_107",
-
-    "ShortName"        : "TS3",
-    "Description"      : "Test set containing sorted arrays",
-    "N"                : "105",
-    "TestRepeat"       : "10",
-    "TimeLimit"        : "1",
-
-    "TestSetDescHTML"  : "TestSet3.html"
-  }
-}
+{"TestSet": {
+  "Author": "tomaz",
+  "Date": "January 2024",
+  "ShortName": "TS3",
+  "Description": "A test set containing sorted arrays of size from n=10.000 to n=30.000.  Test set is used to demonstrate that some algorithms perform much better when 'sorting' already sorted arrays.",
+  "N": 105,
+  "TestRepeat": 10,
+  "TimeLimit": 2
+}}

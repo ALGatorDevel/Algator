@@ -22,6 +22,7 @@ import static si.fri.algator.server.ASTools.decodeAnswer;
 import si.fri.algator.server.ASTask;
 import si.fri.algator.entities.CompCap;
 import si.fri.algator.entities.EComputer;
+import si.fri.algator.entities.MeasurementType;
 import si.fri.algator.execute.Executor;
 import si.fri.algator.global.Answer;
 
@@ -41,7 +42,7 @@ public class AEETaskClient {
    *   - ALGatorServerName, ALGatorServerPort
    *   - FamilyID/ComputerID of this computer
    */
-  static void initTaskClient() {
+  static void initTaskClient(String server, int port) {
     System.out.println("ALGator TaskClient configuration\n");
     
     ELocalConfig lconfig = ELocalConfig.getConfig();
@@ -49,17 +50,17 @@ public class AEETaskClient {
     Scanner sc = new Scanner(System.in);
     
     // ALGatorServer connection info
-    boolean serverSet = false;String server=""; int port=0;
+    boolean serverSet = false;
     
     System.out.println("1) Information about ALGatorServer that is going to be used by this TaskClient");   
     while (!serverSet) {
       // ... servername 
-      server = lconfig.getALGatorServerName();
+      if (server.isEmpty()) server = lconfig.getALGatorServerName();
         System.out.print(String.format("  Enter the name (or IP) of the ALGatorServer [%s]: ", server));
         String nServer = sc.nextLine().trim();
         server = nServer.isEmpty() ? server : nServer;
       // ... server port
-      port   = lconfig.getALGatorServerPort();         
+      if (port==0) port   = lconfig.getALGatorServerPort();         
         System.out.print(String.format("  Enter the port number of the ALGatorServer [%d]: ", port));
         String sPort = sc.nextLine().trim();
         int nPort = 0;
@@ -253,14 +254,17 @@ public class AEETaskClient {
     // run a misc task
     String taskType = task.getString(ASTask.ID_TaskType, "NONE");
     switch (taskType) {
-      case "Compile": 
-        Answer ans = Executor.projectMakeCompile(ATGlobal.getALGatorDataRoot(), task.getString("Project"), true);
+      case "CompileProject": 
+        Answer ans = Executor.projectMakeCompile(ATGlobal.getALGatorDataRoot(), task.getString("Project"), true, task);
         taskResult = ans.message;
         break;
+      case "CompileAlgorithm": 
+        ans = Executor.algorithmMakeCompile(ATGlobal.getALGatorDataRoot(), task.getString("Project"), task.getString("Algorithm"), MeasurementType.EM, true);
+        taskResult = ans.message;
+        break;        
       default: return 300;
     }
     
-
     JSONObject jObj = new JSONObject();
     jObj.put(ASTask.ID_ComputerUID, task.getComputerUID());
     jObj.put(ASTask.ID_TaskID, task.getTaskID());
@@ -310,8 +314,8 @@ public class AEETaskClient {
     CommandLine cmdLine = new CommandLine("java");    
 
     //  !!!! to potrebujem samo v primeru, da TaskClient poganjam iz NetBeansa    
-    // cmdLine.addArgument("-cp");
-    // cmdLine.addArgument("/Users/Tomaz/Dropbox/FRI/ALGOSystem/ALGator/development/ALGator/dist/ALGator.jar");
+    //cmdLine.addArgument("-cp");
+    //cmdLine.addArgument("D:\\Users\\tomaz\\OneDrive\\ULFRI\\ALGATOR_dev\\ALGator\\development\\ALGator\\dist\\ALGator.jar");
    
     cmdLine.addArgument("algator.Execute"); 
     
@@ -380,12 +384,15 @@ public class AEETaskClient {
   }
 
   public static void runClient(String hostName, int portNumber)  {
-    String compID = ELocalConfig.getConfig().getComputerUID();
-    AEELog.log        ("TaskClient: " + compID);    
+    String compUID = ELocalConfig.getConfig().getComputerUID();
+    String compID  = ELocalConfig.getConfig().getComputerID();
+    AEELog.log(String.format("Task client '%s' (%s)", compID, compUID));
         
     while(true) {        
         
-        System.out.print("Task client '"+compID+"' connecting to server '"+hostName+"'...");
+        System.out.print(String.format("Task client '%s' (%s) connecting to server '%s'...",
+           compID, compUID, hostName));
+        
         while (true) {
           String ans = Requester.askALGatorServer(hostName, portNumber, ASGlobal.REQ_CHECK_Q);
           if (ans.equals(ASGlobal.REQ_CHECK_A)) break;
@@ -398,7 +405,7 @@ public class AEETaskClient {
         String msg = String.format("\rTask client '"+compID+"' connected to server '%s'%s.", hostName, "                                                 ");
         AEELog.log(        msg);
         while (true) {
-          JSONObject reqJsno = new JSONObject(); reqJsno.put(EComputer.ID_ComputerUID, compID);
+          JSONObject reqJsno = new JSONObject(); reqJsno.put(EComputer.ID_ComputerUID, compUID);
           String taskRequset = ASGlobal.REQ_GET_TASK + ASGlobal.STRING_DELIMITER + reqJsno.toString();
           
           String taskS = Requester.askALGatorServer(hostName, portNumber, taskRequset);

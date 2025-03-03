@@ -14,8 +14,8 @@ import si.fri.algator.global.ATLog;
  * @author tomaz
  */
 public class Version {
-  private static String version = "0.986";
-  private static String date    = "November 2023";
+  private static String version = "0.988";
+  private static String date    = "January 2025";
   
   public static String getVersion() {
     return String.format("version %s (%s)", version, date);
@@ -42,7 +42,7 @@ public class Version {
     
     try {
       Statement stmt = (Statement) conn.createStatement();    
-      ResultSet rs = stmt.executeQuery("SELECT * FROM authuser_user");
+      ResultSet rs = stmt.executeQuery("SELECT * FROM ausers_user");
       System.out.print("Users in database:  ");
       while (rs.next()) {
           System.out.print(rs.getString("username") + (rs.isLast() ? "" :", "));

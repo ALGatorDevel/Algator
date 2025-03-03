@@ -14,7 +14,9 @@ public class EProject extends Entity {
   public static final String ID_Project   ="Project";
   
   //Fields
+  public static final String ID_ShortTitle            = "ShortTitle";	        // String
   public static final String ID_Description           = "Description";	        // String
+
   public static final String ID_Author                = "Author";	        // String
   public static final String ID_Date                  = "Date";		        // String
   public static final String ID_Algorithms            = "Algorithms";	        // String []
@@ -23,30 +25,30 @@ public class EProject extends Entity {
   public static final String ID_ProjectJARs           = "ProjectJARs";          // Filename[]
   public static final String ID_AlgorithmJARs         = "AlgorithmJARs";        // Filename[]
   
+  public static final String ID_Tags                  = "Tags";                 // String []
+  
   public static final String ID_EMExecFamily          = "EMExecFamily";         // String
   public static final String ID_CNTExecFamily         = "CNTExecFamily";        // String
   public static final String ID_JVMExecFamily         = "JVMExecFamily";        // String
   
-  public static final String ID_ProjPresenters        = "ProjPresenters";       // String []
-  public static final String ID_AlgPresenters         = "AlgPresenters";        // String []
-  public static final String ID_MainProjPresenters    = "MainProjPresenters";   // String []
-  public static final String ID_MainAlgPresenters     = "MainAlgPresenters";    // String []
+  public static final String ID_ProjPresenters        = "ProjPresenters";   // String []
+  public static final String ID_AlgPresenters         = "AlgPresenters";    // String []
   
   // returns an EProject with given name in current data_root folder
   public static EProject getProject(String projectName) {
     String data_root = ATGlobal.getALGatorDataRoot();
     EProject prj = new EProject(new File(ATGlobal.getPROJECTfilename(data_root, projectName)));
-    prj.set(ID_LAST_MODIFIED, prj.getLastModified(projectName, ""));
+    prj.set(ID_LAST_MODIFIED, prj.lastModified(projectName, ""));
     return prj;
   } 
   
   public EProject() {
    super(ID_Project, 
-	 new String [] {ID_Description, ID_Author, ID_Date,  
-	                ID_Algorithms, ID_TestSets, 
+	 new String [] {ID_ShortTitle, ID_Description, ID_Author, ID_Date,  
+	                ID_Algorithms, ID_TestSets, ID_Tags,
                         ID_ProjectJARs, ID_AlgorithmJARs, 
                         ID_EMExecFamily, ID_CNTExecFamily, ID_JVMExecFamily, 
-                        ID_ProjPresenters, ID_AlgPresenters, ID_MainProjPresenters, ID_MainAlgPresenters}
+                        ID_ProjPresenters, ID_AlgPresenters}
 	);
    setRepresentatives(ID_NAME, ID_Author);
   }
@@ -74,7 +76,6 @@ public class EProject extends Entity {
   public String getProjectFamily(String mType) { 
     return getProjectFamily(MeasurementType.mtOf(mType));
   }
-  
   public String getProjectFamily(MeasurementType mt) {
     String myFamily = getField(getMeasurementTypeFieldID(mt));
     return myFamily == null ? "" : myFamily;
@@ -125,16 +126,23 @@ public class EProject extends Entity {
   }
   
   @Override
-  // last project change is considered as date of last source file change
+  // datum zadnje spremembe je datum spremembe poljubne src (.java) datoteke oziroma
+  // poljubne .json datoteke (vse razen project.json)
   public long getLastModified(String projectName, String entityName) {
-    String fileName  = ATGlobal.getPROJECTsrc(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName));
-    File   srcFolder = new File(fileName);
-    String[] files = srcFolder.list();
+    String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName);
+
+    String srcRoot     = ATGlobal.getPROJECTsrc(projectRoot);
+    File[] srcFiles    = new File(srcRoot).listFiles((dir, name) -> name.endsWith(".java"));
     
+    String projRoot    = ATGlobal.getPROJECTConfigFolder(ATGlobal.getALGatorDataRoot(), projectName);
+    File[] projFiles   = new File(projRoot).listFiles((dir, name) -> name.endsWith(".json") && !name.startsWith("project"));    
+
     long last = 0;
-    for (String file : files) {
-      last = Math.max(last, new File(srcFolder, file).lastModified()/1000);
-    }
+    for (File srcFile : srcFiles) 
+      last = Math.max(last, srcFile.lastModified()/1000);
+    for (File projFile : projFiles) 
+      last = Math.max(last, projFile.lastModified()/1000);
+
     return last;
   }  
 }

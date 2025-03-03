@@ -1,9 +1,7 @@
 {"Algorithm": {
-  "eid":"e_103",
   "Author": "tomaz",
-  "Date": "01, 2018",
-  "ShortName": "InsSort",
-  "Description": "Simple algorithm that sorts by inserting elements on right place",
-  "Language": "Java",
-  "Presenters": ["presenter1"]
+  "Date": "January 2024",
+  "ShortName": "IS",
+  "Description": "Insertion Sort sorts by inserting elements in the correct position.",
+  "Language": "Java"
 }}

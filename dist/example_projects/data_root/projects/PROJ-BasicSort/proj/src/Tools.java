@@ -5,13 +5,9 @@
 public class Tools  {
 
 /*
- *  In this project we don't use this class for helping methods. 
- *  Instead, we defined static methods used in the project in 
- *  the proj/lib/basicsort/Tools.java file, which was packed into 
- *  a jar and imported into a project via   "ProjectJARs" property
- *  in the BasicSort.atp file.
- *
- *  For example of the usage of the ProjectTools class, see the 
-  * BasicMatrixMul project.
+ * In this project, we do not use this class for helper methods. Instead, 
+ * we define static methods used in the project in the proj/lib/basicsort/Tools.java 
+ * file, which is packaged into a JAR and imported into the project via the 
+ * 'ProjectJARs' property.
 */
 }

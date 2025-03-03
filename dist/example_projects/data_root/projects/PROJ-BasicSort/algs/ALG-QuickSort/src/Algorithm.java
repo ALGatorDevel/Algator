@@ -1,6 +1,6 @@
 /**
  *
- * @author tomaz
+ * @author tomaž
  */
 public class Algorithm extends ProjectAbstractAlgorithm {
 

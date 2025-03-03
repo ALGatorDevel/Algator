@@ -1,8 +1,7 @@
 {"Algorithm": {
-  "eid":"e_104",
   "Author": "tomaz",
-  "Date": "01, 2018",
-  "ShortName": "JSort",
-  "Description": "Java sorting method",
+  "Date": "January 2024",
+  "ShortName": "JS",
+  "Description": "Sorting numbers using Java's integrated sort() method.",
   "Language": "Java"
 }}

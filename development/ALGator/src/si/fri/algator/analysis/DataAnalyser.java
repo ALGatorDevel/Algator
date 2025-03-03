@@ -444,11 +444,12 @@ public class DataAnalyser {
       // če ima query definiran computerID, potem se uporabi tega
       if (queryComputerID != null && !queryComputerID.isEmpty()) {
         computerID = queryComputerID;
-      } else // če comupterID v poizvedbi ni naveden, pa uporabim podani computerID; če je ta prazen pa thisComputerID
+      } /* else // če comupterID v poizvedbi ni naveden, pa uporabim podani computerID; če je ta prazen pa thisComputerID
         if (computerID == null || "".equals(computerID)) {
           computerID = ATGlobal.getThisComputerID();
         }
-
+      */
+      
       String algorithms[] = getQueryEntities(eProject, query, EQuery.ID_Algorithms, EProject.ID_Algorithms);
       algorithms = CanUtil.filterPermitted(uid, algorithms,
          name -> {return EAlgorithm.getAlgorithm(eProject.getName(), name).getEID();}

@@ -8,12 +8,16 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.apache.commons.io.input.ReversedLinesFileReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author tomaz
  */
 public class ASLog {
+  private static final Logger logger = LoggerFactory.getLogger(Server.class);
+
   public static boolean doVerbose = false;
   private static String logFileName = null;
   
@@ -36,7 +40,7 @@ public class ASLog {
     try (PrintWriter pw = new PrintWriter(new FileWriter(logFileName, true))) {
       pw.println(logMsg);
       if (doVerbose)
-        System.out.println(logMsg);
+        logger.info(logMsg);
     } catch (Exception e) {
       // error in logging can not be loged
     }

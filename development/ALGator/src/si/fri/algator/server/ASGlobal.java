@@ -29,9 +29,9 @@ public class ASGlobal {
   public static final String REQ_TASK_STATUS      = "TASKSTATUS";     // parameters: json(TaskID)
   public static final String REQ_PAUSE_TASK       = "PAUSETASK";      // parameters: json(TaskID)
   public static final String REQ_GETTASKRESULT    = "GETTASKRESULT";  // parameters: json(TaskID)
-
   public static final String REQ_CANCEL_TASK      = "CANCELTASK";     // parameters: json(TaskID)
   public static final String REQ_RESUME_TASK      = "RESUMETASK";     // parameters: json(TaskID)
+  public static final String REQ_SET_TASK_PRIORITY= "SETTASKPRIORITY";// parameters: json(TaskID)
   public static final String REQ_TASK_RESULT      = "TASKRESULT";     // parameters: json(ComputerUID, TaskID, TestNo, Result)
  
   public static final String REQ_QUERY_RES        = "GETQUERYRESULT"; // parameters: projectName
@@ -51,8 +51,16 @@ public class ASGlobal {
    
   public static final String REQ_GETPFILES        = "GETPFILES";      // parameter: json (Project)
   public static final String REQ_GETPROJECTLIST   = "GETPROJECTLIST"; // no parametes
+  
+  // requests for ashell results 
   public static final String REQ_GETRESULTSTATUS  = "GETRESULTSTATUS"; // json (Project, mType)
   public static final String REQ_GETRESULTUPDATE  = "GETRESULTUPDATE"; // json (ID)
+  
+  // requests for ALGatorWeb results 
+  public static final String REQ_GETAWRESULTS     = "GETAWRESULTS";    // json (Project, mType)
+  
+  // return content of result file
+  public static final String REQ_GETRESULTFILE    = "GETRESULTFILE";   // json (Project, Algorithm, Testset, MType)
   
   public static final String REQ_GETDATA          = "GETDATA";         // json (Type, ...)
   public static final String REQ_ALTER            = "ALTER";           // json (Type, ...)
@@ -135,7 +143,7 @@ public class ASGlobal {
     return getALGatorServerLogFolder() + File.separator + ALGATORSERVER_LOG_FILENAME;
   }
  
-  public static int getNextTaskID() {
+  public static synchronized int getNextTaskID() {
     try {
      File folder = new File(getALGatorServerLogFolder());
      File file   = new File(folder, TASK_ID_FILENAME);

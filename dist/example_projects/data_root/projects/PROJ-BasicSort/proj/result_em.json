@@ -1,46 +1,63 @@
-{
-  "Result":
-  { 
-    "IndicatorsOrder"   : ["Tfirst", "Tmin", "Tavg", "Tall", "Tsum", "Check"],     
-  
-    "Indicators":   [ 
-      {
-       "Name"         : "Tfirst",             
-       "Description"  : "Sorting FIRST time",             
-       "Type"         : "timer",          
-       "Meta"         : {"ID" : 0, "STAT": "FIRST"}    
-      },
-    
-      {
-       "Name"         : "Tall",             
-       "Description"  : "Sorting times",             
-       "Type"         : "timer",          
-       "Meta"         : {"ID" : 0, "STAT": "ALL"}
-      },
-      {
-       "Name"        : "Tmin",             
-       "Description" : "Sorting MIN time",             
-       "Type"        : "timer",          
-       "Meta"        : {"ID" : 0, "STAT": "MIN"}        
-      },
-      {
-       "Name"         : "Tavg",             
-       "Description"  : "Sorting AVG time",             
-       "Type"         : "timer",          
-       "Meta"         : {"ID" : 0, "STAT": "AVG"}    
-      },
-      {
-       "Name"        : "Tsum",             
-       "Description" : "Sorting SUM  time",             
-       "Type"        : "timer",          
-       "Meta"        : {"ID" : 0, "STAT": "SUM"}    
-      },
-      {
-       "Name"        : "Check",             
-       "Description" : "The correctness of the algorithm (OK or NOK)", 
-       "Type"        : "string"       
+{"Result": {
+  "eid": "e?",
+  "IndicatorsOrder": [
+    "Tfirst",
+    "Tmin",
+    "Tavg",
+    "Tall",
+    "Tsum",
+    "Check"
+  ],
+  "Indicators": [
+    {
+      "Name": "Tfirst",
+      "Description": "The first measured time for a given test case.",
+      "Type": "timer",
+      "Meta": {
+        "ID": 0,
+        "STAT": "FIRST"
       }
-    ]
-  }
-}
- 
+    },
+    {
+      "Name": "Tall",
+      "Description": "All measured times for a given test case.",
+      "Type": "timer",
+      "Meta": {
+        "ID": 0,
+        "STAT": "ALL"
+      }
+    },
+    {
+      "Name": "Tmin",
+      "Description": "The minimal measured times for a given test case.",
+      "Type": "timer",
+      "Meta": {
+        "ID": 0,
+        "STAT": "MIN"
+      }
+    },
+    {
+      "Name": "Tavg",
+      "Description": "The average of all measured times for a given test case.",
+      "Type": "timer",
+      "Meta": {
+        "ID": 0,
+        "STAT": "AVG"
+      }
+    },
+    {
+      "Name": "Tsum",
+      "Description": "The sum of all measured times for a given test case.",
+      "Type": "timer",
+      "Meta": {
+        "ID": 0,
+        "STAT": "SUM"
+      }
+    },
+    {
+      "Name": "Check",
+      "Description": "This indicator checks the correctness of the algorithm by comparing the expected output with the result of the algorithm and returns 'OK' if they are equal, or 'NOK' if they differ.",
+      "Type": "string"
+    }
+  ]
+}}

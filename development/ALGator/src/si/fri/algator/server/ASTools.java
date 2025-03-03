@@ -1,13 +1,11 @@
 package si.fri.algator.server;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -19,19 +17,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.servlet.http.Part;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -40,8 +36,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import si.fri.algator.admin.Maintenance;
 import si.fri.algator.admin.Tools;
+import si.fri.algator.ausers.AUsersTools;
 import si.fri.algator.ausers.CanUtil;
 import static si.fri.algator.ausers.CanUtil.accessDeniedString;
+import si.fri.algator.ausers.EntitiesDAO;
+import si.fri.algator.ausers.dto.DTOEntity;
+import si.fri.algator.ausers.dto.DTOUser;
 
 import si.fri.algator.entities.CompCap;
 import si.fri.algator.entities.EAlgatorConfig;
@@ -60,6 +60,7 @@ import si.fri.algator.global.ErrorStatus;
 import si.fri.algator.tools.SortedArray;
 import si.fri.algator.entities.Entity;
 import si.fri.algator.tools.ATTools;
+import static si.fri.algator.tools.ATTools.getTaskResultFileName;
 import si.fri.algator.tools.UniqueIDGenerator;
 import spark.Request;
 
@@ -81,8 +82,13 @@ public class ASTools {
   // (with taskResult, closeTask or getTask request)
   public static TreeMap<Integer, ASTaskStatus> pausedAndCanceledTasks;
 
-  public static Hashtable<String, JSONObject> statusResults;
+  // results sent to ashell
+  public static ConcurrentHashMap<String, JSONObject> statusResults = new ConcurrentHashMap<>();
+  
+  // results sent to webpage; used to calculate difference so that update can only send changes
+  public static final ConcurrentHashMap<String, JSONObject> awResults = new ConcurrentHashMap<>();
 
+  
   static {
     // when a server is created, array of tasks is read from file
     if (activeTasks == null) {
@@ -94,10 +100,6 @@ public class ASTools {
 
     if (pausedAndCanceledTasks == null) {
       pausedAndCanceledTasks = new TreeMap();
-    }
-
-    if (statusResults == null) {
-      statusResults = new Hashtable<>();
     }
   }
 
@@ -225,6 +227,9 @@ public class ASTools {
     String data_root = ATGlobal.getALGatorDataRoot();
     String proot = ATGlobal.getPROJECTroot(data_root, projectName);
 
+    if (result.optString(EProject.ID_ShortTitle, "").isEmpty())
+      result.put(EProject.ID_ShortTitle, projectName);
+    
     // remove "non-existing" or "non-visible" algorithms
     JSONArray algs = result.optJSONArray(EProject.ID_Algorithms);
     if (algs != null) {
@@ -254,7 +259,7 @@ public class ASTools {
       }
     }
     // remove "non-existing" or "non-visible" presenters
-    JSONArray prts = result.optJSONArray(EProject.ID_MainProjPresenters);
+    JSONArray prts = result.optJSONArray(EProject.ID_ProjPresenters);
     if (prts != null) {
       for (int i = prts.length() - 1; i >= 0; i--) {
         if (ATGlobal.presenterExists(data_root, projectName, prts.getString(i))) {
@@ -273,10 +278,12 @@ public class ASTools {
     for (EComputer computer : EAlgatorConfig.getConfig().getComputers()) 
       registeredComputers.add(computer.getFCName());
     String resultsPath = ATGlobal.getRESULTSrootroot(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName));
-    String[] comps     = new File(resultsPath).list();
     JSONArray usedComputers = new JSONArray();
-    for (String comp : comps) 
+    
+    String[] comps     = new File(resultsPath).list();
+    if (comps != null) for (String comp : comps) 
       if (registeredComputers.contains(comp)) usedComputers.put(comp);
+    
     result.put("Computers", usedComputers);
 
     return result;
@@ -303,9 +310,33 @@ public class ASTools {
       return sAnswer(99, "getProjectDescription: " + accessDeniedString, accessDeniedString);
     }
 
+    long lastModified = project.getLastModified(projectName, "Project");
+    File pFile = new File(ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projectName));
+    lastModified = Math.max(lastModified, pFile.lastModified()/1000);
+    
+    DTOEntity entity = EntitiesDAO.getEntity(eid);
+    String owner = entity==null ? "" : entity.getOwner();
+    String user = owner.isEmpty() ? "" : AUsersTools.getUser(owner).getUsername();
+
+    int numberOfA = project.getStringArray(EProject.ID_Algorithms).length;
+    int numberOfT = project.getStringArray(EProject.ID_TestSets).length;
+    
+    // redefine !!!!
+    int popularity = numberOfT + numberOfA;
+    
     JSONObject ansObj = new JSONObject();
     ansObj.put("eid", eid);
-    ansObj.put("Description", project.getString(EProject.ID_Description));
+    ansObj.put("De", project.getString(EProject.ID_Description));
+    ansObj.put("St", project.getString(EProject.ID_ShortTitle));
+
+    ansObj.put("Tg", project.getStringArray(EProject.ID_Tags));
+    ansObj.put("Na", numberOfA);
+    ansObj.put("Nt", numberOfT);
+    ansObj.put("Mo", lastModified);
+    ansObj.put("Po", popularity);
+    ansObj.put("Ow", owner);
+    ansObj.put("On", user);
+    
     return jAnswer(OK_STATUS, String.format("Project description for '%s'.", projectName), ansObj.toString());
   }
 
@@ -706,7 +737,7 @@ public class ASTools {
           testsets.put(tst, eTst.getLastModified(projectName, tst));
       }
     if (all || arrayContains(whatA, "presenters")) 
-      for (String prs: project.getStringArray(EProject.ID_MainProjPresenters)) {
+      for (String prs: project.getStringArray(EProject.ID_ProjPresenters)) {
         EPresenter ePrs = EPresenter.getPresenter(projectName, prs);
         if (CanUtil.can(uid, ePrs.getEID(), "can_read"))
           presenters.put(prs, ePrs.getLastModified(projectName,prs));
@@ -807,7 +838,7 @@ public class ASTools {
 
     String projFilename = ATGlobal.getPROJECTfilename(ATGlobal.getALGatorDataRoot(), projectName);
     String result = saveJSONProperties(
-            projFilename, "Project", new String[]{"Description", "Author", "Date", "ProjectJARs"}, (JSONObject) data);
+            projFilename, "Project", new String[]{"ShortTitle", "Description", "Author", "Date", "ProjectJARs", "EMExecFamily", "Tags"}, (JSONObject) data);
     return parsedAnswer(result, "Project properties saved.", "Error saving project properties.");
   }
 
@@ -1310,6 +1341,21 @@ public class ASTools {
       // if error ocures, nothing can be done
     }
   }
+  
+  /**
+   * From activeTasks remove all tasks that are CANCELED or INPROGRESS for more than 1 hour
+   */
+  public static int cleanActiveTaskQueue() {
+    int activeTasksSize = activeTasks.size();
+    
+    activeTasks.removeIf(task -> {
+      return ((ASTaskStatus.CANCELED.equals(((ASTask)task).getTaskStatus()) || ASTaskStatus.INPROGRESS.equals(((ASTask)task).getTaskStatus()) 
+            && ((ASTask)task).sinceModified() > 60*60));
+    });
+    writeADETasks(activeTasks, 0);
+    
+    return activeTasksSize - activeTasks.size();
+  }
 
   /**
    * Get the computerUID of a computer with given familyID and computerID
@@ -1430,11 +1476,10 @@ public class ASTools {
   }
 
   public static String getResultFilename(ASTask task) {
-    String projName = (String) task.getField(ASTask.ID_Project);
-    String algName = (String) task.getField(ASTask.ID_Algorithm);
-    String testsetName = (String) task.getField(ASTask.ID_Testset);
-
-    String compID = getFamilyAndComputerName((String) task.getField(ASTask.ID_ComputerUID));
+    String projName       = (String) task.getField(ASTask.ID_Project);
+    String algName        = (String) task.getField(ASTask.ID_Algorithm);
+    String testsetName    = (String) task.getField(ASTask.ID_Testset);
+    String compID         = getFamilyAndComputerName((String) task.getField(ASTask.ID_ComputerUID));
     MeasurementType mType = MeasurementType.mtOf((String) task.getField(ASTask.ID_MType));
 
     return ATGlobal.getRESULTfilename(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projName),
@@ -1452,20 +1497,30 @@ public class ASTools {
     return ATGlobal.getRESULTMiscFilename(projName, compID, taskID+"", taskType);
   }
   
+  public static void removeTaskResultFile(ASTask task) {
+    String filename = getResultFilename(task);
+    File   taskFile = new File(filename);
+    if (taskFile.exists()) taskFile.delete();
+  }
+  
 
   /**
    * Sets the status of a task and writes this status to the task status file
    */
   public static String getTaskStatusFilename(ASTask task) {
-    Object ttype = task.getField(ASTask.ID_TaskType);
-    if (ttype == null || ASTask.ID_TaskType_Execute.equals(ttype))
-      return ATGlobal.getTaskStatusFilename(
-            (String) task.getField(ASTask.ID_Project), (String) task.getField(ASTask.ID_Algorithm),
-            (String) task.getField(ASTask.ID_Testset), (String) task.getField(ASTask.ID_MType));
-    else {
-      String tid = task.getField(ASTask.ID_EID).toString();
-      return ATGlobal.getNonexecTaskStatusFilename(
+    try {
+      Object ttype = task.getField(ASTask.ID_TaskType);
+      if (ttype == null || ASTask.ID_TaskType_Execute.equals(ttype)) {
+        return ATGlobal.getTaskStatusFilename(
+          (String) task.getField(ASTask.ID_Project), (String) task.getField(ASTask.ID_Algorithm),
+          (String) task.getField(ASTask.ID_Testset), (String) task.getField(ASTask.ID_MType));        
+      } else {
+        String tid = task.getField(ASTask.ID_EID).toString();
+        return ATGlobal.getNonexecTaskStatusFilename(
             (String) task.getField(ASTask.ID_Project), tid);
+      }
+    } catch (Exception e) {
+      return "";
     }
   }
 
@@ -1505,6 +1560,7 @@ public class ASTools {
 
     String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
     String idtFilename = getTaskStatusFilename(task);
+    if (idtFilename.isEmpty()) return;
 
     String startDate = "", statusMsg = "", endDate = "";
     if (status.equals(ASTaskStatus.PENDING)) {
@@ -1589,9 +1645,9 @@ public class ASTools {
    * Method returns the last non-empty line from task status file.
    */
   public static String getTaskStatus(ASTask task) {
-    String taskFilename = getTaskStatusFilename(task);
+    String taskFilename = getTaskStatusFilename(task);   
     String result = "";
-    try ( Scanner sc = new Scanner(new File(taskFilename))) {
+    if (!taskFilename.isEmpty()) try ( Scanner sc = new Scanner(new File(taskFilename))) {
       while (sc.hasNextLine()) {
         String line = sc.nextLine();
         if (line != null && !line.trim().isEmpty()) {
@@ -1832,7 +1888,7 @@ public class ASTools {
    * First file is always the default file, other files are files form other
    * folders (e.g. F0.C1, F5.C2, ...)
    */
-  private static ArrayList<String> getAllResultFiles(Project projekt, String algName, String tstName, String mType, String[] compIDs) {
+  private static ArrayList<String> getAllResultFilesForPATM(Project projekt, String algName, String tstName, String mType, String[] compIDs) {
     String defaultResultFile = ATTools.getTaskResultFileName(projekt, algName, tstName, mType);
 
     ArrayList<String> files = new ArrayList<>();
@@ -1894,7 +1950,7 @@ public class ASTools {
    */
   private static void resultFileStatus(JSONObject resTaskStatus, String fileName, Project projekt, String algName, String tstName, String mtype, int eNI) {
     // get family and computer name of result
-    String comp = getComputerFromFilename(fileName);
+    String comp   = getComputerFromFilename(fileName);
     String family = getFamilyFromFilename(fileName);
 
     boolean uptodate = ATTools.resultsAreUpToDate(projekt, algName, tstName, mtype, fileName);
@@ -1943,6 +1999,152 @@ public class ASTools {
     resTaskStatus.put("TID", tId);
   }
 
+  
+  /**
+   * Method returns a list of all algorithms of a project projName that are listed in 
+   * algorithms (* = all algorithms) and for which uid has "can_read" access
+   */  
+  private static List<String> getReadableAlgorithms(String uid, Project projekt, JSONArray algorithms) {
+    List<String> allAlgs = projekt.getAlgorithms().values().stream().map(EAlgorithm::getName).collect(Collectors.toList());        
+    List<String> tAlgs = new ArrayList();
+    for (int i = 0; i < algorithms.length(); i++) {
+      String algorithm = algorithms.getString(i);
+      if (algorithm.equals("*")) {
+        for (String tAlg : allAlgs) 
+          if (!tAlgs.contains(tAlg)) tAlgs.add(tAlg);        
+      } else if (!tAlgs.contains(algorithm)) tAlgs.add(algorithm);
+    }
+    return tAlgs.stream().filter(a -> {
+      String aEid = EAlgorithm.getAlgorithm(projekt.getName(), a).getEID();
+      return CanUtil.can(uid, aEid, "can_read");
+    }).collect(Collectors.toList());
+  }
+  /**
+   * Method returns a list of all tastsets of a project projName that are listed in 
+   * tastsets (* = all tastsets) and for which uid has "can_read" access
+   */    
+  private static List<String> getReadableTestsets(String uid, Project projekt, JSONArray testsets) {
+    List<String> allTsts = projekt.getTestSets().values().stream().map(ETestSet::getName).collect(Collectors.toList());
+    List<String> tTsts = new ArrayList();
+    for (int i = 0; i < testsets.length(); i++) {
+      String testset = testsets.getString(i);
+      if (testset.equals("*")) {
+        for (String tTst : allTsts) 
+          if (!tTsts.contains(tTst)) tTsts.add(tTst);
+      } else if (!tTsts.contains(testset)) tTsts.add(testset);
+    }
+    return tTsts.stream().filter(t -> {
+      String tEid = ETestSet.getTestset(projekt.getName(), t).getEID();
+      return CanUtil.can(uid, tEid, "can_read");
+    }).collect(Collectors.toList());
+  }  
+  
+  private static String familyComputerOf(String filePath) {
+    try {
+      return Paths.get(filePath).getParent().getFileName().toString();
+    } catch (Exception e) {
+      return "";
+    }
+  }
+  
+  public static JSONObject getAWResults(String uid, String projName, JSONArray algorithms, JSONArray testsets, String mType, boolean isFirstRequest) {
+    Project projekt = new Project(ATGlobal.getALGatorDataRoot(), projName);    
+    
+    String mt = MeasurementType.mtOf(mType).getExtension();
+
+    List<String> algs = new ArrayList<>(); 
+    if (isFirstRequest) 
+      algs = getReadableAlgorithms(uid, projekt, algorithms);
+    else 
+      for (int i = 0; i < algorithms.length(); i++) algs.add(algorithms.getString(i));
+    
+    List<String> tsts = new ArrayList<>();
+    if (isFirstRequest) 
+      tsts = getReadableTestsets(uid, projekt, testsets);
+    else 
+      for (int i = 0; i < testsets.length(); i++) tsts.add(testsets.getString(i));
+    
+    JSONObject results = new JSONObject();
+
+    for (int j = 0; j < tsts.size(); j++) {   
+      String tst = tsts.get(j);
+      ETestSet eTst = ETestSet.getTestset(projName, tst);
+      int numberOfInstances = eTst.getFieldAsInt(ETestSet.ID_N, 0);
+      
+      for (int i = 0; i < algs.size(); i++) {
+        String alg = algs.get(i);
+        EAlgorithm eAlg = EAlgorithm.getAlgorithm(projName, alg);
+        
+        String resultFileName = getTaskResultFileName(projekt, alg, tst, mt);
+        String defFam = ""; try {defFam = Paths.get(resultFileName).getParent().getFileName().toString();} catch (Exception e) {}
+        
+        boolean exists          = new File(resultFileName).exists();
+        int     numberOfResults = ATTools.getNumberOfTests(resultFileName);
+        boolean isUptodate      = ATTools.resultsAreUpToDate(projekt, alg, tst, mt, resultFileName);
+        
+        List<Path> allResults = ATTools.getAllResultFiles(projekt, alg, tst, mt, "");
+        JSONArray allResA     = new JSONArray();
+        for (Path allResult : allResults) {
+          String fam = allResult.getParent().getFileName().toString();
+          if (!fam.equals(defFam)) allResA.put(fam);
+        }
+        
+        ArrayList<ASTask> tasks = getTasks(activeTasks, projName, alg, tst, mt);
+        JSONObject tasksO       = new JSONObject();
+        for (ASTask task : tasks) {
+          JSONObject taskO = new JSONObject();
+          taskO.put("s", task.getTaskStatus());                       // task status
+          taskO.put("f", task.getFamily());                           // task Family
+          taskO.put("y", task.get(ASTask.ID_Priority));               // task priority
+          taskO.put("cca", CanUtil.canChangeTaskStatus(uid, task));   // can current user cancel this task?
+          tasksO.put(""+task.getTaskID(), taskO);                     // taskID
+        }
+        
+        boolean ce = CanUtil.can(uid,eAlg.getEID(), "can_execute") || CanUtil.can(uid,eTst.getEID(), "can_execute");
+        
+        JSONObject status = new JSONObject();
+        status.put("e",   exists);
+        status.put("f",   familyComputerOf(resultFileName));
+        status.put("noi", numberOfInstances);
+        status.put("nor", numberOfResults);
+        status.put("upd", isUptodate);         
+        status.put("tasks", tasksO);
+        status.put("ce", ce);
+        status.put("ar", allResA);
+        
+        String key = alg + "_#_" + tst + "_#_" + mt;
+        results.put(key, status);
+      }
+    }
+
+    JSONObject result = new JSONObject();
+    result.put("Results",    results);
+    result.put("Project",    projName);
+    result.put("Algorithms", new JSONArray(algs));
+    result.put("Testsets",   new JSONArray(tsts));
+    result.put("MType",      mt);
+    result.put("AnswerID",   UniqueIDGenerator.getNextID());
+    result.put("Timestamp",  System.currentTimeMillis());
+
+    return result;
+  }
+  
+  /**
+   * Remove entries in awResults that are older than one hour
+   * @return 
+   */
+  public static int clearAWResults() {
+    int noEntries = awResults.keySet().size();
+    awResults.keySet().removeIf(key -> {
+      long when = 0;
+      try {when = awResults.get(key).getLong("Timestamp");} catch (Exception e) {}
+      return (new Date().getTime() - when)/1000 > 60*60;
+    }); 
+    
+    // return the number of removed elements
+    return noEntries - awResults.keySet().size();
+  }
+
   /**
    * Returns the status of projects results
    */
@@ -1967,7 +2169,7 @@ public class ASTools {
           ArrayList<ASTask> tasks = getTasks(activeTasks, projName, eAlg.getName(), eTestSet.getName(), mtype);
           // ... and the default one (the one with empty or defaultFamily) 
 
-          ArrayList<String> resultFiles = getAllResultFiles(projekt, eAlg.getName(), eTestSet.getName(), mtype, compIDs);
+          ArrayList<String> resultFiles = getAllResultFilesForPATM(projekt, eAlg.getName(), eTestSet.getName(), mtype, compIDs);
           HashMap<String, JSONArray> familyResults = new HashMap<>();
           for (String resultFile : resultFiles) {
             if (resultFile.isEmpty()) {

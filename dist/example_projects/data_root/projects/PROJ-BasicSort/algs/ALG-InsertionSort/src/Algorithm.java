@@ -24,7 +24,6 @@ public class Algorithm extends ProjectAbstractAlgorithm {
       *///@REMOVE_LINE
       while(j>=0 && data[j]>data[j+1]) {
       	//@COUNT{CMP, 1}
-
         //@COUNT{SWAP, 1}
         int tmp = data[j];
         data[j]=data[j+1];

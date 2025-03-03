@@ -35,7 +35,7 @@ public class RSync {
     if (OsUtils.isWindows()) {
       srcDir  = replaceDriveLetter(srcDir);
       destDir = replaceDriveLetter(destDir);
-    }
+    } 
     
     String[] cmd = new String[]{"rsync", "-ar", "--delete",  srcDir, destDir};
     ProcessBuilder pb = new ProcessBuilder(cmd);

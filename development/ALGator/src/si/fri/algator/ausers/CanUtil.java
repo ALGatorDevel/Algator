@@ -13,6 +13,8 @@ import si.fri.algator.ausers.dto.DTOGroup;
 import static si.fri.algator.ausers.AUsersHelper.isEmptyOrNull;
 import si.fri.algator.ausers.dto.PermissionTypes;
 import si.fri.algator.database.Database;
+import si.fri.algator.entities.Entity;
+import si.fri.algator.server.ASTask;
 
 /**
  *
@@ -159,7 +161,39 @@ public class CanUtil {
   private static boolean contains(long id, long p) {
     return (id & p) == p;
   }
-
+  
+  public static boolean isSuperuser(String uid) {
+    DTOUser user = AUsersTools.getUser(uid);
+    return (user!=null && user.isIs_superuser());
+  }
+  
+  public static boolean isOwner(String uid, String eid) {
+    DTOEntity e = new EntitiesDAO().getEntity(eid);
+    return (e != null && e.getOwner().equals(uid)); 
+  }
+  
+  public static boolean canExecuteTask(String uid, ASTask task) {
+    String aeid = task.getString(ASTask.ID_Algorithm_EID, Entity.EID_UNDEFINED);
+    String teid = task.getString(ASTask.ID_Testset_EID, Entity.EID_UNDEFINED);
+    return canExecuteTask(uid, aeid, teid);
+  }
+  
+  public static boolean canExecuteTask(String uid, String aeid, String teid) {
+    long canExecute = PermissionTypes.getValue("can_execute");
+    return CanUtil.can(uid, aeid, canExecute) ||
+           CanUtil.can(uid, teid, canExecute);
+  }
+  
+  public static boolean canChangeTaskStatus(String uid, ASTask task) {
+    String peid = task.getString(ASTask.ID_Project_EID, Entity.EID_UNDEFINED);
+     
+    // task ststus can be changed by ...
+    return CanUtil.isSuperuser(uid)                            ||  // ... superuser
+           uid.equals(DTOUser.USER_CLIENT)                     ||  // ... taskclient
+           CanUtil.isOwner(uid, peid)                          ||  // ... project owner
+           uid.equals(task.getField(ASTask.ID_TaskOwner));         // ... task owner
+  }
+  
   
   public static void testSpeed() {
     String ent[] =   {"e_0RLOysxtJxjN","e_100","e_100_A","e_100_R","e_100_T","e_101","e_102","e_103","e_104","e_105","e_106","e_107","e_110","e_110_A","e_110_R","e_110_T","e_111","e_112","e_113","e_114","e_115","e_116","e_S5iYNZk5XmVh","e0_P","e0_S"};

@@ -1,7 +1,6 @@
 {"Algorithm": {
-  "eid":"e_101",
   "Author": "tomaz",
-  "Date": "01, 2018",
+  "Date": "January 2024",
   "ShortName": "Hoare",
   "Description": "The Hoare's quicksort algorithm",
   "Language": "Java"

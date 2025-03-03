@@ -3,6 +3,7 @@ package algator;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Scanner;
+import javax.swing.JOptionPane;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -292,7 +293,10 @@ public class Execute {
         try {task = new ASTask(task_desc);} catch (Exception e) {}
       }      
       
-      if (!Database.databaseAccessGranted(username, password)) {
+      // databaseAccessGranted preverjam samo v primeru, da nisem bil pognan preko 
+      // taskClienta (task==null); če sem bil namreč pognan preko taskClienta,
+      // gotovo imam pravice za izvajanje
+      if (task==null && !Database.databaseAccessGranted(username, password)) {
         if (task != null)
           System.exit(215);
         return;
@@ -321,10 +325,9 @@ public class Execute {
   public static boolean syncProject(String projName) {
     ELocalConfig config = ELocalConfig.getConfig();
     String source = String.format("rsync://%s:%d/algator/%s", 
-       config.getALGatorServerName(), config.getRSyncServerPort(), ATGlobal.getProjectDirName(projName));
-    
+       config.getALGatorServerName(), config.getRSyncServerPort(), ATGlobal.getProjectDirName(projName));    
     String destinatoin = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(),  projName);
-    
+        
     ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing project from %s to %s", source, destinatoin));
 
     // sync from server to local data_root

@@ -1,56 +1,82 @@
-{
-  "TestCase":
-  { 
-    "InputParameters"   : ["N", "DIST"],      
-  
-    "Parameters":   [     
-      {
-       "Name":        "N",             
-       "Description": "The size of the test (number of elements to be sorted)", 
-       "Type":        "int",
-       "Meta":        {"Min":1000, "Max": 1000000000000, "Step":1000, "Default": 5000}      
-      },      
-      {
-       "Name":        "DIST",             
-       "Description": "A type of a test, which can be one of RND (random sequence), SOR (sorted sequence) or INV (inversely sorted sequence)", 
-       "Type":        "enum",
-       "Meta":        {"Values" :["RND", "SOR", "INV"], "Default": "RND"}            
-      },      
-
-
-      {
-       "Name":        "Filename",             
-       "Type":        "string"
-      },      
-      {
-       "Name":        "Offset",             
-       "Type":        "int",
-       "Meta":        {"Default": 0}             
-      },     
-      {
-       "Name":        "Data",             
-       "Type":        "string"
-      }            
-    ],
-
-
-    "Generators": [
-      {
-       "Type":                   "Type0",             
-       "Description":            "Default generator",
-       "GeneratingParameters":   ["N", "DIST"]
-      },
-      {
-       "Type":                   "Type1",             
-       "Description":            "Generator that reads numbers from file",
-       "GeneratingParameters":   ["N", "Filename", "Offset"]
-      },
-      {
-       "Type":                   "Type2",             
-       "Description":            "Number are given inline (separated by comma)",
-       "GeneratingParameters":   ["N", "Data"]
+{"TestCase": {
+  "InputParameters": [
+    "N",
+    "DIST"
+  ],
+  "Parameters": [
+    {
+      "Name": "N",
+      "Description": "The size of the test, represented by the number of elements to be sorted.",
+      "Type": "int",
+      "Meta": {
+        "Min": "1000",
+        "Max": "1000000000000",
+        "Step": "1000",
+        "Default": "5000"
       }
-    ]
-  }
-}
- 
+    },
+    {
+      "Name": "DIST",
+      "Description": "A type of test, which can be one of the following: RND (random sequence), SOR (sorted sequence), or INV (inversely sorted sequence).",
+      "Type": "enum",
+      "Meta": {
+        "Values": [
+          "RND",
+          "SOR",
+          "INV"
+        ],
+        "Default": "RND"
+      }
+    },
+    {
+      "Name": "Filename",
+      "Description": "The name of the file from which to read data.",
+      "Type": "string",
+      "Meta": {"Default": ""}
+    },
+    {
+      "Name": "Offset",
+      "Description": "The offset in the file from which to start reading data.",
+      "Type": "int",
+      "Meta": {
+        "Min": "0",
+        "Max": "0",
+        "Step": "0",
+        "Default": ""
+      }
+    },
+    {
+      "Name": "Data",
+      "Description": "A space-delimited string of integers representing inline data.",
+      "Type": "string",
+      "Meta": {"Default": ""}
+    }
+  ],
+  "Generators": [
+    {
+      "Type": "Type0",
+      "Description": "The default generator that generates input with N elements and DIST data distribution.",
+      "GeneratingParameters": [
+        "N",
+        "DIST"
+      ]
+    },
+    {
+      "Type": "Type1",
+      "Description": "The generator reads n numbers from a given file, starting at a specified offset.",
+      "GeneratingParameters": [
+        "N",
+        "Filename",
+        "Offset"
+      ]
+    },
+    {
+      "Type": "Type2",
+      "Description": "A generator that accepts numbers as an inline, space-separated string of integers. This is used for demonstration purposes only.",
+      "GeneratingParameters": [
+        "N",
+        "Data"
+      ]
+    }
+  ]
+}}

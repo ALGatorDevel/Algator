@@ -1,11 +1,12 @@
 {"Presenter": {
-  "Name": "mpPresenter3",
-  "Title": "Minimal time on TestSet1",
-  "ShortTitle": "TS1",
+  "Author": "tomaz",
+  "Date": "January 2024",
+  "Title": "Sorting small-sized arrays",
+  "ShortTitle": "Small-sized arrays",
   "Description": "",
   "Query": {
     "Algorithms": ["*"],
-    "ComputerID": "F0.C0",
+    "ComputerID": "",
     "Count": false,
     "Filter": [],
     "GroupBy": ["N"],
@@ -15,8 +16,8 @@
     "TestSets": ["TestSet1"]
   },
   "Layout": [[
-    "Graph_1",
-    "TextBox_1"
+    "TextBox_1",
+    "Graph_1"
   ]],
   "Descripotion": "This presenter presents the execution time of all algorithms of the project on the TestSet1. ",
   "Graph_1": {
@@ -33,5 +34,6 @@
     "subchart": false,
     "zoom": false
   },
-  "TextBox_1": {"htmltext": "<div id=\"htmlmpPresenter21\" style=\"padding-top: 20px;\"><br><\/div><div id=\"htmlmpPresenter21\" style=\"padding-top: 20px;\"><br><\/div><div id=\"htmlmpPresenter21\" style=\"padding-top: 20px;\">&nbsp; &nbsp; &nbsp;This presenter presents the execution time of all algorithms of the project on the TestSet1.&nbsp;<\/div>"}
+  "TextBox_1": {"htmltext": "<div id=\"htmlmpPresenter21\" style=\"padding-top: 20px;\">This graph displays the execution time of all project algorithms on TestSet1 (small inputs with<span style=\"font-family: math;\">&nbsp;n=100 to n=1000)<\/span>. A significant difference in execution time can be observed when comparing BubbleSort and InsertionSort (quadratic algorithms) with JavaSort and QuickSort (linearithmic algorithms).<\/div><div id=\"htmlmpPresenter21\" style=\"padding-top: 20px;\">Note that for these small-sized arrays, the measured times fluctuate due to the relatively high percentage of overhead operations.<\/div>"},
+  "LastModified": 1740420444
 }}

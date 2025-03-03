@@ -17,7 +17,7 @@ import si.fri.algator.global.ATGlobal;
  *
  * @author tomaz
  */
-public class ALGatorServer {
+public class ALGatorServer {    
   
   private static String introMsg = "ALGator ALGatorServer, " + Version.getVersion();
 
@@ -58,6 +58,7 @@ public class ALGatorServer {
   
   
   public static void main(String args[]) {
+    System.out.println(introMsg);
     Options options = getOptions();
 
     CommandLineParser parser = new BasicParser();

@@ -1,5 +1,6 @@
 package si.fri.algator.execute;
 
+import static algator.Execute.syncProject;
 import java.io.File;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -7,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
-import javax.swing.JOptionPane;
 import org.apache.commons.io.FileUtils;
 import si.fri.algator.server.ASTask;
 import si.fri.algator.server.ASTools;
@@ -15,6 +15,7 @@ import si.fri.algator.server.ASTaskStatus;
 import si.fri.algator.entities.AlgorithmLanguage;
 import si.fri.algator.entities.EAlgorithm;
 import si.fri.algator.entities.EGenerator;
+import si.fri.algator.entities.ELocalConfig;
 import si.fri.algator.entities.EProject;
 import si.fri.algator.entities.EResult;
 import si.fri.algator.entities.ETestSet;
@@ -36,9 +37,9 @@ import static si.fri.algator.tools.ATTools.getTaskResultFileName;
  */
 public class Executor {
 
-  public static Answer projectMakeCompile(String data_root, String projectName, boolean alwaysCompile) {
+  public static Answer projectMakeCompile(String data_root, String projectName, boolean alwaysCompile, ASTask task) {
     EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(data_root, projectName)));    
-    return projectMakeCompile(eProject, alwaysCompile);
+    return projectMakeCompile(eProject, alwaysCompile, task);
   }  
   /**
    * Compares the creation date of the files at bin directory and compiles the
@@ -47,7 +48,14 @@ public class Executor {
    * (the compilations takes place although the classes already exist and are up
    * to date).
    */
-  public static Answer projectMakeCompile(EProject projekt, boolean alwaysCompile) {
+  public static Answer projectMakeCompile(EProject projekt, boolean alwaysCompile, ASTask task) {
+    // if task!=null, compile was run by TaskClient
+    if (task != null) {
+      if (ELocalConfig.getConfig().isSyncProjects() && !syncProject(projekt.getName())) {      
+        return new Answer(ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_SYNC, projekt.getName()));                      
+      } 
+    }
+           
     String projRoot = projekt.getProjectRootDir();
 
     // the classes to be compiled
@@ -257,7 +265,7 @@ public class Executor {
       CExecutor.runWithLimitedTime(project.getName(), algName, testSetName, mType, testRepeat*timeLimit, numberOfInstances);
         
     } else {    //java
-      if (projectMakeCompile(project.getEProject(), alwaysCompile).status != ErrorStatus.STATUS_OK) {
+      if (projectMakeCompile(project.getEProject(), alwaysCompile, task).status != ErrorStatus.STATUS_OK) {
         return ErrorStatus.getLastErrorStatus();
       }
 
@@ -284,7 +292,8 @@ public class Executor {
         // Če bom želel, da datoteke  ne brišem (da nove rezultate (ponovne rezultate testov) dodajam na konec;
         // ko berem datoteko, se odločim, katere rezultate bom uporabil (prve, zadnje, najboljše, vse, ...))
         // potem moram zakomentirati spodnjo vrstico
-        if (resFile.exists()) resFile.delete();
+        boolean continuation =  (task!=null && task.getProgress()>0);
+        if (resFile.exists() && !continuation) resFile.delete();
         
       } catch (Exception e) {
         New.removeClassLoader(currentJobID);

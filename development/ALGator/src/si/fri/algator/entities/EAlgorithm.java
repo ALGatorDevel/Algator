@@ -67,11 +67,8 @@ public class EAlgorithm extends Entity {
   @Override
   public long getLastModified(String projectName, String entityName) {
     String projectRoot = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName);
-    String fileName    = ATGlobal.getALGORITHMfilename(projectRoot, entityName);
     String srcFileName = ATGlobal.getALGORITHMsrc(projectRoot, entityName);
-    File algFile   = new File(fileName);
-    File algSrcFile = new File(srcFileName);
-    return Math.max(algFile.lastModified()/1000, algSrcFile.lastModified()/1000);
+    File algSrcFile = new File(new File(srcFileName), "Algorithm.java");
+    return algSrcFile.lastModified()/1000;
   }
-  
 }

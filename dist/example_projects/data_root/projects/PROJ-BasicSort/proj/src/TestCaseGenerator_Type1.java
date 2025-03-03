@@ -1,4 +1,3 @@
-
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -12,15 +11,16 @@ import si.fri.algator.execute.AbstractTestCaseGenerator;
 import si.fri.algator.global.ErrorStatus;
 
 /**
- * Type1  test case generator. 
- * Generator read n numbers from a given file at a given offset
+ * The generator reads n numbers from a given file, starting at a specified offset.
  *
  * @author tomaz
 */
 public class TestCaseGenerator_Type1 extends AbstractTestCaseGenerator {
   @Override
   public TestCase generateTestCase(Variables generatingParameters) {
-    String path     = generatingParameters.getVariable(TESTS_PATH, "").getStringValue();
+    String commonResourcesPath  = getCommonResourcesPath (generatingParameters);
+    String testsetResourcesPath = getTestsetResourcesPath(generatingParameters);
+    
     int    n        = generatingParameters.getVariable("N", 0).getIntValue();
     String filename = generatingParameters.getVariable("Filename", "").getStringValue();
     int offset      = generatingParameters.getVariable("Offset", 0).getIntValue();
@@ -28,7 +28,7 @@ public class TestCaseGenerator_Type1 extends AbstractTestCaseGenerator {
     // prepare an array of integers of a given size
     int[] array = new int[n];
 
-    String testFile = path + File.separator + filename;
+    String testFile = commonResourcesPath + File.separator + filename;
     try {
       DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(testFile))));
 
@@ -56,7 +56,7 @@ public class TestCaseGenerator_Type1 extends AbstractTestCaseGenerator {
     basicSortTestCase.setInput(new Input(array));
     
     // ... the input parameters
-    Variables testcaseParameters = new Variables();
+    Variables testcaseParameters = new Variables(generatingParameters);
     testcaseParameters.addVariable(new EVariable("N", n)); 
     testcaseParameters.addVariable(new EVariable("DIST", "FILE"));
     testcaseParameters.addProperty(PROPS, "Type", "Type1");        
@@ -70,7 +70,5 @@ public class TestCaseGenerator_Type1 extends AbstractTestCaseGenerator {
     basicSortTestCase.setExpectedOutput(new Output(expectedResultArray));
 
     return basicSortTestCase;
-
-
   }
 }
