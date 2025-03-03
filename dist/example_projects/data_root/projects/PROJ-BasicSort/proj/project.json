@@ -22,8 +22,8 @@
     "integers"
   ],
   "ProjectJARs": ["basicsort.jar"],
-  "EMExecFamily": "F1",
-  "CNTExecFamily": "F1",
+  "EMExecFamily": "",
+  "CNTExecFamily": "",
   "ProjPresenters": [
     "mpPresenter3",
     "mpPresenter1",
