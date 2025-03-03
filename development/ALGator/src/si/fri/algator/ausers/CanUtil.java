@@ -34,21 +34,24 @@ public class CanUtil {
   
   // ena poizvedba can() vzame približno 6ms (izmerjeno z testSpeed() spodaj)
   public static boolean can(final String uid, String eid, final String codename) {
+    // in Anonymous mode user can do everything
+    if (Database.isAnonymousMode()) return true;
+
     long pValue = PermissionTypes.getValue(codename);    
     return can(uid, eid, pValue);
   }
     
   // ena poizvedba can() vzame približno 6ms (izmerjeno z testSpeed() spodaj)  
   public static boolean can(final String uid, String eid, final long pValue) { 
+    // in Anonymous mode user can do everything
+    if (Database.isAnonymousMode()) return true;
+
     // nonexisting right?
     if (pValue == 0) return false;
 
     // emtpy uid or eid?
     if (isEmptyOrNull(uid) || isEmptyOrNull(eid)) return false;
-    
-    // in Anonymous mode user can do everything
-    if (Database.isAnonymousMode()) return true;
-    
+        
     // nonexisting user?
     EntitiesDAO dao = new EntitiesDAO();
     DTOUser user = AUsersTools.getUser(uid);
