@@ -41,7 +41,6 @@ import si.fri.algator.ausers.CanUtil;
 import static si.fri.algator.ausers.CanUtil.accessDeniedString;
 import si.fri.algator.ausers.EntitiesDAO;
 import si.fri.algator.ausers.dto.DTOEntity;
-import si.fri.algator.ausers.dto.DTOUser;
 
 import si.fri.algator.entities.CompCap;
 import si.fri.algator.entities.EAlgatorConfig;
@@ -102,6 +101,8 @@ public class ASTools {
       pausedAndCanceledTasks = new TreeMap();
     }
   }
+  
+  public static final String COMMON_TST_FILES = "testsets_common";
 
   public static final int OK_STATUS = 0;
   public static final String ID_STATUS = "Status";
@@ -473,12 +474,14 @@ public class ASTools {
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName)) {
       return sAnswer(2, String.format("Project '%s' does not exist.", projectName), "");
     }
-    if (!ATGlobal.testsetExists(ATGlobal.getALGatorDataRoot(), projectName, testsetName)) {
+    if (!testsetName.equals(COMMON_TST_FILES) && !ATGlobal.testsetExists(ATGlobal.getALGatorDataRoot(), projectName, testsetName)) {
       return sAnswer(3, String.format("Testset '%s' does not exist in project '%s'.", testsetName, projectName), "");
     }
-
-    File tsFolder = new File(ATGlobal.getTESTSETRecourcesFilename(ATGlobal.getALGatorDataRoot(), projectName, testsetName));
+    
+    File tsFolder = new File(ATGlobal.getTESTSETRecourcesFilename(
+       ATGlobal.getALGatorDataRoot(), projectName, testsetName.equals(COMMON_TST_FILES) ? ATGlobal.AT_DEFAULT_testsetres : testsetName));
     File resFile = new File(tsFolder, fileName);
+    
     if (!resFile.exists())
       return sAnswer(4, String.format("File '%s' does not exist.", fileName), "");
 
@@ -1113,7 +1116,7 @@ public class ASTools {
 
   public static String removeTestsetFile(String uid, String projectName, String testsetName, String fileName) {
     String teid = ""; // removing "common files" requires write access on project
-    if ("testsets_common".equals(testsetName)) {
+    if (COMMON_TST_FILES.equals(testsetName)) {
       teid = EProject.getProject(projectName).getEID();
     } else 
       teid = ETestSet.getTestset(projectName, testsetName).getEID();
@@ -1125,11 +1128,11 @@ public class ASTools {
     if (!ATGlobal.projectExists(ATGlobal.getALGatorDataRoot(), projectName)) {
       return sAnswer(2, String.format("Project '%s' does not exist.", projectName), "");
     }
-    if (!"testsets_common".equals(testsetName) && !ATGlobal.testsetExists(ATGlobal.getALGatorDataRoot(), projectName, testsetName)) {
+    if (!COMMON_TST_FILES.equals(testsetName) && !ATGlobal.testsetExists(ATGlobal.getALGatorDataRoot(), projectName, testsetName)) {
       return sAnswer(3, String.format("Testset '%s' does not exist in project '%s'.", testsetName, projectName), "");
     }
 
-    if ("testsets_common".equals(testsetName)) testsetName = ATGlobal.AT_DEFAULT_testsetres; // common files are in folder "Testset__files"
+    if (COMMON_TST_FILES.equals(testsetName)) testsetName = ATGlobal.AT_DEFAULT_testsetres; // common files are in folder "Testset__files"
     File tsFolder = new File(ATGlobal.getTESTSETRecourcesFilename(ATGlobal.getALGatorDataRoot(), projectName, testsetName));
     File resFile = new File(tsFolder, fileName);
     if (!resFile.exists())
@@ -2542,12 +2545,13 @@ public class ASTools {
           folderName = ATGlobal.getTESTSETRecourcesFilename(
              ATGlobal.getALGatorDataRoot(), projectName, name);
           break;
-        case "testsets_common":
+        case COMMON_TST_FILES:
           folderName = ATGlobal.getTESTSETRecourcesFilename(
-             ATGlobal.getALGatorDataRoot(), projectName, ATGlobal.AT_DEFAULT_testsetres);  
+             ATGlobal.getALGatorDataRoot(), projectName, ATGlobal.AT_DEFAULT_testsetres); 
+          break;
         case "jar":  
           folderName = ATGlobal.getPROJECTlibPath(projectName);
-      }
+      } 
       
       if (!folderName.isEmpty()) {
         File folder = new File(folderName);

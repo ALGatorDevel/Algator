@@ -10,8 +10,13 @@ import si.fri.algator.execute.AbstractTestCaseGenerator;
 public class TestCaseGenerator_Type0 extends AbstractTestCaseGenerator {
   @Override
   public TestCase generateTestCase(Variables inputParameters) {
-    int n        = inputParameters.getVariable("N",        1000).getIntValue();              
-    return Tools.randomTestCase(inputParameters, n, -1, true);
+    int n        = inputParameters.getVariable("N",        1000).getIntValue(); 
+    
+    String testsetResourcesPath = getTestsetResourcesPath(inputParameters);
+    TestCase testCase = Tools.randomTestCase(testsetResourcesPath, n, -1, true);
+    testCase.getInput().setParameters(inputParameters);
+
+    return testCase;
   }
 
 }

@@ -1,48 +1,72 @@
-{
-  "TestCase":
-  {   
-    "InputParameters"   : ["N"],      
-  
-    "Parameters":   [     
-      {
-       "Name":        "N",             
-       "Description": "The size of the matrix", 
-       "Type":        "int",
-       "Meta":        {"Min":100, "Max": 10000, "Step":100, "Default": 500}      
-      },
-      {
-       "Name":        "Seed",             
-       "Description": "A seed used to start random stream. Value -1: use random seed (current time).", 
-       "Type":        "int",
-       "Meta":        {"Min":-1, "Max": -1, "Step":0, "Default": -1}      
-      },
-      {"Name": "FilenameA", "Type":"string"}, 
-      {"Name": "FilenameB", "Type":"string"}, 
-      {"Name": "FilenameC", "Type":"string"}
-    ],
-
-    "Generators": [
-      {
-       "Type":                   "Type0",             
-       "Description":            "Default generator which generates random matrices A, B and calculates the product C.",
-       "GeneratingParameters":   ["N"]
-      },
-      {
-       "Type":                   "Type1",             
-       "Description":            "The same as Type0, except that the random seed is given (A, B and C for a given N and Seed are unique).",
-       "GeneratingParameters":   ["N", "Seed"]
-      },      
-      {
-       "Type":                   "Type2",             
-       "Description":            "Generates random matrices A and B with a given seed. The result matrix C is not calculated (therefore the check of correctness of algorithms will be based on aproximation only -> the Check indicator will be PROB or NOK).",
-       "GeneratingParameters":   ["N", "Seed"]
-      },
-      {
-       "Type":                   "Type3",             
-       "Description":            "Read the matrices from files (A and B are inputs, C is result)",
-       "GeneratingParameters":   ["N", "FilenameA", "FilenameB", "FilenameC"]
-      }       
-    ]
-  }
-}
- 
+{"TestCase": {
+  "InputParameters": ["N"],
+  "Parameters": [
+    {
+      "Name": "N",
+      "Description": "The size of the matrix",
+      "Type": "int",
+      "Meta": {
+        "Min": 100,
+        "Max": 10000,
+        "Step": 100,
+        "Default": 500
+      }
+    },
+    {
+      "Name": "Seed",
+      "Description": "A seed used to start random stream. Value -1: use random seed (current time).",
+      "Type": "int",
+      "Meta": {
+        "Min": -1,
+        "Max": -1,
+        "Step": 0,
+        "Default": -1
+      }
+    },
+    {
+      "Name": "FilenameA",
+      "Type": "string"
+    },
+    {
+      "Name": "FilenameB",
+      "Type": "string"
+    },
+    {
+      "Name": "FilenameC",
+      "Type": "string"
+    }
+  ],
+  "Generators": [
+    {
+      "Type": "Type0",
+      "Description": "Default generator which generates random matrices A, B and calculates the product C.",
+      "GeneratingParameters": ["N"]
+    },
+    {
+      "Type": "Type1",
+      "Description": "The same as Type0, except that the random seed is given (A, B and C for a given N and Seed are unique).",
+      "GeneratingParameters": [
+        "N",
+        "Seed"
+      ]
+    },
+    {
+      "Type": "Type2",
+      "Description": "Generates random matrices A and B with a given seed. The result matrix C is not calculated (therefore the check of correctness of algorithms will be based on aproximation only -> the Check indicator will be PROB or NOK).",
+      "GeneratingParameters": [
+        "N",
+        "Seed"
+      ]
+    },
+    {
+      "Type": "Type3",
+      "Description": "Read the matrices from files (A and B are inputs, C is result)",
+      "GeneratingParameters": [
+        "N",
+        "FilenameA",
+        "FilenameB",
+        "FilenameC"
+      ]
+    }
+  ]
+}}

@@ -1,1 +1,10 @@
-{"TestSet": {    "eid"              : "e_116",    "ShortName"        : "TS2",    "Description"      : "Matrices of dimensions from 100 to 990 (step 10)",    "N"                : 90,    "TestRepeat"       : "5",    "TestSetFiles"     : []  }}
+{"TestSet": {
+  "eid": "e_116",
+  "ShortName": "TS2",
+  "Description": "Medium-size matrices (n = 100 ... 990, step 10)",
+  "N": 90,
+  "TestRepeat": 2,
+  "TestSetFiles": [],
+  "Name": "TestSet2",
+  "TimeLimit": null
+}}

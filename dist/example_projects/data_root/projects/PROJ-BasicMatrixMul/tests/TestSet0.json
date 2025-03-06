@@ -1,13 +1,10 @@
-{
-  "TestSet": {
-    "eid"              : "e_114",
-
-    "ShortName"        : "TS0",
-    "Description"      : "Basic tests to check the correctness of the project and algorithms",
-    "N"                : "7",
-    "TestRepeat"       : "1",
-    "TimeLimit"        : "1",
-
-    "TestSetDescHTML"  : "TestSet0.html"
-  }
-}
+{"TestSet": {
+  "eid": "e_114",
+  "ShortName": "TS0",
+  "Description": "Basic tests to check the correctness of the project and algorithms",
+  "N": 10,
+  "TestRepeat": 1,
+  "TimeLimit": 1,
+  "TestSetDescHTML": "TestSet0.html",
+  "Name": "TestSet0"
+}}

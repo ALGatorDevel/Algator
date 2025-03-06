@@ -1,8 +1,7 @@
 {"Project": {
-  "eid":"e_110",
-  "Description": "Basic matrix multiplication algorithms",
-  "Author": "td",
-  "Date": "10, 2019",
+  "Name": "BasicMatrixMul",
+  "ShortTitle": "DEMO: Matrix multiplication",
+  "Description": "This project showcases ALGator's functionalities through basic matrix multiplication algorithms.",
   "Algorithms": [
     "BasicMUL",
     "Strassen",
@@ -15,16 +14,16 @@
     "TestSet3",
     "TestSet10"
   ],
+  "Tags": [],
   "ProjectJARs": [],
   "AlgorithmJARs": [],
-  "EMExecFamily": "",
+  "EMExecFamily": "F0",
   "CNTExecFamily": "",
   "JVMExecFamily": "",
-  "ProjPresenters": [],
-  "AlgPresenters": [],
-  "MainProjPresenters": [
-    "mpPresenter2",
-    "mpPresenter3"
+  "ProjPresenters": [
+    "mpPresenter4",
+    "mpPresenter5",
+    "mpPresenter6"
   ],
-  "MainAlgPresenters": ["maPresenter2"]
+  "AlgPresenters": []
 }}

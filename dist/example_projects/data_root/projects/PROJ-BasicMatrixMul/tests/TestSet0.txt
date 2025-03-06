@@ -1,7 +1,10 @@
-Type0:test1:100
-Type1:test2:100:98765
-Type1:test3:200:12345
-Type2:test4:100:98765
-Type1:test5:200
-Type3:test6:10:testset1/m-rnd-10-1-A:testset1/m-rnd-10-1-B:testset1/m-rnd-10-1-C
-Type3:test7:10:testset1/m-rnd-10-2-A:testset1/m-rnd-10-2-B:testset1/m-rnd-10-2-C
+Type0:test1:10
+Type1:test2:20:0
+Type1:test3:20:1
+Type2:test4:50:12321
+Type1:test5:100
+Type1:test6:110
+Type1:test7:120
+Type1:test8:130
+Type1:test9:140  
+Type1:test10:150

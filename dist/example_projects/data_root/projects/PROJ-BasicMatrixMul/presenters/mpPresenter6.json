@@ -1,0 +1,35 @@
+{"Presenter": {
+  "Title": "Comparison of Algorithm Speeds for n=500 to 1600",
+  "ShortTitle": "Over1000",
+  "Description": "",
+  "Query": {
+    "Algorithms": ["*"],
+    "ComputerID": "",
+    "Count": false,
+    "Filter": ["N <=1600"],
+    "GroupBy": [],
+    "Indicators": ["*EM"],
+    "Parameters": ["N"],
+    "SortBy": [],
+    "TestSets": ["TestSet3"]
+  },
+  "Layout": [[
+    "TextBox_1",
+    "Graph_1"
+  ]],
+  "Graph_1": {
+    "xAxis": "N",
+    "yAxes": ["*.Tmin"],
+    "graphTypes": "",
+    "xAxisTitle": "",
+    "yAxisTitle": "",
+    "categoryLabels": false,
+    "gridX": false,
+    "gridY": false,
+    "logScale": false,
+    "manData": {},
+    "subchart": true,
+    "zoom": true
+  },
+  "TextBox_1": {"htmltext": "<div>Winograd's and Basic algorithms outperform Strassen's algorithm for n = 1050 to 1150. This occurs because Strassen\u2019s algorithm only works with matrices whose size is a power of 2. Specifically, for n &gt; 1024, Strassen extends the matrix (by adding zeros) to the next power of 2, which is 2048, and performs multiplication on these extended matrices. This is also why the results for Strassen's algorithm remain almost identical for matrix sizes between 1000 and 1600.<\/div>"}
+}}

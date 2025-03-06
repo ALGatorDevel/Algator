@@ -1,7 +1,0 @@
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test1","Timestamp":1703964731833,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type0"},"CNT1":0}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test2","Timestamp":1703964731993,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test3","Timestamp":1703964732176,"Pass":"DONE","N":200,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test4","Timestamp":1703964732324,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type2"},"CNT1":0}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test5","Timestamp":1703964732512,"Pass":"DONE","N":200,"TC_PROPS":{"Type":"Type1"},"CNT1":0}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test6","Timestamp":1703964732636,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type3"},"CNT1":0}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test7","Timestamp":1703964732768,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type3"},"CNT1":0}

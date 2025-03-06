@@ -1,4 +1,3 @@
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -217,10 +216,9 @@ public class Tools {
    * the test of correctness will be performed based of approx. alg.
    * @return
    */
-  public static TestCase randomTestCase(Variables inputParameters, int n, long seed, boolean includeC) {
+  public static TestCase randomTestCase(String path, int n, long seed, boolean includeC) {
     int[][] A = null, B = null, C = null;
 
-    String path = inputParameters.getVariable(AbstractTestCase.TESTS_PATH, "").getStringValue();
     String rpath = Tools.createPathForRandomMatrices(path); // path for random matrices storage
     String matrixNameFormat = "r-%d-%d-%c"; // name of a random matrix in rPath
 
@@ -258,7 +256,6 @@ public class Tools {
     // create a test case 
     TestCase basicMatrixMulTestCase = new TestCase();
     basicMatrixMulTestCase.setInput(new Input(A, B));
-    basicMatrixMulTestCase.getInput().setParameters(inputParameters);
     basicMatrixMulTestCase.setExpectedOutput(new Output(C));
 
     return basicMatrixMulTestCase;

@@ -12,8 +12,8 @@ import si.fri.algator.global.ErrorStatus;
 public class TestCaseGenerator_Type3 extends AbstractTestCaseGenerator {
   @Override
   public TestCase generateTestCase(Variables inputParameters) {
-    String path      = inputParameters.getVariable(TESTS_PATH,    "")   .getStringValue();              
     int N            = inputParameters.getVariable("N",        1000).getIntValue();              
+    String path      = getTestsetResourcesPath(inputParameters);
 
     String filenameA = inputParameters.getVariable("FilenameA", "").getStringValue();              
     String filenameB = inputParameters.getVariable("FilenameB", "").getStringValue();              

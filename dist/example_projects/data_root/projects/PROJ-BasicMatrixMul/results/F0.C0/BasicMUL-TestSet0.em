@@ -1,7 +1,10 @@
-{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test1","Timestamp":1702908073332,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type0"},"Tmin":9450,"TFirst":9450,"TAll":[9450],"Check":"OK"}
-{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test2","Timestamp":1702908073553,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type1"},"Tmin":6444,"TFirst":6444,"TAll":[6444],"Check":"OK"}
-{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test3","Timestamp":1702908073748,"Pass":"DONE","N":200,"TC_PROPS":{"Type":"Type1"},"Tmin":14882,"TFirst":14882,"TAll":[14882],"Check":"OK"}
-{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test4","Timestamp":1702908073918,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type2"},"Tmin":6646,"TFirst":6646,"TAll":[6646],"Check":"PROB"}
-{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test5","Timestamp":1702908074101,"Pass":"DONE","N":200,"TC_PROPS":{"Type":"Type1"},"Tmin":15571,"TFirst":15571,"TAll":[15571],"Check":"OK"}
-{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test6","Timestamp":1702908074249,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type3"},"Tmin":81,"TFirst":81,"TAll":[81],"Check":"OK"}
-{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test7","Timestamp":1702908074398,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type3"},"Tmin":75,"TFirst":75,"TAll":[75],"Check":"OK"}
+{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test1","Timestamp":1741249490805,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type0"},"Tmin":63,"TFirst":63,"TAll":[63],"Check":"OK","TaskID":1456}
+{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test2","Timestamp":1741249491024,"Pass":"DONE","N":20,"TC_PROPS":{"Type":"Type1"},"Tmin":241,"TFirst":241,"TAll":[241],"Check":"OK","TaskID":1456}
+{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test3","Timestamp":1741249491204,"Pass":"DONE","N":20,"TC_PROPS":{"Type":"Type1"},"Tmin":332,"TFirst":332,"TAll":[332],"Check":"OK","TaskID":1456}
+{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test4","Timestamp":1741249491391,"Pass":"DONE","N":50,"TC_PROPS":{"Type":"Type2"},"Tmin":2025,"TFirst":2025,"TAll":[2025],"Check":"PROB","TaskID":1456}
+{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test5","Timestamp":1741249491599,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type1"},"Tmin":6015,"TFirst":6015,"TAll":[6015],"Check":"OK","TaskID":1456}
+{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test6","Timestamp":1741249491792,"Pass":"DONE","N":110,"TC_PROPS":{"Type":"Type1"},"Tmin":11049,"TFirst":11049,"TAll":[11049],"Check":"OK","TaskID":1456}
+{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test7","Timestamp":1741249491979,"Pass":"DONE","N":120,"TC_PROPS":{"Type":"Type1"},"Tmin":14376,"TFirst":14376,"TAll":[14376],"Check":"OK","TaskID":1456}
+{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test8","Timestamp":1741249492166,"Pass":"DONE","N":130,"TC_PROPS":{"Type":"Type1"},"Tmin":9258,"TFirst":9258,"TAll":[9258],"Check":"OK","TaskID":1456}
+{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"Test-9","Timestamp":1741249492180,"Pass":"FAILED","TaskID":1456}
+{"Algorithm":"BasicMUL","Testset":"TestSet0","InstanceID":"test10","Timestamp":1741249492378,"Pass":"DONE","N":150,"TC_PROPS":{"Type":"Type1"},"Tmin":11000,"TFirst":11000,"TAll":[11000],"Check":"OK","TaskID":1456}

@@ -1,0 +1,52 @@
+{"Presenter": {
+  "Title": "Comparison of Algorithm Speeds on Medium Matrices",
+  "ShortTitle": "Medium",
+  "Description": "",
+  "Query": {
+    "Algorithms": ["*"],
+    "ComputerID": "",
+    "Count": false,
+    "Filter": [],
+    "GroupBy": ["N"],
+    "Indicators": ["*EM"],
+    "Parameters": ["N"],
+    "SortBy": [],
+    "TestSets": ["TestSet2"]
+  },
+  "Layout": [
+    [
+      "Graph_2",
+      "TextBox_1"
+    ],
+    ["Graph_1"]
+  ],
+  "Graph_1": {
+    "xAxis": "N",
+    "yAxes": ["*.Tmin"],
+    "graphTypes": "",
+    "xAxisTitle": "",
+    "yAxisTitle": "",
+    "categoryLabels": false,
+    "gridX": false,
+    "gridY": false,
+    "logScale": false,
+    "manData": {},
+    "subchart": false,
+    "zoom": false
+  },
+  "Graph_2": {
+    "xAxis": "N",
+    "yAxes": ["*.Tmin"],
+    "graphTypes": "pie",
+    "xAxisTitle": "",
+    "yAxisTitle": "",
+    "categoryLabels": false,
+    "gridX": false,
+    "gridY": false,
+    "logScale": false,
+    "manData": {},
+    "subchart": false,
+    "zoom": false
+  },
+  "TextBox_1": {"htmltext": "<div>For medium-sized matrices (n = 100 to 1000), Strassen's algorithm performs significantly better, accounting for just 23.5% of the total execution time.<\/div>"}
+}}

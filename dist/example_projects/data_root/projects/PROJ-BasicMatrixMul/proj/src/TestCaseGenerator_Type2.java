@@ -14,9 +14,12 @@ public class TestCaseGenerator_Type2 extends AbstractTestCaseGenerator {
   public TestCase generateTestCase(Variables inputParameters) {
     String path  = inputParameters.getVariable(TESTS_PATH,    "")   .getStringValue();    
     int n        = inputParameters.getVariable("N").getIntValue();              
-    int seed     = inputParameters.getVariable("Seed").getIntValue();            
+    int seed     = inputParameters.getVariable("Seed").getIntValue();  
+    
+    String testsetResourcesPath = getTestsetResourcesPath(inputParameters);
+    TestCase testCase = Tools.randomTestCase(testsetResourcesPath, n, seed, false);
+    testCase.getInput().setParameters(inputParameters);
 
-    return Tools.randomTestCase(inputParameters, n, seed, false);
-    }
-
+    return testCase;            
+  }
 }

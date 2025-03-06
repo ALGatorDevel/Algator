@@ -1,4 +1,4 @@
-<html>
+
 
 <style>
 tr.spaceUnder>td {
@@ -9,7 +9,7 @@ tr.spaceUnder>td {
 <p>The matrix multiplication algorithm multiplies two given matrices. </p>
 
 <table>
-<tr class="spaceUnder"><td><b>Input:</b></td>
+<tbody><tr class="spaceUnder"><td><b>Input:</b></td>
     <td>Two square matrtices \( A, B \) of dimension <code>n</code></td>
 </tr>
 
@@ -22,16 +22,13 @@ tr.spaceUnder>td {
     the following equation holds:
     
     $$ c_{ij} = \sum_{k=1}^n a_{ik} b_{kj} $$
-</tr>
+</td></tr>
 
 
-<tr class="spaceUnder"><td valign=top><b>Implementation:</b></td>
-    <td>To implement a matrix multipliaction algorithm the author has to write 
-        a <code>java</code> class extending the 
-        <code>BasicMatrixMulAbsAlgorithm</code> class and implementing its
-        <code>execute(int [][] A, int [][] B, int [][] C)</code> method.
- 
-</tr>
-</table>
+<tr class="spaceUnder"><td valign="top"><b>Implementation:</b></td>
+    <td><div>To implement a matrix multipliaction algorithm you need to write 
+        a <code>Java</code>&nbsp;class that extends the 
+        <code>ProjectAbstractAlgorithm</code> class and implement its
+        <code>execute(Input input)</code> method. The input matrices are provided in&nbsp;<span style="background-color: rgb(244, 244, 244); font-family: Consolas, monospace;">input.A&nbsp;</span>&nbsp;and&nbsp;<span style="background-color: rgb(244, 244, 244); font-family: Consolas, monospace;">input.B.</span>&nbsp;Method&nbsp;<span style="background-color: rgb(244, 244, 244); font-family: Consolas, monospace;">execute()</span><span style="background-color: rgb(244, 244, 244); font-family: Consolas, monospace;">&nbsp;</span>should return an&nbsp;<span style="background-color: rgb(244, 244, 244); font-family: Consolas, monospace;">Output</span>&nbsp;object created using&nbsp;<span style="background-color: rgb(244, 244, 244); font-family: Consolas, monospace;">new Output(C)</span>, where&nbsp;<span style="background-color: rgb(244, 244, 244); font-family: Consolas, monospace;">C</span>&nbsp;is the resulting matrix.&nbsp;&nbsp;&nbsp;</div></td></tr>
+</tbody></table>
 
-</html>

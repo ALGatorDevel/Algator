@@ -1,11 +1,5 @@
 {"Algorithm": {
-  "eid":"e_111",
-  "ShortName": "algorithm_short_name",
-  "Description": "algorithm_description",
-  "Author": "author_name",
-  "Date": "10, 2019",
-  "Language": "Java",
-  "Presenters": [],
-  "AlgorithmDescHTML": "algorithm.html",
-  "AlgorithmRefHTML": "references.html"
+  "ShortName": "BM",
+  "Description": "Multiplication by definition",
+  "Language": "Java"
 }}

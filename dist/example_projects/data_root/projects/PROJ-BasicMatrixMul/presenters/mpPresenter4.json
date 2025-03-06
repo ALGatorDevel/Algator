@@ -1,0 +1,59 @@
+{"Presenter": {
+  "Title": "Comparison of Algorithm Speeds on Small Matrices",
+  "ShortTitle": "Small",
+  "Description": "",
+  "Query": {
+    "Algorithms": ["*"],
+    "ComputerID": "",
+    "Count": false,
+    "Filter": [],
+    "GroupBy": ["N"],
+    "Indicators": ["*EM"],
+    "Parameters": ["N"],
+    "SortBy": [],
+    "TestSets": ["TestSet1"]
+  },
+  "Layout": [
+    [
+      "TextBox_1",
+      "Table_1"
+    ],
+    [
+      "Graph_1",
+      "Graph_2"
+    ]
+  ],
+  "Graph_1": {
+    "xAxis": "N",
+    "yAxes": ["*.Tmin"],
+    "graphTypes": "",
+    "xAxisTitle": "",
+    "yAxisTitle": "",
+    "categoryLabels": false,
+    "gridX": false,
+    "gridY": false,
+    "logScale": false,
+    "manData": {},
+    "subchart": false,
+    "zoom": false
+  },
+  "Graph_2": {
+    "xAxis": "N",
+    "yAxes": ["*.Tmin"],
+    "graphTypes": "pie",
+    "xAxisTitle": "",
+    "yAxisTitle": "",
+    "categoryLabels": false,
+    "gridX": false,
+    "gridY": false,
+    "logScale": false,
+    "manData": {},
+    "subchart": false,
+    "zoom": false
+  },
+  "Table_1": {"Columns": [
+    "N",
+    "*.Tmin"
+  ]},
+  "TextBox_1": {"htmltext": "<div>For very small matrices (n = 10 to 30), Strassen's algorithm is slow\u2014even slower than basic multiplication, which has an execution time comparable to Winograd's algorithm.<\/div><div><br><\/div><div>Across all six test cases, Strassen's algorithm accounts for nearly half of the total execution time (specifically, 48.1%).<\/div>"}
+}}

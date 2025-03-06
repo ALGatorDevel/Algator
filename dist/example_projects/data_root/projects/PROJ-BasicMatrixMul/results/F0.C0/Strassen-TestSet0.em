@@ -1,7 +1,10 @@
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test1","Timestamp":1702917195758,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type0"},"Tmin":74965,"TFirst":74965,"TAll":[74965],"Check":"OK"}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test2","Timestamp":1702917195917,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type1"},"Tmin":12651,"TFirst":12651,"TAll":[12651],"Check":"OK"}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test3","Timestamp":1702917196109,"Pass":"DONE","N":200,"TC_PROPS":{"Type":"Type1"},"Tmin":23646,"TFirst":23646,"TAll":[23646],"Check":"OK"}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test4","Timestamp":1702917196270,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type2"},"Tmin":10362,"TFirst":10362,"TAll":[10362],"Check":"PROB"}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test5","Timestamp":1702917196433,"Pass":"DONE","N":200,"TC_PROPS":{"Type":"Type1"},"Tmin":19053,"TFirst":19053,"TAll":[19053],"Check":"OK"}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test6","Timestamp":1702917196552,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type3"},"Tmin":185,"TFirst":185,"TAll":[185],"Check":"OK"}
-{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test7","Timestamp":1702917196688,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type3"},"Tmin":514,"TFirst":514,"TAll":[514],"Check":"OK"}
+{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test1","Timestamp":1741249494472,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type0"},"Tmin":621,"TFirst":621,"TAll":[621],"Check":"OK","TaskID":1457}
+{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test2","Timestamp":1741249494686,"Pass":"DONE","N":20,"TC_PROPS":{"Type":"Type1"},"Tmin":660,"TFirst":660,"TAll":[660],"Check":"OK","TaskID":1457}
+{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test3","Timestamp":1741249494873,"Pass":"DONE","N":20,"TC_PROPS":{"Type":"Type1"},"Tmin":1030,"TFirst":1030,"TAll":[1030],"Check":"OK","TaskID":1457}
+{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test4","Timestamp":1741249495045,"Pass":"DONE","N":50,"TC_PROPS":{"Type":"Type2"},"Tmin":2499,"TFirst":2499,"TAll":[2499],"Check":"PROB","TaskID":1457}
+{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test5","Timestamp":1741249495234,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type1"},"Tmin":9553,"TFirst":9553,"TAll":[9553],"Check":"OK","TaskID":1457}
+{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test6","Timestamp":1741249495438,"Pass":"DONE","N":110,"TC_PROPS":{"Type":"Type1"},"Tmin":8006,"TFirst":8006,"TAll":[8006],"Check":"OK","TaskID":1457}
+{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test7","Timestamp":1741249495626,"Pass":"DONE","N":120,"TC_PROPS":{"Type":"Type1"},"Tmin":8456,"TFirst":8456,"TAll":[8456],"Check":"OK","TaskID":1457}
+{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test8","Timestamp":1741249495831,"Pass":"DONE","N":130,"TC_PROPS":{"Type":"Type1"},"Tmin":21975,"TFirst":21975,"TAll":[21975],"Check":"OK","TaskID":1457}
+{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"Test-9","Timestamp":1741249495846,"Pass":"FAILED","TaskID":1457}
+{"Algorithm":"Strassen","Testset":"TestSet0","InstanceID":"test10","Timestamp":1741249496051,"Pass":"DONE","N":150,"TC_PROPS":{"Type":"Type1"},"Tmin":17968,"TFirst":17968,"TAll":[17968],"Check":"OK","TaskID":1457}

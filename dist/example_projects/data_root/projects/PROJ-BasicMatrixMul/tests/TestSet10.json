@@ -1,13 +1,9 @@
-{
-  "TestSet": {
-    "Name"             : "TestSet10",
-
-    "ShortName"        : "ST",
-    "Description"      : "One test case with n=1000 repeated for 10 times.",
-    "N"                : "10",
-    "TestRepeat"       : "10",
-    "TimeLimit"        : "30",
-
-    "TestSetDescHTML"  : "TestSet10.html"
-  }
-}
+{"TestSet": {
+  "Name": "TestSet10",
+  "ShortName": "ST",
+  "Description": "The same test case (n=1000, seed=2342123),  repeated for 10 times.",
+  "N": 10,
+  "TestRepeat": 10,
+  "TimeLimit": 30,
+  "TestSetDescHTML": "TestSet10.html"
+}}

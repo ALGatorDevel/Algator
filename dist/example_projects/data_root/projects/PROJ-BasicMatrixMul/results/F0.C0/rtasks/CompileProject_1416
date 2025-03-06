@@ -1,0 +1,19 @@
+Source files:
+
+ - ProjectAbstractAlgorithm.java
+ - TestCase.java
+ - Input.java
+ - Output.java
+ - IndicatorTest_Check.java
+ - TestCaseGenerator_Type2.java
+ - TestCaseGenerator_Type3.java
+ - TestCaseGenerator_Type0.java
+ - TestCaseGenerator_Type1.java
+
+Compilation failed: 
+
+TestCaseGenerator_Type2.java:19: error: incompatible types: Variables cannot be converted to String
+    return Tools.randomTestCase(inputParameters, n, seed, false);
+                                ^
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+1 error

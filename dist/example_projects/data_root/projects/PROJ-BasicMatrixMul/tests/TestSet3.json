@@ -1,13 +1,9 @@
-{
-  "TestSet": {
-    "Name"             : "TestSet3",
-
-    "ShortName"        : "TS3",
-    "Description"      : "Matrices of dimensions from 500 to 3000",
-    "N"                : "52",
-    "TestRepeat"       : "2",
-    "TimeLimit"        : "10",
-
-    "TestSetDescHTML"  : "TestSet3.html"
-  }
-}
+{"TestSet": {
+  "Name": "TestSet3",
+  "ShortName": "TS3",
+  "Description": "Large matrices (n = 500 ... 3000)",
+  "N": 52,
+  "TestRepeat": 1,
+  "TimeLimit": 10,
+  "TestSetDescHTML": "TestSet3.html"
+}}

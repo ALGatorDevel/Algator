@@ -1,7 +1,10 @@
-{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test1","Timestamp":1702921441650,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type0"},"Tmin":7408,"TFirst":7408,"TAll":[7408],"Check":"OK"}
-{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test2","Timestamp":1702921441802,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type1"},"Tmin":10498,"TFirst":10498,"TAll":[10498],"Check":"OK"}
-{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test3","Timestamp":1702921441997,"Pass":"DONE","N":200,"TC_PROPS":{"Type":"Type1"},"Tmin":27008,"TFirst":27008,"TAll":[27008],"Check":"OK"}
-{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test4","Timestamp":1702921442154,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type2"},"Tmin":9502,"TFirst":9502,"TAll":[9502],"Check":"PROB"}
-{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test5","Timestamp":1702921442339,"Pass":"DONE","N":200,"TC_PROPS":{"Type":"Type1"},"Tmin":26768,"TFirst":26768,"TAll":[26768],"Check":"OK"}
-{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test6","Timestamp":1702921442467,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type3"},"Tmin":102,"TFirst":102,"TAll":[102],"Check":"OK"}
-{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test7","Timestamp":1702921442605,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type3"},"Tmin":136,"TFirst":136,"TAll":[136],"Check":"OK"}
+{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test1","Timestamp":1741249498278,"Pass":"DONE","N":10,"TC_PROPS":{"Type":"Type0"},"Tmin":44,"TFirst":44,"TAll":[44],"Check":"OK","TaskID":1458}
+{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test2","Timestamp":1741249498502,"Pass":"DONE","N":20,"TC_PROPS":{"Type":"Type1"},"Tmin":209,"TFirst":209,"TAll":[209],"Check":"OK","TaskID":1458}
+{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test3","Timestamp":1741249498679,"Pass":"DONE","N":20,"TC_PROPS":{"Type":"Type1"},"Tmin":298,"TFirst":298,"TAll":[298],"Check":"OK","TaskID":1458}
+{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test4","Timestamp":1741249498874,"Pass":"DONE","N":50,"TC_PROPS":{"Type":"Type2"},"Tmin":2771,"TFirst":2771,"TAll":[2771],"Check":"PROB","TaskID":1458}
+{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test5","Timestamp":1741249499048,"Pass":"DONE","N":100,"TC_PROPS":{"Type":"Type1"},"Tmin":6544,"TFirst":6544,"TAll":[6544],"Check":"OK","TaskID":1458}
+{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test6","Timestamp":1741249499237,"Pass":"DONE","N":110,"TC_PROPS":{"Type":"Type1"},"Tmin":7188,"TFirst":7188,"TAll":[7188],"Check":"OK","TaskID":1458}
+{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test7","Timestamp":1741249499426,"Pass":"DONE","N":120,"TC_PROPS":{"Type":"Type1"},"Tmin":8565,"TFirst":8565,"TAll":[8565],"Check":"OK","TaskID":1458}
+{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test8","Timestamp":1741249499615,"Pass":"DONE","N":130,"TC_PROPS":{"Type":"Type1"},"Tmin":9167,"TFirst":9167,"TAll":[9167],"Check":"OK","TaskID":1458}
+{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"Test-9","Timestamp":1741249499631,"Pass":"FAILED","TaskID":1458}
+{"Algorithm":"Winograd","Testset":"TestSet0","InstanceID":"test10","Timestamp":1741249499837,"Pass":"DONE","N":150,"TC_PROPS":{"Type":"Type1"},"Tmin":14884,"TFirst":14884,"TAll":[14884],"Check":"OK","TaskID":1458}
