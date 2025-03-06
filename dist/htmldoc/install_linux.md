@@ -30,18 +30,14 @@
 
 5. **Download and execute the instalation script** 
     
-    Download the instalation script from GitHub ...
+    Download and execute the instalation script from GitHub with
     <br>
     ```
-    $ curl -L -O https://raw.github.com/ALGatorDevel/Algator/master/dist/bin/_target_/algator_start
+    $ curl -sSL https://raw.github.com/ALGatorDevel/Algator/master/dist/bin/_target_/algator_start | bash
     ```   
-    ... (note: replace <b>&lowbar;target&lowbar;</b> with <b>linux</b> or <b>mac</b>) and execute
-    <br>
-    ```
-    $ chmod +x algator_start
-    $ ./algator_start
-    ```
-    This script will download and execute the Docker image and perform initialization of ALGator system. 
+    ... (note: replace <b>&lowbar;target&lowbar;</b> with <b>linux</b> or <b>mac</b>) 
+
+    This script will download an image, execute the container and perform initialization of ALGator system. 
     <p align=right><a href="/dist/htmldoc/images/linux_install.png">Screenshot</a>
     <br>
 

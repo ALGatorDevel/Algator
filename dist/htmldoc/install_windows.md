@@ -32,14 +32,10 @@
     Download the instalation script from GitHub ...
     <br>
     ```
-    D:\ALGATOR_ROOT> curl -L -O https://raw.github.com/ALGatorDevel/Algator/master/dist/bin/windows/algator_init.bat
+    D:\ALGATOR_ROOT> curl -sSL https://raw.github.com/ALGatorDevel/Algator/master/dist/bin/windows/algator_init.bat | cmd
     ```   
-    ... and execute
-    <br>
-    ```
-    D:\ALGATOR_ROOT> algator_init.bat
-    ```
-    This script will download and execute the Docker image and perform initialization of ALGator system. 
+    
+    This script will download an image, execute the container and perform initialization of ALGator system. 
     <br>
 
 
