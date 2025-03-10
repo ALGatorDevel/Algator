@@ -1,5 +1,4 @@
 {"TestSet": {
-  "eid": "e_116",
   "ShortName": "TS2",
   "Description": "Medium-size matrices (n = 100 ... 990, step 10)",
   "N": 90,
