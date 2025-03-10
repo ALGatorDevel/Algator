@@ -42,7 +42,7 @@ public class AEETaskClient {
    *   - ALGatorServerName, ALGatorServerPort
    *   - FamilyID/ComputerID of this computer
    */
-  static void initTaskClient(String server, int port) {
+  static boolean initTaskClient(String server, int port) {
     System.out.println("ALGator TaskClient configuration\n");
     
     ELocalConfig lconfig = ELocalConfig.getConfig();
@@ -94,7 +94,7 @@ public class AEETaskClient {
     JSONObject jAns = decodeAnswer(answer);
     if (jAns.getInt(ID_STATUS) != 0) { // if error occures...
       System.out.println(badRequestMsg(ASGlobal.REQ_GETFAMILIES, jAns));
-      return;
+      return false;
     }
     
     JSONArray families = new JSONArray();
@@ -146,7 +146,7 @@ public class AEETaskClient {
         familyID = families.getJSONObject(tfIDX-1).getString(EComputerFamily.ID_FamilyID);
       else {
         System.out.println("Invalid family.");
-        return;
+        return false;
       }
     }
 
@@ -158,7 +158,7 @@ public class AEETaskClient {
     jAns = decodeAnswer(answer);
     if (jAns.getInt(ID_STATUS) != 0) { // if error occures...
       System.out.println(badRequestMsg(ASGlobal.REQ_GETCOMPUTERS, jAns));
-      return;
+      return false;
     }
     
     JSONArray computers = new JSONArray();
@@ -227,7 +227,7 @@ public class AEETaskClient {
       
       if (computerUID==null || computerUID.length() != 14) {
         System.out.println("Invalid computer UID: " + computerUID);
-        return;
+        return false;
       }
     } else {
       if (tcIDX > 0 && tcIDX <= computers.length()) {
@@ -235,7 +235,7 @@ public class AEETaskClient {
         computerUID = computers.getJSONObject(tcIDX-1).getString(EComputer.ID_ComputerUID);
       } else {
         System.out.println("Invalid computer.");
-        return;
+        return false;
       }
     }
     System.out.printf("\n  Your computer: %s.%s (%s)\n", familyID, computerID, computerUID);
@@ -244,6 +244,8 @@ public class AEETaskClient {
     lconfig.setComputerUID(computerUID);
     lconfig.saveEntity();
     System.out.println("  ... OK; information saved\n");
+    
+    return true;
   }
   
   
