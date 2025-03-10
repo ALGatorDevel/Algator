@@ -1,5 +1,4 @@
 {"TestSet": {
-  "eid": "e_115",
   "ShortName": "TS1",
   "Description": "Small matrices (n=10, ... 30), data is read from files.",
   "N": 15,

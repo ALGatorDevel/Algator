@@ -146,7 +146,7 @@ public class Requester {
   
   
   
-  // type: 0 ... tastServer, 1...Request
+  // type: 0 ... taskClient, 1...Request
   public static void do_main(String args[], int type) {
     Options options = getOptions();
 
@@ -200,7 +200,6 @@ public class Requester {
             
       if (line.hasOption("init")) {
         AEETaskClient.initTaskClient(serverName, port);
-        return;
       }       
       
       if (type == 0) {
