@@ -845,6 +845,132 @@ public class ASTools {
     return parsedAnswer(result, "Project properties saved.", "Error saving project properties.");
   }
 
+  // zip file should contain entire project (folder PROJ-<projectName>)
+  // if parameter projectName is empty, the <projectName> will be used
+  // if project with given mane exists, this method will add 01, 02, 03, ... to get unexisting project
+  public static String importProject(String uid, String zipFileName, String projectName, boolean deleteZipFileFolder) {
+    if (!CanUtil.can(uid, "e0_P", "can_import_project")) {
+      return sAnswer(99, "Error importing project. ", accessDeniedString);
+    } 
+    String result = "";
+    String tmpDir = ATGlobal.getTMPDir("unziped_projects");
+    File   tmpPath = new File(tmpDir);    
+    try {
+      String error = ATTools.unzip(zipFileName, tmpDir);
+      if (error.equals("OK")) {  
+        String[] content = tmpPath.list();
+        if (content.length == 1 && content[0].startsWith("PROJ-")) {
+          String pName = content[0].substring(5);
+          if (!projectName.isEmpty()) pName=projectName;
+          
+          // check if project with this name already exists
+          int ext = 0;
+          String impProjectName="";
+          String projectRoot = "";
+          while (ext < 99) {
+            impProjectName = pName + (ext == 0 ? "" : String.format("%02d", ext));
+            projectRoot    = ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), impProjectName);
+            if (!new File(projectRoot).exists()) break;
+            ext++;
+          }
+          if (!impProjectName.isEmpty() && ext < 99) { // we have a new project name, project can be imported          
+            String errorMsg = "";
+            
+            FileUtils.copyDirectory(new File(tmpPath, content[0]), new File(projectRoot));
+            
+            EProject project       = EProject.getProject(impProjectName);
+            JSONObject projectJSON = new JSONObject(project.toJSONString());
+
+            String projectEID = AUsersTools.getUniqueDBid("e_");
+            
+            project.set(Entity.ID_EID, projectEID);            
+            project.saveEntity();                        
+     
+            String addToDBMsg=EntitiesDAO.addEntity(DTOEntity.ETYPE_Project, impProjectName, projectEID, uid,  "e0", true);
+            if (addToDBMsg.startsWith("14:")) errorMsg = addToDBMsg;
+            
+            JSONArray algs = projectJSON.optJSONArray(EProject.ID_Algorithms);
+            if (algs!=null) for (int i=0; i<algs.length(); i++) {
+              String algName = algs.getString(i);
+              String algEID  = AUsersTools.getUniqueDBid("e_");
+              
+              EAlgorithm eAlg = EAlgorithm.getAlgorithm(impProjectName, algName);
+              eAlg.set(Entity.ID_EID, algEID);            
+              eAlg.saveEntity();                        
+              
+              addToDBMsg=EntitiesDAO.addEntity(DTOEntity.ETYPE_Algorithm, algName, algEID, uid,  projectEID, true);
+              if (addToDBMsg.startsWith("14:")) errorMsg += (errorMsg.isEmpty() ? "" : "; ") + addToDBMsg;          
+            }
+
+            JSONArray tsts = projectJSON.optJSONArray(EProject.ID_TestSets);
+            if (tsts!=null) for (int i=0; i<tsts.length(); i++) {
+              String tstName = tsts.getString(i);
+              String tstEID  = AUsersTools.getUniqueDBid("e_");
+              
+              ETestSet eTst = ETestSet.getTestset(impProjectName, tstName);
+              eTst.set(Entity.ID_EID, tstEID);            
+              eTst.saveEntity();                        
+              
+              addToDBMsg=EntitiesDAO.addEntity(DTOEntity.ETYPE_Algorithm, tstName, tstEID, uid,  projectEID, true);
+              if (addToDBMsg.startsWith("14:")) errorMsg += (errorMsg.isEmpty() ? "" : "; ") + addToDBMsg;          
+            }
+
+            JSONArray prss = projectJSON.optJSONArray(EProject.ID_ProjPresenters);
+            if (prss!=null) for (int i=0; i<prss.length(); i++) {
+              String prsName = prss.getString(i);
+              String prsEID  = AUsersTools.getUniqueDBid("e_");
+              
+              String presenterFilename = ATGlobal.getPRESENTERFilename(ATGlobal.getALGatorDataRoot(), impProjectName, prsName);
+              try {
+                String fc = getFileContent(presenterFilename);
+                JSONObject pObj = new JSONObject(fc);
+                pObj.getJSONObject("Presenter").put(Entity.ID_EID, prsEID);
+                writeFileContent(presenterFilename, pObj.toString(2));
+              }catch (Exception e) {}
+              
+              addToDBMsg=EntitiesDAO.addEntity(DTOEntity.ETYPE_Presenter, prsName, prsEID, uid,  projectEID, true);
+              if (addToDBMsg.startsWith("14:")) errorMsg += (errorMsg.isEmpty() ? "" : "; ") + addToDBMsg;          
+            }
+            
+            if (errorMsg.isEmpty())
+              result = sAnswer(OK_STATUS, "Import project.", String.format("Project '%s' imported successfully.", impProjectName));
+            else {
+              // TODO:
+              // če sem prišel do sem, pomeni, da sem projekt razpakiral, presnel na novo 
+              // lokacijo in v bazo vpisal nekaj entitet, potem ja pa prišlo do napake pri 
+              // vnosu entitet v bato. Sedaj (ker je prišlo do napake), bi
+              // bilo treba vse to razveljaviti, da ne ostane nekaj na pol (pobriši nov direktorij 
+              // in pobriši vse nove vnose v tabelo entitet)
+              result = sAnswer(5, "Error importing project.", errorMsg);
+            }
+          } else 
+            result = sAnswer(4, "Error importing project.", "Invalid project name.");
+        } else
+          result =  sAnswer(3, "Error importing project.", "The structure of the zip file in incorrect");
+      } else 
+        result =  sAnswer(2, "Error importing project.", error);
+      
+      // clean-up unziped files
+      Tools.deleteDirectory(tmpPath);
+      
+      // clean-up upload folder
+      if (deleteZipFileFolder) {
+        File zipFile         = new File(zipFileName);
+        File zipPath         = new File(zipFile.getParent());
+        String zipFolderName = zipPath.getName();
+        int numberOfFiles    = zipPath.list().length;
+        
+        // additional checking for safety
+        if (zipFolderName.startsWith("tmp") && numberOfFiles == 1) 
+          Tools.deleteDirectory(zipPath);
+      }
+    } catch (Exception e) {
+      result =  sAnswer(1, "Error importing project.", e.toString());
+    }
+    return result;
+  }
+  
+  
   // Data should contain information about html type and html content 
   // html type: html_desc, test_case_html_desc, test_sets_html_desc, algorithms_html_desc, project_ref_desc47 
   // html content: base64 encoded html file content
@@ -1831,6 +1957,12 @@ public class ASTools {
     }
     return result.toString();
   }
+  
+  public static void writeFileContent(String filePath, String fileContent) {
+    try (PrintWriter pw = new PrintWriter(new File(filePath))){
+      pw.print(fileContent);
+    } catch (Exception e) {}
+  }
 
   public static String getFileContent(String projectName, String fileName) {
     return getFileContent(projectName, fileName, false);
@@ -2522,7 +2654,7 @@ public class ASTools {
 
     DiskFileItemFactory factory = new DiskFileItemFactory();
     ServletFileUpload upload = new ServletFileUpload(factory);
-    upload.setSizeMax(100 * 1024 * 1024); // Max file size: 100MB
+    upload.setSizeMax(1024 * 1024 * 1024); // Max file size: 100MB
 
     try {
       List<FileItem> items = upload.parseRequest(request.raw());
@@ -2551,13 +2683,18 @@ public class ASTools {
           break;
         case "jar":  
           folderName = ATGlobal.getPROJECTlibPath(projectName);
+          break;
+        case "importProject":
+          folderName = ATGlobal.getTMPDir("import");
+          break;
       } 
       
       if (!folderName.isEmpty()) {
         File folder = new File(folderName);
         if (!folder.exists()) folder.mkdirs();
         
-        String ulFiles = "", ulErrors = "";
+        JSONArray ulFiles =  new JSONArray();
+        String ulErrors = "";
         for (FileItem item : items) {
           if (!item.isFormField()) {
             String fileName = item.getName();
@@ -2565,13 +2702,18 @@ public class ASTools {
             try {
               if (uploadedFile.exists()) uploadedFile.delete();
               item.write(uploadedFile);
-              ulFiles += (ulFiles.isEmpty() ? "": ", ") + fileName;
+              ulFiles.put(fileName);
             } catch (Exception e) {
               ulErrors += (ulErrors.isEmpty() ? "":", ") + fileName +":"+ e.toString();
             }
           }
         }
-        return sAnswer(OK_STATUS, "Upload to " + projectName + " form " + uid , "Files uploaded: [" + ulFiles + "]");
+        
+        JSONObject result = new JSONObject();
+        result.put("Location", folderName);
+        result.put("Files", ulFiles);
+        
+        return jAnswer(OK_STATUS, "Upload to " + projectName + " from " + uid , result.toString());
       } else {
         return sAnswer(3, "Upload error.", "Upload folder can not determined.");
       }
@@ -2582,6 +2724,8 @@ public class ASTools {
 
 
   public static void main(String[] args) {
-    System.out.println(getProjectData("u_42", "BasicSort"));
+    System.out.println(
+            importProject("u5_azp978scbf", "d:\\PROJ-BasicSort.zip", "", false)
+    );
   }
 }

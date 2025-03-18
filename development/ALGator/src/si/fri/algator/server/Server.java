@@ -56,7 +56,7 @@ public class Server {
     
     String tmpUploadLocation = ATGlobal.getALGatorDataLocal() + File.separator + "webupload_tmp";
     
-    int port    = EAlgatorConfig.getALGatorServerPort();
+    int    port = EAlgatorConfig.getALGatorServerPort();
     String host = EAlgatorConfig.getALGatorServerName();
     
     port(port);
@@ -66,14 +66,14 @@ public class Server {
     threadPool(16);
     
     before((request, response) -> {
-      request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(tmpUploadLocation /*, maxFileSize, maxRequestSize, fileSizeThreshold*/));      
+      request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(tmpUploadLocation ));
     });
 
     post("/id", (req, res) -> {
       return serverID;
     });
     
-    post("/uploadmulti", (req, res) -> {
+    post("/uploadmulti", (req, res) -> {      
       return ASTools.uploadMultipart(req);
     });
     

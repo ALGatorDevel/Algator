@@ -47,6 +47,7 @@ import spark.Request;
 import spark.Response;
 
 import static si.fri.algator.ausers.CanUtil.accessDeniedString;
+import static si.fri.algator.entities.EAlgatorConfig.ID_DBServer;
 
 /**
  * Methods to process the requests to ALGatorServer.
@@ -71,7 +72,7 @@ public class RequestProcessor {
     JSONObject jObj = new JSONObject();
     if (pParams.length() > 0 && pParams.trim().startsWith("{")) {
       try {
-        jObj = new JSONObject(pParams.trim());
+        jObj = new JSONObject(pParams.trim().replace("\\", "\\\\"));
       } catch (Exception e) {}
     }
 
@@ -80,6 +81,9 @@ public class RequestProcessor {
       // return my ID (ID of caller; taskClient's ID); no parameters
       case ASGlobal.REQ_WHO:
         return who(uid);
+      
+      case ASGlobal.REQ_DBINFO:
+        return dbinfo(uid);  
 
       // verifying server presence; no parameters
       case ASGlobal.REQ_CHECK_Q:
@@ -213,6 +217,17 @@ public class RequestProcessor {
     return String.format("Thread: %s, user: %s",
        Long.toString(Thread.currentThread().getId()), user != null ? user.getUsername() : "_unknown_");
   } 
+
+  private static String dbinfo(String uid) {
+    DTOUser user = AUsersTools.getUser(uid);
+    String dbEngine   = ATTools.jSONObjectToMap(EAlgatorConfig.getConfig().getField(ID_DBServer), "Connection", "Database", "Username", "Password").get("Connection").toString();
+    
+    if (user.isIs_superuser()) 
+      return String.format("DBEngine: %s", dbEngine);
+    else
+      return "Access denied.";
+  } 
+
   
   public String serverStatus() {
     int p = 0, r = 0, pa = 0, q = 0;
@@ -232,8 +247,9 @@ public class RequestProcessor {
     }
 
     String ip = ASTools.getMyIPAddress();
-    return String.format("Server at %s on for %s Thread: %d. Tasks: %d running, %d pending, %d queued, %d paused\n", 
-       ip, server.getServerRunningTime(), Thread.currentThread().getId(), r, p, q, pa);
+    int port  = EAlgatorConfig.getALGatorServerPort();
+    return String.format("Server at %s:%d on for %s Thread: %d. Tasks: %d running, %d pending, %d queued, %d paused\n", 
+       ip, port, server.getServerRunningTime(), Thread.currentThread().getId(), r, p, q, pa);
   }
   
   public String notAnonymous() {
@@ -368,7 +384,17 @@ public class RequestProcessor {
             return sAnswer(1, "Alter of type=NewProject requires 'ProjectName'  property.", "");
           String pAuthor = jObj.optString("Author", "");
           String pDate   = jObj.optString("Date", "");           
-          return ASTools.newProject(uid, jObj.getString("ProjectName"), pAuthor, pDate);          
+          return ASTools.newProject(uid, jObj.getString("ProjectName"), pAuthor, pDate);                 
+        case "ImportProject":
+          if (!jObj.has("Path") || !jObj.has("Filename"))
+            return sAnswer(1, "Alter of type=NewProject requires 'Path', 'Filename' properties. The 'ProjectName' property is optional.", "");                    
+          String projectName = jObj.optString("ProjectName", "");
+          // if projectName == '?' ... let projectName be defined by the name of the zip file
+          if (projectName.equals("?")) projectName = "";
+          String path        = jObj.optString("Path", "");
+          String filename    = jObj.optString("Filename", "");  
+          String zipFileName  = new File(path, filename).getPath();
+          return ASTools.importProject(uid, zipFileName, projectName, true);          
         case "RemoveProject":
           if (!jObj.has("ProjectName"))
             return sAnswer(1, "Alter of type=RemoveProject requires 'ProjectName'  property.", "");

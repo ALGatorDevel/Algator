@@ -19,6 +19,7 @@ public class ASGlobal {
    * REQUESTS
    */
   public static final String REQ_WHO              = "WHO";            // no parameters
+  public static final String REQ_DBINFO           = "DBINFO";           // no parameters
   public static final String REQ_STATUS           = "STATUS";         // no parameters
   public static final String REQ_DBDATA           = "DBDATA";         // no parameters
   
