@@ -138,9 +138,9 @@ public class EProject extends Entity {
     File[] projFiles   = new File(projRoot).listFiles((dir, name) -> name.endsWith(".json") && !name.startsWith("project"));    
 
     long last = 0;
-    for (File srcFile : srcFiles) 
+    if (srcFiles != null) for (File srcFile : srcFiles) 
       last = Math.max(last, srcFile.lastModified()/1000);
-    for (File projFile : projFiles) 
+    if (projFiles != null) for (File projFile : projFiles) 
       last = Math.max(last, projFile.lastModified()/1000);
 
     return last;

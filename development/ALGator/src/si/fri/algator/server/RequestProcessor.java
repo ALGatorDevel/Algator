@@ -72,8 +72,16 @@ public class RequestProcessor {
     JSONObject jObj = new JSONObject();
     if (pParams.length() > 0 && pParams.trim().startsWith("{")) {
       try {
-        jObj = new JSONObject(pParams.trim().replace("\\", "\\\\"));
-      } catch (Exception e) {}
+        jObj = new JSONObject(pParams.trim());
+      } catch (Exception e1) {
+        try {
+          // This is needed for request of type "importProject", which includes 
+          // Path with absolute name (including \ characters).
+          // Ommiting this sentence, importProject will not work; ommiting previous 
+          // sentence (JSONObject(pParams.trim());) some other requests will not work.
+          jObj = new JSONObject(pParams.trim().replace("\\", "\\\\"));
+        } catch (Exception e2) {}
+      }
     }
 
     switch (command) {
@@ -387,7 +395,7 @@ public class RequestProcessor {
           return ASTools.newProject(uid, jObj.getString("ProjectName"), pAuthor, pDate);                 
         case "ImportProject":
           if (!jObj.has("Path") || !jObj.has("Filename"))
-            return sAnswer(1, "Alter of type=NewProject requires 'Path', 'Filename' properties. The 'ProjectName' property is optional.", "");                    
+            return sAnswer(1, "Alter of type=ImportProject requires 'Path', 'Filename' properties. The 'ProjectName' property is optional.", "");                    
           String projectName = jObj.optString("ProjectName", "");
           // if projectName == '?' ... let projectName be defined by the name of the zip file
           if (projectName.equals("?")) projectName = "";

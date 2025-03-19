@@ -911,7 +911,7 @@ public class ASTools {
               eTst.set(Entity.ID_EID, tstEID);            
               eTst.saveEntity();                        
               
-              addToDBMsg=EntitiesDAO.addEntity(DTOEntity.ETYPE_Algorithm, tstName, tstEID, uid,  projectEID, true);
+              addToDBMsg=EntitiesDAO.addEntity(DTOEntity.ETYPE_Testset, tstName, tstEID, uid,  projectEID, true);
               if (addToDBMsg.startsWith("14:")) errorMsg += (errorMsg.isEmpty() ? "" : "; ") + addToDBMsg;          
             }
 
@@ -938,7 +938,7 @@ public class ASTools {
               // TODO:
               // če sem prišel do sem, pomeni, da sem projekt razpakiral, presnel na novo 
               // lokacijo in v bazo vpisal nekaj entitet, potem ja pa prišlo do napake pri 
-              // vnosu entitet v bato. Sedaj (ker je prišlo do napake), bi
+              // vnosu entitet v baZo. Sedaj (ker je prišlo do napake), bi
               // bilo treba vse to razveljaviti, da ne ostane nekaj na pol (pobriši nov direktorij 
               // in pobriši vse nove vnose v tabelo entitet)
               result = sAnswer(5, "Error importing project.", errorMsg);

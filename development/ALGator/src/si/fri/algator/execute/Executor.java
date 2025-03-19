@@ -68,7 +68,7 @@ public class Executor {
     // add all IndicatorTest_* ...
     String projectName = projekt.getName();
     Project project = new Project(ATGlobal.getALGatorDataRoot(), projectName);
-    Variables indicators = project.getResultDescriptions().get(MeasurementType.EM).getIndicators();
+    Variables indicators = project.getResultDescriptions().getOrDefault(MeasurementType.EM, new EResult()).getIndicators();
     for (EVariable indicator : indicators) {
       if (!indicator.getType().equals(VariableType.TIMER))
         baseSources.add(ATGlobal.INDICATOR_TEST_OFFSET + indicator.getName());

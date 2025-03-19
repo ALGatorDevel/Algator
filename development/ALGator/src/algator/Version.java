@@ -14,8 +14,8 @@ import si.fri.algator.global.ATLog;
  * @author tomaz
  */
 public class Version {
-  private static String version = "0.988";
-  private static String date    = "January 2025";
+  private static String version = "1.01";
+  private static String date    = "March 2025";
   
   public static String getVersion() {
     return String.format("version %s (%s)", version, date);
