@@ -77,13 +77,11 @@ public class ASGlobal {
   public static final TreeSet<String> nonlogableRequests;
   static {
     nonlogableRequests = new TreeSet(String.CASE_INSENSITIVE_ORDER);
-    //nonlogableRequests.add(REQ_UPLOAD_STATIC);        
-    //nonlogableRequests.add(REQ_STATUS);
-    //nonlogableRequests.add(REQ_WHO);
-    //nonlogableRequests.add(REQ_LIST);    
-    //nonlogableRequests.add(REQ_TASK_STATUS);
-    //nonlogableRequests.add(REQ_ADMIN_PRINTLOG);
-    //nonlogableRequests.add(REQ_ADMIN_PRINTPATHS);
+    nonlogableRequests.add(REQ_UPLOAD_STATIC);        
+    nonlogableRequests.add(REQ_STATUS);
+    nonlogableRequests.add(REQ_WHO);    
+    nonlogableRequests.add(REQ_GET_TASK);
+    nonlogableRequests.add(REQ_TASK_STATUS);    
   }
   
 

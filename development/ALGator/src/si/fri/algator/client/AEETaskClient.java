@@ -404,8 +404,8 @@ public class AEETaskClient {
           try {Thread.sleep(1000);} catch (InterruptedException ex) {}          
         }
         
-        String msg = String.format("\rTask client '"+compID+"' connected to server '%s'%s.", hostName, "                                                 ");
-        AEELog.log(        msg);
+        String msg = String.format("Task client '"+compID+"' connected to server '%s'%s.\n", hostName, "                                                 ");
+        AEELog.log(msg);
         while (true) {
           JSONObject reqJsno = new JSONObject(); reqJsno.put(EComputer.ID_ComputerUID, compUID);
           String taskRequset = ASGlobal.REQ_GET_TASK + ASGlobal.STRING_DELIMITER + reqJsno.toString();

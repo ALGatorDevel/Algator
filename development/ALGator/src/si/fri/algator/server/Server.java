@@ -11,6 +11,16 @@ import si.fri.algator.global.ATGlobal;
 import static spark.Spark.*;
 
 
+class RequestCounter {
+  int numberOfRequests = 0;
+  void count() {
+    numberOfRequests++;
+  }
+  int get() {
+    return numberOfRequests;
+  }
+}
+
 /**
  * ALGator ALGatorServer connects ALGator with the world.
  *
@@ -52,6 +62,8 @@ public class Server {
   public void run() {
     timeStarted = new java.util.Date().getTime();
     
+    RequestCounter requestCounter = new RequestCounter();
+    
     ASCleaner.runCleaningDeamon();
     
     String tmpUploadLocation = ATGlobal.getALGatorDataLocal() + File.separator + "webupload_tmp";
@@ -70,14 +82,19 @@ public class Server {
     });
 
     post("/id", (req, res) -> {
+      requestCounter.count();
       return serverID;
     });
     
     post("/uploadmulti", (req, res) -> {      
+      requestCounter.count();
       return ASTools.uploadMultipart(req);
     });
     
     post("/*", (req, res) -> {
+      requestCounter.count();
+      long startProcess = System.currentTimeMillis();
+      
       String pParams = req.body();
 
       String path = req.pathInfo().toUpperCase();
@@ -95,6 +112,12 @@ public class Server {
               
       if (!ASGlobal.nonlogableRequests.contains(path)) {
           ASLog.log(String.format("[RESPONSE]: %s", response.replaceAll("\n", "; ")));
+      }
+      
+      // every 100 requests log statistics
+      if (requestCounter.get() % 100 == 0) {
+        int processTime = (int)(System.currentTimeMillis() - startProcess);
+        ASLog.log(String.format("[STAT]: Time to process '%s': %d", path, processTime));
       }
 
       return response;  
