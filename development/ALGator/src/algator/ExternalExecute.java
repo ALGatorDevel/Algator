@@ -117,7 +117,7 @@ public class ExternalExecute {
   public static Object runWithExternalJVM(String folderName, MeasurementType mType, boolean verbose) { 
     try {
       // when debugMode is true, algorithm is executed with current JVM (to enable debuging)
-        if (ATGlobal.debugMode) {
+      if (ATGlobal.debugMode) {
         String [] args = new String [] {folderName};
         main(args);
         return (new ProcessBuilder( new String[] {"true"} )).start();       

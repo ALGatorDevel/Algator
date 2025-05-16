@@ -1,6 +1,7 @@
 package si.fri.algator.execute;
 
 import algator.ExternalExecute;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONObject;
+import static si.fri.algator.analysis.Analysis.OtherTestsetName;
 import si.fri.algator.server.ASTask;
 import si.fri.algator.client.Requester;
 import si.fri.algator.entities.ELocalConfig;
@@ -36,6 +38,7 @@ import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
 import si.fri.algator.global.ErrorStatus;
 import si.fri.algator.global.ExecutionStatus;
+import si.fri.algator.tools.DT;
 import si.fri.algator.tools.UniqueIDGenerator;
 
 /**
@@ -79,6 +82,28 @@ public class ExternalExecutor {
    */
   private final static String COMMUNICATION_FILENAME = "comm.data";
 
+  
+  /**
+   * Creates a test case based on given generator and generating parameter values,
+   * runs a test and returns indicators. 
+   */
+  public static Variables runParametrizedTest(Project project, String algName, MeasurementType mType, String generatorType, Variables parameters, int timeLimit, int timesToExecute) {
+    URL[] urls               = New.getClassPathsForProjectAlgorithm(project, algName);
+    String currentJobID      = New.generateClassloaderAndJobID(urls);    
+    String testCaseClassName = project.getEProject().getTestCaseClassname();
+
+    AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).generateTestCase(generatorType, parameters);
+
+    Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, 1, timesToExecute, timeLimit, null, "1");
+  
+    New.removeClassLoader(currentJobID);
+    
+    return result;
+  }
+
+  
+  
+  
   /**
    * Iterates through testset and for each test runs an algorithm.
    *
@@ -277,7 +302,6 @@ public class ExternalExecutor {
 
       if (executionOK) {
         saveAlgToFile(New.getClassPathsForProjectAlgorithm(project, algName), algorithm, cFolderName, SER_ALG_TYPE.TEST);
-
         executionStatus = runWithLimitedTime(cFolderName, timesToExecute, timeLimit, mType, false);
       }
 
@@ -568,7 +592,9 @@ public class ExternalExecutor {
   }
 
   public static AbstractAlgorithm getAlgorithmFromFile(String folderName, SER_ALG_TYPE algType, ClassLoader cl) {
-    try ( FileInputStream fis = new FileInputStream(new File(folderName + File.separator + SERIALIZED_ALG_FILENAME + algType));  ObjectInputStream ois = new ObjectInputStream(fis) {
+    try ( FileInputStream fis = new FileInputStream(new File(folderName + File.separator + SERIALIZED_ALG_FILENAME + algType));  
+            BufferedInputStream bis = new BufferedInputStream(fis);
+            ObjectInputStream ois = new ObjectInputStream(bis) {
       protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
         try {
           return Class.forName(desc.getName(), true, cl);

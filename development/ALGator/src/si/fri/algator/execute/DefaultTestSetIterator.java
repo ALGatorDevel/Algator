@@ -2,6 +2,10 @@ package si.fri.algator.execute;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Scanner;
 import si.fri.algator.entities.EResult;
 import si.fri.algator.entities.ETestSet;
@@ -69,8 +73,15 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
         filePath = testSet.entity_rootdir;      
         testFileName = filePath + File.separator + fileName;
         testsetName = testSet.getName();
-
-        inputSource = new Scanner(new File(testFileName));
+        
+        // za podporo zančnemu sistemu podajanja testcasov, je bila spodnja vrstica 
+        // zamenjana z s štirimi vrsticami
+        // inputSource = new Scanner(new File(testFileName));
+        Path path = Paths.get(testFileName);
+        List<String> lines         = Files.readAllLines(path);        
+        List<String> expandedLines = ExecutorTools.expandLoops(lines);
+        inputSource = new Scanner(String.join("\n", expandedLines));
+        
 	lineNumber=0;        
       } catch (Exception e) {
 	inputSource = null;

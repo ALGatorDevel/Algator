@@ -204,7 +204,7 @@ public class ExecuteOne {
         asJSON = !"csv".equals(line.getOptionValue("output_format"));
       }
       
-      runAlgorithm(project, algName, eTestSet, mType, testID, verboseLevel, timeLimit, timesToExecute, asJSON);    
+      runAlgorithm(project, algName, eTestSet, mType, testID, timeLimit, timesToExecute, asJSON);    
       
     } catch (ParseException ex) {
       printMsg(options);
@@ -214,9 +214,8 @@ public class ExecuteOne {
   
   // Runs one test
   private static void runAlgorithm(Project project, String algName, ETestSet eTestSet, 
-          MeasurementType mType, String testID, int verboseLevel, int limit, int timesToExecute, boolean asJSON) {
+          MeasurementType mType, String testID, int limit, int timesToExecute, boolean asJSON) {
     
-    String qTestSetFileName = ATGlobal.getTESTSETfilename(ATGlobal.getALGatorDataLocal(), project.getName(), "QTestSet");
     eTestSet.set(ETestSet.ID_N, 1);                        // only one test
     eTestSet.set(ETestSet.ID_TimeLimit,  limit);           // no time limit  
     eTestSet.set(ETestSet.ID_TestRepeat, timesToExecute);  // numbers of repetition
