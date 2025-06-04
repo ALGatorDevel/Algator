@@ -34,12 +34,12 @@ public class RunOneExample {
     Variables parameters = new Variables();
 
 
-    int n=1000;
+    int n=1000*1000*1000;
     int tmin = 0;
     while (tmin < 5000) {
       parameters.addVariable(new EVariable("N", n));
       Variables result = ExternalExecutor.runParametrizedTest(project, algName, mt, generatorType, parameters, timeLimit, timesToExecute);
-      tmin = 0; try {tmin = (int) result.getVariable("Tmin").getLongValue() / 1000;} catch (Exception e) {}
+      tmin = 5000; try {tmin = (int) result.getVariable("Tmin").getLongValue() / 1000;} catch (Exception e) {}
       System.out.printf("N=%10d, Tmin=%d ms\n", n, tmin);
       n*=2;
     }
