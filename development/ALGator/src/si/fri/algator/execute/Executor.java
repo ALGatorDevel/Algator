@@ -148,7 +148,7 @@ public class Executor {
               String.format("Compiling algorithm  '%s' - nothing to be done.", algName)));
     }
 
-    String algJARs = ATTools.buildJARList(eProjekt.getStringArray(EProject.ID_AlgorithmJARs), ATGlobal.getPROJECTlib(projRoot));
+    String algJARs = ATTools.buildJARList(eProjekt.getStringArray(EProject./*ID_AlgorithmJARs*/ID_ProjectJARs), ATGlobal.getPROJECTlib(projRoot));
     Answer err = ATTools.compile(algSrc, new String[]{algClass + ".java"},
             algBin, new String[]{projBin}, algJARs, String.format("algorithm '%s'", algName));
 

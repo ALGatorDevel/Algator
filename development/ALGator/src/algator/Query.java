@@ -570,7 +570,6 @@ public class Query {
     int i=0; String [] sAlgs = new String[eAlgs.size()]; for (EAlgorithm eAlg : eAlgs ) {sAlgs[i++] = eAlg.getName();}
         i=0; String [] sTsts = new String[eTests.size()];for (ETestSet   eTst : eTests) {sTsts[i++] = eTst.getName();}
         
-    
     EQuery eq = new EQuery(sAlgs, sTsts, par, ind, groupBy, filter, sortBy, "0", compID);
     return DataAnalyser.runQuery(DTOUser.USER_ALGATOR, projekt.getEProject(), eq, "");
   }
