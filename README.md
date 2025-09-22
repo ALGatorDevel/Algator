@@ -12,7 +12,7 @@ To use the ALGator, user defines a project including the definition of the probl
 - [Installing ALGator on Windows](/dist/htmldoc/install_windows.md)
 
 
-## User manuals (in Slovene)
+## User manuals
 - [Basic concepts](https://htmlpreview.github.io/?https://github.com/ALGatorDevel/Algator/blob/master/dist/htmldoc/a_desc.html)
 
 - [Usage instructions](dist/htmldoc/a_usage.md)
