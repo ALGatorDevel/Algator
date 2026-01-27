@@ -11,6 +11,12 @@ package si.fri.algator.tools;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteWatchdog;
+import org.apache.commons.exec.Executor;
+import org.apache.commons.exec.ShutdownHookProcessDestroyer;
 import si.fri.algator.global.ErrorStatus;
 
 public class RSync {
@@ -37,13 +43,21 @@ public class RSync {
       destDir = replaceDriveLetter(destDir);
     } 
     
-    String[] cmd = new String[]{"rsync", "-ar", "--delete",  srcDir, destDir};
-    ProcessBuilder pb = new ProcessBuilder(cmd);
+    CommandLine cmd = new CommandLine("rsync");
+    cmd.addArgument("-ar");
+    cmd.addArgument("--delete");
+    cmd.addArgument(srcDir);
+    cmd.addArgument(destDir);
+
+    Executor executor = new DefaultExecutor();
+    // kill if rsync does not finish in 1 hour (this time should be project dependant)
+    executor.setWatchdog(ExecuteWatchdog.builder().setTimeout(Duration.ofHours(1)).get());
+    // kill running process if jvm stops working
+    executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());    
     
     int val = -1;
     try {
-      Process p = pb.start();
-      val = p.waitFor();
+      val = executor.execute(cmd); 
     } catch (Exception e) {
       ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, e.toString());
     }
@@ -51,14 +65,21 @@ public class RSync {
   }
 
   public static boolean rsyncExists() {
-    String[] cmd = new String[]{"rsync", "-h"};
-    ProcessBuilder pb = new ProcessBuilder(cmd);
-    int val = -1;
+    CommandLine cmd = new CommandLine("rsync");
+    cmd.addArgument("-h");
+
+    Executor executor = new DefaultExecutor();
+    // kill after 5 seconds
+    executor.setWatchdog(ExecuteWatchdog.builder().setTimeout(Duration.ofSeconds(5)).get());
+    // kill running process if jvm stops working
+    executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());    
+
     try {
-      Process p = pb.start();
-      val = p.waitFor();
-    } catch (IOException | InterruptedException e) {}
-    return val == 0;
+      int exitValue = executor.execute(cmd);
+      return exitValue == 0;
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   /**

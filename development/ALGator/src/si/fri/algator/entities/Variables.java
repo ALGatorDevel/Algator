@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
@@ -17,10 +18,12 @@ import si.fri.algator.global.ErrorStatus;
  */
 public class Variables implements Serializable, Iterable<EVariable> {
   
-  private HashMap<String, EVariable> variables;
+  // type was changed from HashMap to LInkedHashMap to perserve the order 
+  // of variables (to be the same ad insertion order)
+  private LinkedHashMap<String, EVariable> variables;
 
   public Variables() {
-        variables = new HashMap<>();
+        variables = new LinkedHashMap<>();
   }
   
   public Variables(Variables variables) {

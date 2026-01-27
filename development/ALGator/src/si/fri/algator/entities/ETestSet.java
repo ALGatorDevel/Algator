@@ -28,7 +28,7 @@ public class ETestSet extends Entity {
     ETestSet tst = new ETestSet(new File(ATGlobal.getTESTSETfilename(data_root, projectName, testsetName)));
     tst.set(ID_LAST_MODIFIED, tst.getLastModified(projectName, testsetName));
     return tst;
-  } 
+  }
    
   public ETestSet() {
     super(ID_TestSet, 

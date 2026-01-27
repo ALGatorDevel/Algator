@@ -1,5 +1,6 @@
 package si.fri.algator.client;
 
+import java.time.Duration;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,7 +23,9 @@ import static si.fri.algator.server.ASTools.decodeAnswer;
 import si.fri.algator.server.ASTask;
 import si.fri.algator.entities.CompCap;
 import si.fri.algator.entities.EComputer;
+import si.fri.algator.entities.ETestSet;
 import si.fri.algator.entities.MeasurementType;
+import si.fri.algator.execute.AbstractTestCase;
 import si.fri.algator.execute.Executor;
 import si.fri.algator.global.Answer;
 
@@ -263,7 +266,13 @@ public class AEETaskClient {
       case "CompileAlgorithm": 
         ans = Executor.algorithmMakeCompile(ATGlobal.getALGatorDataRoot(), task.getString("Project"), task.getString("Algorithm"), MeasurementType.EM, true);
         taskResult = ans.message;
-        break;        
+        break;  
+      case "GenerateTestCase":
+        ans = Executor.projectMakeCompile(ATGlobal.getALGatorDataRoot(), task.getString("Project"), true, task);
+        if (ans.status.equals(ErrorStatus.STATUS_OK))
+          ans = AbstractTestCase.generateTestcaseWithAnswer(task.getString("Project"), task.getString("Msg"));
+        taskResult = ans.message;
+        break;
       default: return 300;
     }
     
@@ -297,22 +306,54 @@ public class AEETaskClient {
    * @return 
    */
   private static int runTask(ASTask task) {    
+    // task execution time limit (sum of all max times + 5%)
+    ETestSet ts = ETestSet.getTestset(task.getString(ASTask.ID_Project), task.getString(ASTask.ID_Testset));
+
+    int timelimitOne  = ts.getFieldAsInt(ETestSet.ID_TimeLimit, 1);
+    int n             = ts.getFieldAsInt(ETestSet.ID_N, 1);
+    int testRepeat    = ts.getFieldAsInt(ETestSet.ID_TestRepeat, 1);
+
+    // why 5?
+    // besides running algorithm there are 4 things (of approx. the same complexity):
+    // create testcase, serialize testcase, deserialize testcase, check the result
+    int secondsToWait = (int)(5 * (n * timelimitOne * testRepeat));
+
+    // debug!! 
+    /*
+    String project = task.getString(ASTask.ID_Project);
+    String tsn = task.getString(ASTask.ID_Testset);
+    String author = ts.getField(ETestSet.ID_Author);
+    String date   = ts.getField(ETestSet.ID_Date);
+    String data_root = ATGlobal.getALGatorDataRoot();
+    String tstfname = ATGlobal.getTESTSETfilename(data_root, project, tsn);
+    
+    AEELog.log("project: "  + project);
+    AEELog.log("testset: "  + tsn);
+    AEELog.log("data_root: "  + data_root);
+    AEELog.log("tstfname: "  + tstfname);
+    
+    AEELog.log("author: "  + author);
+    AEELog.log("date: "  + date);
+    AEELog.log("timelimitOne: "  + timelimitOne);
+    AEELog.log("n: "             + n);
+    AEELog.log("testRepeat: "    + testRepeat);
+    AEELog.log("secondsToWait: " + secondsToWait);
+    */
+    // debug!!
+
+    
     DefaultExecutor executor = new DefaultExecutor();
     executor.setExitValue(0);
     
-    // this line ensures that a subtask (executor) will be automatically closed 
-    // when TaskClient will be closed (with CTRL-C, for example).
-    // Without this line, the executor continued to run task in background eventhough TaskClient was stoped.  
-    executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());    
-    
-    // max time to wait for task to finish; in the future this time should be read
-    // from configuration files (should be testset-dependant)
-    int secondsToWait = 10 * 60; // 10 minutes
-    
-    ExecuteWatchdog watchdog = new ExecuteWatchdog(secondsToWait*1000);
+    // Ensure TaskClient won’t block if the task exceeds its time limit
+    ExecuteWatchdog watchdog = ExecuteWatchdog.builder().setTimeout(Duration.ofSeconds(secondsToWait)).get();
     executor.setWatchdog(watchdog);
-
     
+    // this line ensures that a subtask (executor) will be automatically closed when
+    // TaskClient will be closed (with CTRL-C, for example). Without this line, the 
+    // executor continued to run task in background eventhough TaskClient was stoped.  
+    executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());    
+        
     CommandLine cmdLine = new CommandLine("java");    
 
     //  !!!! to potrebujem samo v primeru, da TaskClient poganjam iz NetBeansa    
@@ -347,7 +388,6 @@ public class AEETaskClient {
     cmdLine.addArgument("-v");
     cmdLine.addArgument("2");
 
-    
     // task info
     ASTask taskInfo = new ASTask();
     taskInfo.set(ASTask.ID_TaskID,      task.getFieldAsInt(ASTask.ID_TaskID));
@@ -355,7 +395,7 @@ public class AEETaskClient {
     taskInfo.set(ASTask.ID_Progress,    task.getFieldAsInt(ASTask.ID_Progress));    
     cmdLine.addArgument("-task");
     cmdLine.addArgument(taskInfo.toJSONString(0).replaceAll("\"", "'"));
-    
+        
     AEELog.log(": Starting    - " + task);
     int exitValue = 201;
     MyExecuteResultHandler resultHandler = null;
@@ -368,7 +408,7 @@ public class AEETaskClient {
       AEELog.log(": Completed   - " + task);
     } catch (Exception e) {
       if (watchdog.killedProcess()) {
-        AEELog.log("Killed      - " + task);
+        AEELog.log("Killed      - " + task + " (secondsToWait: " + secondsToWait + ")");
         exitValue = ErrorStatus.PROCESS_KILLED.ordinal();
       } else {    
         AEELog.log(ASGlobal.ERROR_PREFIX + e.toString());
@@ -425,10 +465,17 @@ public class AEETaskClient {
             } catch (Exception e) {}
             if (task != null) {
               int exitCode;
-              if (task.getString(ASTask.ID_TaskType, ASTask.ID_TaskType_Execute).equals(ASTask.ID_TaskType_Execute))
-                exitCode = runTask(task);
-              else
-                exitCode = runMiscTask(task);
+              String exitMsg = "?";
+
+              try {
+                if (task.getString(ASTask.ID_TaskType, ASTask.ID_TaskType_Execute).equals(ASTask.ID_TaskType_Execute))
+                  exitCode = runTask(task);
+                else
+                  exitCode = runMiscTask(task);
+              } catch (Exception e) {
+                exitCode = 99;
+                exitMsg = e.toString();
+              }
               
               if (exitCode == 242) {
                 // 242 means that task was paused by server; this is a signal 
@@ -436,7 +483,6 @@ public class AEETaskClient {
               } else {
                 int taskNo = task.getTaskID(); 
 
-                String exitMsg = "?";
                 switch (exitCode) {
                   case 0  : exitMsg = "Task completed successfully."; break;
                   case 202: exitMsg = "TaskID and ComputerID mismatch."; break;
@@ -449,7 +495,7 @@ public class AEETaskClient {
                   case 214: exitMsg = "Problems with project synchronization."; break;
                   case 215: exitMsg = "The database is not initialized."; break;
                   case 300: exitMsg = "Can't execute misc. task"; break;
-                  default: exitMsg  = "Error code: " + exitCode; 
+                  default: exitMsg  = "Error code: " + exitCode + "; Error: " + exitMsg; 
                 }
                 JSONObject answer = new JSONObject();
                 answer.put("ExitCode", exitCode); 

@@ -209,7 +209,7 @@ public class VMEPExecute {
     result.addVariable(EResult.getAlgorithmNameParameter(algName), true);
     result.addVariable(EResult.getTestsetNameParameter(testsetName), true);
     result.addVariable(EResult.getInstanceIDParameter(UniqueIDGenerator.getNextID()), true); // if testCase won't initialize, a testcase ID is giver here 
-    result.addVariable(EResult.getTimestampParameter(System.currentTimeMillis()), true);    
+    result.addVariable(EResult.getTimestampIndicator(System.currentTimeMillis()), true);    
     result.addVariable(EResult.getExecutionStatusIndicator(ExecutionStatus.UNKNOWN), true);
     
     // An error that appears as a result of JVM error is not caught by the following catch; however, the finally block
@@ -269,7 +269,7 @@ public class VMEPExecute {
         result.addVariable(EResult.getAlgorithmNameParameter(algName), true);
         result.addVariable(EResult.getTestsetNameParameter(testsetName), true);
         result.addVariable(input.getParameters().getVariable(EResult.instanceIDParName));
-        result.addVariable(EResult.getTimestampParameter(System.currentTimeMillis()), true);
+        result.addVariable(EResult.getTimestampIndicator(System.currentTimeMillis()), true);
       } else {
         result.addVariable(EResult.getExecutionStatusIndicator(ExecutionStatus.FAILED), true);
         result.addVariable(EResult.getErrorIndicator("Invaldi testset or test."), true);

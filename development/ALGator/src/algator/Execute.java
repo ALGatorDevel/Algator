@@ -506,7 +506,7 @@ public class Execute {
 	  error = Executor.algorithmRun(projekt, eAlgs.get(i).getName(), 
 		  eTests.get(j).getName(),  mType, notificator, alwaysCompile, alwaysRun, whereToPrint, asJSON, task);           
 
-          // prislo je do prekinitve izvajanja TestSeta (iz strani strežnika)?
+          // prislo je do prekinitve izvajanja TestSeta (s strani strežnika)?
           if (task!=null && error.equals(ErrorStatus.PROCESS_QUEUED))
             System.exit(242); // signal to the caller that task was queued
             

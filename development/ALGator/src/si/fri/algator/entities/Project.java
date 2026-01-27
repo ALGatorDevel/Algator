@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.TreeMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,8 +26,8 @@ public class Project {
   private final String projectName;
   
   
-  private final TreeMap<String, EAlgorithm> algorithms;
-  private final TreeMap<String, ETestSet>   testsets;
+  private final LinkedHashMap<String, EAlgorithm> algorithms;
+  private final LinkedHashMap<String, ETestSet>   testsets;
   private final HashMap<MeasurementType, EResult>   resultDescriptions;
   private ETestCase testCaseDescription;
 	  
@@ -47,8 +48,8 @@ public class Project {
     
     errors = new ArrayList();
     
-    algorithms           = new TreeMap();
-    testsets             = new TreeMap();
+    algorithms           = new LinkedHashMap();
+    testsets             = new LinkedHashMap();
     resultDescriptions   = new HashMap();
     testCaseDescription  = null;
     
@@ -114,10 +115,10 @@ public class Project {
   }
   
   
-  public TreeMap<String, EAlgorithm> getAlgorithms() {
+  public LinkedHashMap<String, EAlgorithm> getAlgorithms() {
     return algorithms;
   }
-  public TreeMap<String, ETestSet> getTestSets() {
+  public LinkedHashMap<String, ETestSet> getTestSets() {
     return testsets;
   }
 
@@ -149,34 +150,46 @@ public class Project {
   }
   
   /**
-   * Returns an array of indicators (merged from all result descriptions)
-   */
-  static public String[] getIndicators(HashMap<MeasurementType, EResult> resultDescriptions) {
-    ArrayList<String> params = new ArrayList();
-    
-    for (EResult eRedDesc : resultDescriptions.values()) {
-      String [] tParams = eRedDesc.getStringArray(EResult.ID_IndOrder);
-      for (String param : tParams) 
-        if (!params.contains(param))
-          params.add(param);
-    }
-    
-    return (String []) params.toArray(new String[0]);
-  }
-  
-  /**
    * Returns an array of indicators for a given measurement type
    */
   static public String[] getIndicators(HashMap<MeasurementType, EResult> resultDescriptions, MeasurementType mType) {
     if (resultDescriptions == null) return new String []{};
 
-    EResult eRedDesc = resultDescriptions.get(mType);
-    if  (eRedDesc != null) 
-      return eRedDesc.getStringArray(EResult.ID_IndOrder);
-    else  
-      return new String []{};
+    return getIndicators(resultDescriptions.get(mType), mType);
   }
   
+  static public String[] getIndicators(EResult resultDescription, MeasurementType mType) {
+    String[] indicators = (resultDescription != null) ?
+      resultDescription.getStringArray(EResult.ID_IndOrder) : new String []{};
+        
+    // for EM measurements, we add default indicators: computerID, timestamp and pass
+    if (MeasurementType.EM.equals(mType)) 
+      indicators = extendWithDefaultIndicators(indicators, true);    
+        
+    return indicators;
+  }
+  
+  
+  // add three default indicators to array
+  static public String[] extendWithDefaultIndicators(String[] indicators, boolean insertAtBeginning) {    
+    if (indicators == null) indicators = new String[]{};
+    String[] extended;
+
+    // length of existing array; also: index of first element to be inserted    
+    int originalLength = indicators.length;  
+    
+    if (insertAtBeginning) {
+      extended = new String[originalLength+3];
+      System.arraycopy(indicators, 0, extended, 3, originalLength); 
+      originalLength = 0;
+    } else
+      extended = Arrays.copyOf(indicators, originalLength+3);
+    
+    extended[originalLength+0] = EResult.computerIDIndName;
+    extended[originalLength+1] = EResult.timeStampIndName;
+    extended[originalLength+2] = EResult.passIndName;
+    return extended;
+  }
   
   public static void readResultDescriptions(String projectRootDir, String projectName, 
                                             HashMap resultDescriptions, ArrayList errors)     {

@@ -19,9 +19,12 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,6 +52,7 @@ import si.fri.algator.entities.EComputer;
 import si.fri.algator.entities.EGenerator;
 import si.fri.algator.entities.EPresenter;
 import si.fri.algator.entities.EProject;
+import si.fri.algator.entities.EResult;
 import si.fri.algator.entities.ETestCase;
 import si.fri.algator.entities.ETestSet;
 import si.fri.algator.entities.EVariable;
@@ -58,6 +62,7 @@ import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ErrorStatus;
 import si.fri.algator.tools.SortedArray;
 import si.fri.algator.entities.Entity;
+import si.fri.algator.execute.AbstractTestCase;
 import si.fri.algator.tools.ATTools;
 import static si.fri.algator.tools.ATTools.getTaskResultFileName;
 import si.fri.algator.tools.UniqueIDGenerator;
@@ -494,8 +499,55 @@ public class ASTools {
     }
   }
   
+
+  /*
+    Reads only several fields (fds) from JSON file. 
   
-  public static String getPresenter(String uid, String projectName, String presenterName) {
+    Example: input file:
+  
+    {
+      "Presenter": {
+        "Name": "mpPresenter2",
+        "eid": "e_YahsrHUxgXGC",
+        "Title": "All results"
+      }
+    }
+  
+    readFilteredJSON(file, ["Name", "eid"], "Presenter") returns
+  
+    {
+      "Name": "mpPresenter2",
+      "eid": "e_YahsrHUxgXGC",
+    }
+  
+    If wrapper==null, input has no wrapper and readFilteredJSON reads 
+    only fds fields from original JSON.
+  */
+  public static JSONObject readFilteredJSON(File pFile, String[] fds, String wrapper) throws IOException {
+   try {
+     String jsonText = FileUtils.readFileToString(pFile, "UTF-8");
+  
+      // parse JSON
+      JSONObject readJSON = new JSONObject(jsonText);
+      if (wrapper != null)
+       readJSON = readJSON.getJSONObject(wrapper);
+  
+      // filtered object
+      JSONObject filtered = new JSONObject();
+      for (String key : fds) {
+        if (readJSON.has(key)) {
+          filtered.put(key, readJSON.get(key));
+        }
+      }
+  
+      return filtered;
+   } catch (Exception e) {
+     return new JSONObject();
+   }  
+}
+
+  
+  public static String getPresenter(String uid, String projectName, String presenterName, int deep) {
     String peid = EPresenter.getPresenter(projectName, presenterName).getEID();
     if (!CanUtil.can(uid, peid, "can_read")) {
       return sAnswer(1, String.format("Presenter '%s' - access denied.", presenterName), CanUtil.accessDeniedString);
@@ -513,16 +565,28 @@ public class ASTools {
       return sAnswer(3, String.format("Presenter '%s' does not exist in project '%s'.", presenterName, projectName), "");
     }
 
+    Set<String> nondeepFields = new HashSet<>(Arrays.asList(
+     "Name", "Author", "Date", "Title", "ShortTitle", "Description", "LastModified", "Layout"));
+
     String presenterJSON = "{}";
     try {
       presenterJSON = FileUtils.readFileToString(pFile, "UTF-8");
       JSONObject jObj = new JSONObject(presenterJSON);
-      ((JSONObject) jObj.get("Presenter")).put(Entity.ID_NAME, presenterName);
-      ((JSONObject) jObj.get("Presenter")).put(Entity.ID_LAST_MODIFIED, prs.getLastModified(projectName, presenterName));
-      presenterJSON = jObj.optString("Presenter", "{}");
-    } catch (Exception e) {
-      presenterJSON = "{}";
-    }
+      jObj = (JSONObject) jObj.get("Presenter");
+      jObj.put(Entity.ID_NAME, presenterName);
+      jObj.put(Entity.ID_LAST_MODIFIED, prs.getLastModified(projectName, presenterName));
+      
+      // if not deep read of json file, return only nondeepFields fileds of jObj   
+      if (deep==0) {
+        JSONObject newJO = new JSONObject();
+        for (String nondeepField : nondeepFields) {
+          if (jObj.has(nondeepField)) newJO.put(nondeepField, jObj.get(nondeepField));
+        }
+        jObj = newJO;
+      }
+      
+      presenterJSON = jObj.toString();
+    } catch (Exception e) {}
     return jAnswer(OK_STATUS, String.format("Presenter '%s'.", presenterName), presenterJSON);
   }
 
@@ -548,9 +612,9 @@ public class ASTools {
 
     JSONObject indicators = new JSONObject();
     Pattern p = Pattern.compile(ATGlobal.INDICATOR_TEST_OFFSET + "(.*)[.]java");
-    for (String file : files) {
+    if (files != null) for (String file : files) {
       Matcher m = p.matcher(file);
-      if (m.find()) {
+      if (m.find()) { 
         String indName = m.group(1);
         String fileCont = ASTools.getFileContent(new File(projectSrc, file).toString());
         indicators.put(indName, Base64.getEncoder().encodeToString(fileCont.getBytes()));
@@ -560,7 +624,7 @@ public class ASTools {
 
     JSONObject generators = new JSONObject();
     p = Pattern.compile("TestCaseGenerator_(.*)[.]java");
-    for (String file : files) {
+    if (files != null) for (String file : files) {
       Matcher m = p.matcher(file);
       if (m.find()) {
         String genName = m.group(1);
@@ -585,17 +649,22 @@ public class ASTools {
 
     Project project = new Project(ATGlobal.getALGatorDataRoot(), projectName);
 
+    ArrayList<String> colors = new ArrayList<>();
+    
     JSONObject result = new JSONObject();
-    TreeSet<String> algorithms = new TreeSet();
+    LinkedHashSet<String> algorithms = new LinkedHashSet();
     for (String algorithm : project.getAlgorithms().keySet()) {
-      String aeid = EAlgorithm.getAlgorithm(projectName, algorithm).getEID();
+      EAlgorithm eAlg = EAlgorithm.getAlgorithm(projectName, algorithm);
+      String aeid = eAlg.getEID();
       if (CanUtil.can(uid, aeid, "can_read")) {
         algorithms.add(algorithm);
+        colors.add(eAlg.getString(EAlgorithm.ID_Color, "-1"));
       }
     }
     result.put("Algorithms", algorithms);
+    result.put("AlgorithmColors", colors);
 
-    TreeSet<String> testsets = new TreeSet();
+    LinkedHashSet<String> testsets = new LinkedHashSet();
     for (String testset : project.getTestSets().keySet()) {
       String teid = ETestSet.getTestset(projectName, testset).getEID();
       if (CanUtil.can(uid, teid, "can_read")) {
@@ -624,6 +693,10 @@ public class ASTools {
         for (EVariable ind : project.getResultDescriptions().get(MeasurementType.mtOf(mType)).getIndicators()) {
           jInd.put(ind.getName(), ind.toJSON(false));
         }
+        // add default indicators for EM
+        //if (mType.equals("em")) for (String defInd : EResult.defaultIndicators) 
+        //  jInd.put(defInd, new EVariable(defInd, "").toJSON(false));
+        
         result.put(mType.toUpperCase() + " indicators", jInd);
       } catch (Exception e) {
       }
@@ -773,7 +846,7 @@ public class ASTools {
     
     return jAnswer(OK_STATUS, "getLastModified results", result.toString());
   }
-
+  
   /**
    * ** Supporting methods for getData request ... end
    */
@@ -1100,17 +1173,53 @@ public class ASTools {
     return sAnswer(status, status == 0 ? "Parameter removed." : msg, status == 0 ? msg : "");
   }
 
+  // poskrbi, da bo tabela params vsebovala "name" natanko takrat, ko isInput==true
+  static void ensureNamePresence(JSONArray params, String name, boolean isInput) {
+    int index = -1;
+
+    for (int i = 0; i < params.length(); i++) {
+        if (name.equals(params.optString(i))) {
+            index = i;
+            break;
+        }
+    }
+    if (isInput && index == -1) {
+        params.put(name);
+    } else if (!isInput && index != -1) {
+        params.remove(index);
+    }
+}
+
+  
   public static String saveParameter(String uid, String projectName, String parameterName, JSONObject parameter) {
     String peid = EProject.getProject(projectName).getEID();
     if (!CanUtil.can(uid, peid, "can_write")) {
       return sAnswer(99, "saveParameter: " + accessDeniedString, accessDeniedString);
     }
 
-    String testcaseFilename = ATGlobal.getTESTCASEDESCfilename(ATGlobal.getALGatorDataRoot(), projectName);
-
-    String result = replaceJSONArrayElement(
+    try {
+      String testcaseFilename = ATGlobal.getTESTCASEDESCfilename(ATGlobal.getALGatorDataRoot(), projectName);
+    
+      ETestCase tscd = ETestCase.getTestCaseDescription(projectName);
+      boolean isInput = parameter.optBoolean("IsInput", false);
+      // remove "isInput" from parameter description
+      parameter.remove("IsInput");
+      // create correct InputParameters array
+      JSONArray iParams = tscd.getField(ETestCase.ID_inputParameters);
+      ensureNamePresence(iParams, parameterName, isInput);
+    
+      JSONObject tmpJ = new JSONObject();
+      tmpJ.put("InputParameters", iParams);
+    
+      String result = replaceJSONArrayElement(
             testcaseFilename, "TestCase", "Parameters", "Name", parameterName, parameter);
-    return parsedAnswer(result, "Parameter saved.", "Error saving parameter.");
+    
+      result += ";" + saveJSONProperties(testcaseFilename, "TestCase", new String[]{"InputParameters"}, tmpJ);
+    
+      return parsedAnswer(result, "Parameter saved.", "Error saving parameter.");
+    } catch (Exception e) {
+      return sAnswer(2, "saveParameter error: " , e.toString());
+    }
   }
 
   public static String newAlgorithm(String uid, String projectName, String algorithmName) {
@@ -1139,7 +1248,7 @@ public class ASTools {
 
     String algorithmFilename = ATGlobal.getALGORITHMfilename(ATGlobal.getPROJECTroot(ATGlobal.getALGatorDataRoot(), projectName), algorithmName);
     String result = saveJSONProperties(
-            algorithmFilename, "Algorithm", new String[]{"Description", "ShortName", "Date", "Author", "Language"}, algorithmData.getJSONObject("Properties"));
+            algorithmFilename, "Algorithm", new String[]{"Description", "ShortName", "Date", "Author", "Language", "Color"}, algorithmData.getJSONObject("Properties"));
 
     String fileSaved = "";
 
@@ -1568,12 +1677,17 @@ public class ASTools {
       return null;
     }
 
+    Set<ASTaskStatus> doableTasks = new HashSet<>(
+      Arrays.asList(ASTaskStatus.INPROGRESS, ASTaskStatus.PENDING, ASTaskStatus.QUEUED)
+    ); 
+    
     for (ASTask task : taskQueue) {
-      if (!allowInprogressTasks && ASTaskStatus.INPROGRESS.equals(task.getTaskStatus())) {
+      ASTaskStatus tStatus = task.getTaskStatus();
+      if (!allowInprogressTasks && ASTaskStatus.INPROGRESS.equals(tStatus)) {
         continue;
       }
 
-      if (!(task.getTaskStatus().equals(ASTaskStatus.INPROGRESS) || task.getTaskStatus().equals(ASTaskStatus.PENDING) || task.getTaskStatus().equals(ASTaskStatus.QUEUED))) {
+      if (!doableTasks.contains(tStatus)) { 
         continue;
       }
 

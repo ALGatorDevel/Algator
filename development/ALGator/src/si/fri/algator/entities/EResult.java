@@ -1,6 +1,9 @@
 package si.fri.algator.entities;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import si.fri.algator.global.ErrorStatus;
@@ -12,16 +15,24 @@ import si.fri.algator.global.ExecutionStatus;
  */
 public class EResult extends Entity {
   /**
-   * The numnber of fileds added to every result file.
-   * Currently: 4 (the name of the algorithm, the testset, the test and pass (DONE/FAILED))
+   * The number of fileds added to every result file.
+   * Currently: 3 (algorithm, testset, instanceid)
    */
-  public static final int FIXNUM = 5;
+  public static final int FIXNUM = 3;
+  
+  // default params
   public static final String algParName        = "Algorithm"; 
   public static final String tstParName        = "Testset"; 
-  public static final String instanceIDParName = "InstanceID";     // Unique instance identificator of a test instance
-  public static final String passParName       = "Pass";           // DONE if algorithem finished within the given time limit, FAILED otherwise
-  public static final String timeStampName     = "Timestamp";      // timestamp of test end
-  public static final String errorParName      = "Error";          // if an error occures, this parameter contains error message
+  public static final String instanceIDParName = "TID";       // Unique instance identificator of a test instance
+  
+  // default indicators
+  public static final String computerIDIndName = "Comp";      // id of computer that executed this task
+  public static final String timeStampIndName  = "When";      // timestamp of test end
+  public static final String passIndName       = "Pass";      // indicator: DONE if algorithem finished within the given time limit, FAILED or KILLED otherwise
+  
+  public static Set<String> defaultIndicators  = new HashSet<>(Arrays.asList(computerIDIndName, timeStampIndName, passIndName));
+  
+  public static final String errorParName      = "Error";        // if an error occures, this parameter contains error message
   
   // unique sequence number of a test in a tabel (id of table row)
   public static final String testNoParName   = "ID";     
@@ -75,12 +86,13 @@ public class EResult extends Entity {
     try {
       Variables result = new Variables();
       
-      // add FIXNUM default parameters ...
+      // add additional (FIXNUM) variables ...
       result.addVariable(getAlgorithmNameParameter("/"), true);
       result.addVariable(getTestsetNameParameter("/"), true);
       result.addVariable(getInstanceIDParameter("/"), true);
-      result.addVariable(EResult.getTimestampParameter(0), true);      
-      // ... and the execution status indicator
+      // ... and default indicators
+      result.addVariable(EResult.getTimestampIndicator(0), true);      
+      result.addVariable(EResult.getComputerIDNameIndicator("0"), true);      
       result.addVariable(getExecutionStatusIndicator(ExecutionStatus.UNKNOWN), false);
       
       JSONArray ja = getField(ID_indicators);
@@ -130,13 +142,7 @@ public class EResult extends Entity {
   public static EVariable getTestsetNameParameter(String tstName) {
     return new EVariable(tstParName, "Testset name", VariableType.STRING, tstName);
   }
-  
-  /**
-   * Returns a indicator that represents the success of the algorithm (DONE or KILLED)
-   */
-  public static EVariable getExecutionStatusIndicator(ExecutionStatus status) {
-    return new EVariable(passParName, "Algorithm execution status", VariableType.STRING, status.toString());
-  }
+
   /**
    * Returns a testID paremeter
    */
@@ -144,14 +150,28 @@ public class EResult extends Entity {
     return new EVariable(instanceIDParName, "Instance identificator", VariableType.STRING, testID);
   }
 
+  
+  /**
+   * Returns a indicator that represents the success of the algorithm (DONE or KILLED)
+   */
+  public static EVariable getExecutionStatusIndicator(ExecutionStatus status) {
+    return new EVariable(passIndName, "Algorithm execution status", VariableType.STRING, status.toString());
+  }
+
   /**
    * Returns a timestamp paremeter
    */
-  public static EVariable getTimestampParameter(long timestamp) {    
-    return new EVariable(timeStampName, "Timestamp identificator", VariableType.INT, timestamp);
+  public static EVariable getTimestampIndicator(long timestamp) {    
+    return new EVariable(timeStampIndName, "Timestamp identificator", VariableType.INT, timestamp);
   }
   
-  
+  /**
+   * Returns a parameter that represents the computer used to execute test
+   */  
+  public static EVariable getComputerIDNameIndicator(String cID) {
+    return new EVariable(computerIDIndName, "Computer identifification", VariableType.STRING, cID);
+  }
+
   /**
    * Returns an error indicator
    */
@@ -172,17 +192,17 @@ public class EResult extends Entity {
    */
   public static String [] getVariableOrder(ETestCase eTestCase, EResult eResult) {
     String [] orderA = eTestCase.getInputParameters();
+    
     String [] orderB = eResult.  getStringArray(EResult  .ID_IndOrder);
-
-    String [] order = new String[orderA.length  + orderB.length + FIXNUM];
+    orderB = Project.extendWithDefaultIndicators(orderB, true);
+    
+    String [] order = new String[FIXNUM + orderA.length  + orderB.length];
     
     // Add "Algorithm", "TestSet" and "Pass" parameters to the set of output parameters.
     // The number of parameters added to every result line is defined in EResult.FIXNUM
     order[0] = EResult.algParName;
     order[1] = EResult.tstParName;
     order[2] = EResult.instanceIDParName;
-    order[3] = EResult.timeStampName;
-    order[4] = EResult.passParName;
     
     int k = FIXNUM;
     for (int i = 0; i < orderA.length; i++) 
@@ -192,8 +212,4 @@ public class EResult extends Entity {
     
     return order;
   }
-
-  
-  
-
 }

@@ -18,6 +18,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -47,6 +51,7 @@ import si.fri.algator.entities.EAlgatorConfig;
 import si.fri.algator.entities.EAlgorithm;
 import si.fri.algator.entities.EProject;
 import si.fri.algator.entities.EQuery;
+import si.fri.algator.entities.EResult;
 import si.fri.algator.entities.ETestSet;
 import si.fri.algator.entities.MeasurementType;
 import si.fri.algator.entities.NameAndAbrev;
@@ -275,7 +280,7 @@ public class ATTools {
 
   /**
    * Returns the number of different tests in result file. Each test result is
-   * represented by a json line in result file. Test identifier is "InstanceID".
+   * represented by a json line in result file. Test identifier is "tID".
    * Method returns the number of different identifiers in result file.
    */
   public static int getNumberOfTests(String filename) {
@@ -285,7 +290,13 @@ public class ATTools {
         String testResult = sc.nextLine();
         try {
           JSONObject jResult = new JSONObject(testResult);
-          testIDs.add(jResult.getString("InstanceID"));
+          
+          String instanceID = jResult.optString(EResult.instanceIDParName, "?");
+          
+          // for backward compatibiliy, to support old naming of test identifier
+          if (instanceID.equals("?")) instanceID = jResult.getString("InstanceID");
+          
+          testIDs.add(instanceID);
         } catch (Exception e) {
         }
       }
@@ -585,5 +596,35 @@ public class ATTools {
       }
     }
   }
+  
+  /**
+   * Izračuna razliko med timestamp in trenutnim časom; če je ta razlika večja od
+   * maxToConvert, razliko prikaže v obliki "x s ago" ali "x min ago" ali "x hours ago"
+   * (pri čemer je "ago" niz zapisan v suffix).
+   * Če je razlika večja od maxToConvert, metoda vrne timestamp v obliki dd.mm.yyyy hh:mm:ss
+*/
+  public static String timeAgo(long timestamp, String suffix, int maxToConvert) {
+        long seconds = (System.currentTimeMillis() - timestamp) / 1000;
+        
+        if (seconds <= maxToConvert) {
+          if (seconds < 0) return "future";
+  
+          if (seconds < 2) 
+            return "Now";
+          else if (seconds < 60) 
+            return seconds + " sec" + suffix;
+  
+          long minutes = seconds / 60;
+          if (minutes < 60) return minutes + " min" + suffix;
+          
+          long hours = minutes / 60;
+          return hours + " hour" + (hours==1?"":"s") + suffix;
+        } else {
+          LocalDateTime date = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDateTime();
+          DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+          return date.format(formatter);
+        }
+    }
+
 
 }

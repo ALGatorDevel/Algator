@@ -131,6 +131,12 @@ public enum ErrorStatus {
       return "Error: Invalid test.";
     }
   },
+  
+  ERROR_INVALID_GENERATINGLINE {
+    public String toString() {
+      return "Error: Invalid generating line.";
+    }
+  },
 
   
   ERROR_INVALID_RESULTDESCRIPTION {

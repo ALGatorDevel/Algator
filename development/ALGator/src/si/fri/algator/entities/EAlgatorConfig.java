@@ -81,7 +81,7 @@ public class EAlgatorConfig extends Entity  implements Serializable {
   public static String getALGatorServerName() {
     EAlgatorConfig config = getConfig();
     if (config != null && config.getString(ID_ALGatorServerName) != null && !config.getString(ID_ALGatorServerName).isEmpty())
-      return config.getField(ID_ALGatorServerName);
+      return config.getString(ID_ALGatorServerName);
     return ASGlobal.DEFAULT_TASK_SERVER_NAME;
   }
   public static int getALGatorServerPort() {

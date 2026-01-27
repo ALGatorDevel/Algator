@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import si.fri.algator.entities.MeasurementType;
 import si.fri.algator.entities.NameAndAbrev;
 import si.fri.algator.entities.Variables;
 import si.fri.algator.entities.Project;
+import static si.fri.algator.entities.Project.extendWithDefaultIndicators;
 import si.fri.algator.entities.VariableType;
 import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
@@ -44,11 +46,20 @@ public class DataAnalyser {
   public static final String operators = "\\+|\\-|\\*|/|=";
 
   /**
+   * Composes a full key for results in result map. Full key contains testID ("testsetname-testName")
+   * and computerID, separated by @  -> "testsetname-testName@computerID". 
+   * If computerID is null, full key contains only testID (without @)
+   */
+  private static String getFullKey(String testID, String computerID) {
+    return  testID + (computerID == null ? "" : "@" + computerID);
+
+  }
+    
+  /**
    * for all Parameters in filter, method checks the corresponding parameter in
    * the result; if the values doesn't match, return false, else return true
    * true
    *
-   * @return
    */
   public static boolean parametersMatchFilter(Variables params, Variables filter) {
     if (filter == null) {
@@ -111,13 +122,13 @@ public class DataAnalyser {
     return resPack;
   }
 
-  public static ReadResultsInitData readResultsInit(Project project, MeasurementType measurement) {
+  public static ReadResultsInitData readResultsInit(Project project, MeasurementType mType) {
 
     if (project == null) {
       return null;
     }
 
-    String resDescFilename = ATGlobal.getRESULTDESCfilename(project.getProjectRoot(), project.getName(), measurement);
+    String resDescFilename = ATGlobal.getRESULTDESCfilename(project.getProjectRoot(), project.getName(), mType);
     EResult eResultDesc = new EResult(new File(resDescFilename));
 
     Variables resultPS = Variables.join(project.getTestCaseDescription().getParameters(), eResultDesc.getVariables());
@@ -128,10 +139,9 @@ public class DataAnalyser {
       testOrder = new String[0];
     }
 
-    String[] resultOrder = eResultDesc.getStringArray(EResult.ID_IndOrder);
-
+    String[] resultOrder = Project.getIndicators(eResultDesc, mType);
+        
     return new ReadResultsInitData(resultOrder, testOrder, resultPS, eResultDesc);
-
   }
 
   /**
@@ -164,6 +174,9 @@ public class DataAnalyser {
         if (line == null) {
           line = "";
         }
+        // for backward compatibiliy, to support old naming of test identifier
+        line = line.replaceAll("InstanceID", EResult.instanceIDParName);
+        
         lines.add(line);
       }
     } catch (Exception e) {
@@ -202,13 +215,18 @@ public class DataAnalyser {
       algPS.getVariable(EResult.algParName).       set(EVariable.ID_Value, res.optString(EResult.algParName, algorithm));
       algPS.getVariable(EResult.tstParName).       set(EVariable.ID_Value, curTestset);
       algPS.getVariable(EResult.instanceIDParName).set(EVariable.ID_Value, testName);
-      algPS.getVariable(EResult.passParName).      set(EVariable.ID_Value, res.optString(EResult.passParName, "?"));
+      //!!pass
+      //algPS.getVariable(EResult.passParName).      set(EVariable.ID_Value, res.optString(EResult.passParName, "?"));
 
       ArrayList<String> trOrder = new ArrayList(testOrder); trOrder.addAll(resultOrder);
       for (String param : trOrder) {
         EVariable tP = algPS.getVariable(param);
         
         if (tP != null) {
+          // spremenljivki dodam podatek o računalniku, 
+          // kateremu pripada ta vrednost
+          tP.set("ComputerID", computerID); 
+          
           Object value = res.opt(tP.getName());
 
           if (value != null) {
@@ -222,8 +240,9 @@ public class DataAnalyser {
 
 
       // add this ParameterSet to the ResultPack
-      String key = curTestset + "-" + testName;
+      String key = getFullKey(curTestset + "-" + testName, computerID);
       Variables ps = resPack.getResult(key);
+      
       // If ParameterSet for this testset-test doesn't exist ...
       if (ps == null) {
         // ... append a new testset to the map
@@ -348,10 +367,10 @@ public class DataAnalyser {
       System.arraycopy(allEntities, 0,  newEtts, 0, allEntities.length);
       System.arraycopy(etts,        0 , newEtts, allEntities.length, etts.length); 
       
-      // remove the asterisk and the duplicates
+      // remove the asterisk, the duplicates AND (Timestamp, Pass and ComputerID)
       ArrayList<String> aEtts = new ArrayList<>();
       for (String ett : newEtts) 
-        if (!asterisk.equals(ett) && !aEtts.contains(ett))
+        if (!asterisk.equals(ett) && !aEtts.contains(ett) && !EResult.defaultIndicators.contains(ett))
           aEtts.add(ett);
       etts = aEtts.toArray(new String[]{});              
     }
@@ -440,15 +459,10 @@ public class DataAnalyser {
     } else {
       td = new TableData();
 
-      String queryComputerID = query.getField(EQuery.ID_ComputerID);
-      // če ima query definiran computerID, potem se uporabi tega
-      if (queryComputerID != null && !queryComputerID.isEmpty()) {
-        computerID = queryComputerID;
-      } /* else // če comupterID v poizvedbi ni naveden, pa uporabim podani computerID; če je ta prazen pa thisComputerID
-        if (computerID == null || "".equals(computerID)) {
-          computerID = ATGlobal.getThisComputerID();
-        }
-      */
+      String[] queryComputerID = query.getStringArray(EQuery.ID_ComputerID);
+      // če ima query definiran computerID (oziroma več njih), potem se uporabi te
+      if (queryComputerID != null && queryComputerID.length > 0) 
+        computerID = String.join(";", queryComputerID);
       
       String algorithms[] = getQueryEntities(eProject, query, EQuery.ID_Algorithms, EProject.ID_Algorithms);
       algorithms = CanUtil.filterPermitted(uid, algorithms,
@@ -492,33 +506,33 @@ public class DataAnalyser {
       NameAndAbrev[] inPars = query.getNATabFromJSONArray(inParameters);
 
       // calculate EM parameters ...
-      String[] allEMParamaters = Project.getIndicators(resultDescriptions, MeasurementType.EM);
-      String emParameters[] = getQueryEntities(query, EQuery.ID_Indicators, allEMParamaters, "*EM");
-      NameAndAbrev[] emPars = query.getNATabFromJSONArray(emParameters);
+      String[] allEMIndicators = Project.getIndicators(resultDescriptions, MeasurementType.EM);      
+      String emIndicators[] = getQueryEntities(query, EQuery.ID_Indicators, allEMIndicators, "*EM");
+      NameAndAbrev[] emInds = query.getNATabFromJSONArray(emIndicators);
       // ... CNT parameters ...
-      String[] allCNTParamaters = Project.getIndicators(resultDescriptions, MeasurementType.CNT);
-      String cntParameters[] = getQueryEntities(query, EQuery.ID_Indicators, allCNTParamaters, "*CNT");
-      NameAndAbrev[] cntPars = query.getNATabFromJSONArray(cntParameters);
+      String[] allCNTIndicators = Project.getIndicators(resultDescriptions, MeasurementType.CNT);
+      String cntIndicators[] = getQueryEntities(query, EQuery.ID_Indicators, allCNTIndicators, "*CNT");
+      NameAndAbrev[] cntInds = query.getNATabFromJSONArray(cntIndicators);
       // ... JVM parameters ...
-      String[] allJVMParamaters = Project.getIndicators(resultDescriptions, MeasurementType.JVM);
-      String jvmParameters[] = getQueryEntities(query, EQuery.ID_Indicators, allJVMParamaters, "*JVM");
-      NameAndAbrev[] jvmPars = query.getNATabFromJSONArray(jvmParameters);
+      String[] allJVMIndicators = Project.getIndicators(resultDescriptions, MeasurementType.JVM);
+      String jvmIndicators[] = getQueryEntities(query, EQuery.ID_Indicators, allJVMIndicators, "*JVM");
+      NameAndAbrev[] jvmInds = query.getNATabFromJSONArray(jvmIndicators);
       // ... and join all together
       int n = 0;
-      ArrayList<NameAndAbrev> outParsAL = new ArrayList<>();
-      for (NameAndAbrev emParam : emPars) {
-        if (!outParsAL.contains(emParam) && !emParam.getName().startsWith("*")) {
-          outParsAL.add(emParam);
+      ArrayList<NameAndAbrev> indicatorsAL = new ArrayList<>();
+      for (NameAndAbrev emInd : emInds) {
+        if (!indicatorsAL.contains(emInd) && !emInd.getName().startsWith("*")) {
+          indicatorsAL.add(emInd);
         }
       }
-      for (NameAndAbrev cntParam : cntPars) {
-        if (!outParsAL.contains(cntParam) && !cntParam.getName().startsWith("*")) {
-          outParsAL.add(cntParam);
+      for (NameAndAbrev cntInd : cntInds) {
+        if (!indicatorsAL.contains(cntInd) && !cntInd.getName().startsWith("*")) {
+          indicatorsAL.add(cntInd);
         }
       }
-      for (NameAndAbrev jvmParam : jvmPars) {
-        if (!outParsAL.contains(jvmParam) && !jvmParam.getName().startsWith("*")) {
-          outParsAL.add(jvmParam);
+      for (NameAndAbrev jvmInd : jvmInds) {
+        if (!indicatorsAL.contains(jvmInd) && !jvmInd.getName().startsWith("*")) {
+          indicatorsAL.add(jvmInd);
         }
       }
 
@@ -528,27 +542,33 @@ public class DataAnalyser {
 
       List<String> sortedPars = new LinkedList<>();
 
+      // computers for which we need results
+      String[] cmps = computerID == null ? new String[]{null} : computerID.split(";");              
+      
       for (NameAndAbrev alg : algs) {
         ResultPack rPack = getResultPack(project.getTestCaseDescription(), initDataEM.eResultDesc, initDataCNT.eResultDesc, initDataJVM.eResultDesc);
         Variables resultPS = new Variables();
-        if (queryResults != null) {
-          readResults(queryResults, tsts, resultPS, alg, sortedPars, rPack);
-        }
-        for (NameAndAbrev ts : testsets) {
-          if (queryResults == null || !queryResults.containsKey(ts.getAbrev())) {
-            ATLog.disableLog(); // to prevent error messages on missing description files
-            readResults(rPack, project, alg.getName(), ts.getName(), MeasurementType.EM, computerID, initDataEM);
-            readResults(rPack, project, alg.getName(), ts.getName(), MeasurementType.CNT, computerID, initDataCNT);
-            readResults(rPack, project, alg.getName(), ts.getName(), MeasurementType.JVM, computerID, initDataJVM);
-            ATLog.enableLog();
+        
+        for (String cmp : cmps) {
+          if (queryResults != null) {
+            readResults(queryResults, tsts, resultPS, alg, sortedPars, rPack, computerID);
+          }          
+          
+          for (NameAndAbrev ts : testsets) {
+            if (queryResults == null || !queryResults.containsKey(ts.getAbrev())) {
+              ATLog.disableLog(); // to prevent error messages on missing description files
+              readResults(rPack, project, alg.getName(), ts.getName(), MeasurementType.EM,  cmp, initDataEM);
+              readResults(rPack, project, alg.getName(), ts.getName(), MeasurementType.CNT, cmp, initDataCNT);
+              readResults(rPack, project, alg.getName(), ts.getName(), MeasurementType.JVM, cmp, initDataJVM);
+              ATLog.enableLog();
+            }
           }
         }
         results.put(alg.getName(), rPack);
       }
 
-      NameAndAbrev[] outPars = new NameAndAbrev[outParsAL.size()];
-
-      outParsAL.toArray(outPars);
+      NameAndAbrev[] outPars = new NameAndAbrev[indicatorsAL.size()];
+      indicatorsAL.toArray(outPars);
 
       // ver 1.0: the order of testset-test key is obtained from the first algorithm (this order
       // should be the same for all algorithms, therefore the selection of the algorithms  is arbitrary).
@@ -579,11 +599,11 @@ public class DataAnalyser {
       td.header.add(EResult.tstParName);
 
       td.header.add(EResult.instanceIDParName);
+      
+      // td.header.add(EResult.passParName);
 
-      td.header.add(EResult.passParName);
-
-      // Input (test) parameters + 4 default parameters (TestNo, TestSet, TestID, pass)
-      td.numberOfInputParameters = inPars.length + 4;
+      // Input (test) parameters + 4 default parameters (TestNo, TestSet, TestID) //!!pass , pass
+      td.numberOfInputParameters = inPars.length + 3; //!!pass 4
 
       for (NameAndAbrev inPar : inPars) {
         td.header.add(inPar.getAbrev());
@@ -592,21 +612,23 @@ public class DataAnalyser {
         String abrev = outPar.getAbrev();
         String[] exp = abrev.split(operators);
         for (NameAndAbrev alg : algs) {
-          if (exp.length > 1) {
-            td.header.add(alg.getAbrev() + ".(" + abrev + ")");
-          } else {
-            td.header.add(alg.getAbrev() + "." + abrev);
+          for (String comp : cmps) {                       
+            String compPrefix = comp == null ? "" : ""+comp+"_";
+            if (exp.length > 1) {
+              td.header.add(compPrefix + alg.getAbrev() + ".(" + abrev + ")");
+            } else {
+              td.header.add(compPrefix + alg.getAbrev() + "." + abrev);
+            }
           }
         }
       }
 
       sortedPars.addAll(Arrays.asList(allINParamaters));
-      sortedPars.addAll(Arrays.asList(allEMParamaters));
-      sortedPars.addAll(Arrays.asList(allCNTParamaters));
-      sortedPars.addAll(Arrays.asList(allJVMParamaters));
+      sortedPars.addAll(Arrays.asList(allEMIndicators));
+      sortedPars.addAll(Arrays.asList(allCNTIndicators));
+      sortedPars.addAll(Arrays.asList(allJVMIndicators));
 
-      Collections.sort(sortedPars,
-              new LengthComparator());
+      Collections.sort(sortedPars, new LengthComparator());
       Collections.reverse(sortedPars);
 
       int testNUM = 0;
@@ -614,34 +636,37 @@ public class DataAnalyser {
         testNUM++;
         ArrayList<Object> line = new ArrayList<>();
 
-        // fina an algorithm that contains values for this key
-        NameAndAbrev alg0 = null;
-        for (NameAndAbrev alg : algs) {
-          if (results.get(alg.getName()).getResult(key) != null) {
-            alg0 = alg;
-            break;
+        
+        // find an algorithm that contains values for this key
+        Variables thePS = null;
+        outer: for (NameAndAbrev alg : algs) {
+          ResultPack rp = results.get(alg.getName()); 
+          for (String comp : cmps) {                          
+            String fullKey = getFullKey(key, comp);
+            if ((thePS = rp.getResult(fullKey)) != null) break outer;
           }
         }
-
-        if (alg0 != null) {
-          Variables ps = results.get(alg0.getName()).getResult(key);
-
-          // add values for 3 default test parameters
+  
+        if (thePS != null) {
+  
+          // add values for 4 default test parameters
           line.add(testNUM);
-          line.add(ps.getVariable(EResult.tstParName).get(EVariable.ID_Value));
-          line.add(ps.getVariable(EResult.instanceIDParName).get(EVariable.ID_Value));
-          line.add(ps.getVariable(EResult.passParName).get(EVariable.ID_Value));
-
+          line.add(thePS.getVariable(EResult.tstParName).get(EVariable.ID_Value));
+          line.add(thePS.getVariable(EResult.instanceIDParName).get(EVariable.ID_Value));
+          
+          //!!pass
+          //line.add(thePS.getVariable(EResult.passParName).get(EVariable.ID_Value));
+  
           //line.add(testNUM);
           for (NameAndAbrev inPar : inPars) {
             Object value;
             try {
               String pName = inPar.getName();
-
+  
               // if param is like tc_PROPS.Type, we have to split TP_PROPS and get only "Type" part of it ....
               if (pName.startsWith("TC_PROPS")) {
                 value = "?";
-                JSONObject tcProps = (JSONObject) ps.getVariable("TC_PROPS").get(EVariable.ID_Value);
+                JSONObject tcProps = (JSONObject) thePS.getVariable("TC_PROPS").get(EVariable.ID_Value);
                 if (pName.contains(".")) {
                   String prop = pName.split("[.]")[1];
                   value = tcProps.opt(prop);
@@ -673,10 +698,10 @@ public class DataAnalyser {
                 } else {
                   value = tcProps;
                 }
-
+  
                 // ... else (for every other param)
               } else {
-                EVariable parameter = ps.getVariable(pName);
+                EVariable parameter = thePS.getVariable(pName);
                 value = parameter.getValue();
               }
             } catch (Exception e) {
@@ -685,7 +710,7 @@ public class DataAnalyser {
             line.add(value);
           }
         }
-
+        
         // scans outParams and find its value for every algorithm-testset-test
         for (NameAndAbrev outPar : outPars) {
           String name = outPar.getName().replaceAll(" ", "");
@@ -694,41 +719,42 @@ public class DataAnalyser {
             name = AlgInterpreter.prepareExpression(name);
           }
           for (NameAndAbrev alg : algs) {
-            Object value = "?";
-            Variables ps2 = results.get(alg.getName()).getResult(key);            
-            if (ps2 != null) {
-              try {
-                if (exp.length > 1 || name.contains("@")) {
-                  value = getCalcField(name, results, sortedPars, key, algs, alg);
-                  
-                  // tole dodam, da se v tabelo rezultatov (spremenljivk) zapiše tudi pravkar izračunana vrednost
-                  // posledica: potem lahko v izračunih uporabljam tudi nove spremenljivke: 
-                  // @Tmin AS X, @Tmin AS Y, @X+@Y AS Z
-                  EVariable newVar = new EVariable(); 
-                  String newParName = outPar.getAbrev();
-                  newVar.setName(newParName);
-                  VariableType vt = VariableType.DOUBLE;
-                  if (outPar.getType() != null) vt = VariableType.getType(outPar.getType());
-                  if (vt.equals(VariableType.INT)) value = ((Double)value).intValue();
-                  if (vt.equals(VariableType.STRING)) value = Double.toString((double)value);
-                  newVar.setType(vt); // default vrednost vseh "novih" parametrov je double
-                  newVar.setValue(value);
-                  ps2.addVariable(newVar);                  
-                  sortedPars.add(newParName);
-                } else {
-                  EVariable parameter = ps2.getVariable(name); 
-                  value = parameter.getValue();
+            for (String comp : cmps) {                          
+              Object value = "?"; 
+              Variables ps2 = results.get(alg.getName()).getResult(getFullKey(key, comp));            
+              if (ps2 != null) {
+                try {
+                  if (exp.length > 1 || name.contains("@")) {
+                    value = getCalcField(name, results, sortedPars, key, algs, alg);
+                    
+                    // tole dodam, da se v tabelo rezultatov (spremenljivk) zapiše tudi pravkar izračunana vrednost
+                    // posledica: potem lahko v izračunih uporabljam tudi nove spremenljivke: 
+                    // @Tmin AS X, @Tmin AS Y, @X+@Y AS Z
+                    EVariable newVar = new EVariable(); 
+                    String newParName = outPar.getAbrev();
+                    newVar.setName(newParName);
+                    VariableType vt = VariableType.DOUBLE;
+                    if (outPar.getType() != null) vt = VariableType.getType(outPar.getType());
+                    if (vt.equals(VariableType.INT)) value = ((Double)value).intValue();
+                    if (vt.equals(VariableType.STRING)) value = Double.toString((double)value);
+                    newVar.setType(vt); // default vrednost vseh "novih" parametrov je double
+                    newVar.setValue(value);
+                    ps2.addVariable(newVar);                  
+                    sortedPars.add(newParName);
+                  } else {
+                    EVariable parameter = ps2.getVariable(name); 
+                    value = parameter.getValue();
+                  }
+                } catch (Exception e) {
+                  // to ne gre za napako ampak za neobstoječ parameter, kar pa 
+                  // rešujem z "value = ?"
+                  // System.out.println(e);
                 }
-              } catch (Exception e) {
-                // to ne gre za napako ampak za neobstoječ parameter, kar pa 
-                // rešujem z "value = ?"
-                // System.out.println(e);
               }
+              line.add(value);
             }
-            line.add(value);
           }
         }
-
         td.data.add(line);
       }
 
@@ -742,7 +768,8 @@ public class DataAnalyser {
     return runQuery_NO_COUNT(td, eProject, query, computerID);
   }
 
-  private static void readResults(Map<String, TableData> queryResults, String[] tsts, Variables resultPS, NameAndAbrev alg, List<String> sortedPars, ResultPack rPack) {
+
+  private static void readResults(Map<String, TableData> queryResults, String[] tsts, Variables resultPS, NameAndAbrev alg, List<String> sortedPars, ResultPack rPack, String computerID) {
     for (Entry<String, TableData> entry : queryResults.entrySet()) {
       boolean existsTs = false;
       for (int i = 0; i < tsts.length; i++) {
@@ -757,10 +784,13 @@ public class DataAnalyser {
       TableData qTd = entry.getValue();
       boolean addCalcParams = true;
       ArrayList<String> resultOrder = new ArrayList<>();
-      resultPS.addVariable(new EVariable(EResult.algParName, VariableType.STRING, ""));
-      resultPS.addVariable(new EVariable(EResult.tstParName, VariableType.STRING, ""));
-      resultPS.addVariable(new EVariable(EResult.instanceIDParName, VariableType.STRING, ""));
-      resultPS.addVariable(new EVariable(EResult.passParName, VariableType.STRING, ""));
+      resultPS.addVariable(new EVariable(EResult.algParName,         VariableType.STRING, ""));
+      resultPS.addVariable(new EVariable(EResult.tstParName,         VariableType.STRING, ""));
+      resultPS.addVariable(new EVariable(EResult.instanceIDParName,  VariableType.STRING, ""));
+      resultPS.addVariable(new EVariable(EResult.computerIDIndName,  VariableType.STRING, ""));
+      resultPS.addVariable(new EVariable(EResult.timeStampIndName,   VariableType.INT,    0));
+      resultPS.addVariable(new EVariable(EResult.passIndName,        VariableType.STRING, ""));
+      
       for (int i = EResult.FIXNUM; i < qTd.header.size(); i++) {
         String varName = qTd.header.get(i);
         if (varName.startsWith(alg.getAbrev() + ".")) {
@@ -779,7 +809,9 @@ public class DataAnalyser {
         algPS.getVariable(EResult.algParName).set(EVariable.ID_Value, alg.getName());
         algPS.getVariable(EResult.tstParName).set(EVariable.ID_Value, testSet);
         algPS.getVariable(EResult.instanceIDParName).set(EVariable.ID_Value, testName);
-        algPS.getVariable(EResult.passParName).set(EVariable.ID_Value, pass);
+        
+        //!!pass
+        //algPS.getVariable(EResult.passParName).set(EVariable.ID_Value, pass);
 
         // sets the value of result parameters
         for (String ind : resultOrder) {
@@ -806,7 +838,7 @@ public class DataAnalyser {
           }
         }
         // add this ParameterSet to the ResultPack
-        String key = testSet + "-" + testName;
+        String key = getFullKey(testSet + "-" + testName, computerID);
         Variables ps = rPack.getResult(key);
         // If ParameterSet for this testset-test doesn't exist ...
         if (ps == null) {

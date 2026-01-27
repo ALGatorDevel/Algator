@@ -22,7 +22,7 @@ public abstract class AbstractAlgorithm implements Cloneable, Serializable {
   
   public Timer timer;                 // timer to measure the execution time of the current test
   private long[][] executoinTimes;    // the times of execution for all executions of the current test
-  
+    
   // values of counters after the execution of algorithm
   private HashMap<String, Integer> counters = new HashMap();
   

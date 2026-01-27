@@ -11,6 +11,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -48,6 +49,7 @@ import spark.Response;
 
 import static si.fri.algator.ausers.CanUtil.accessDeniedString;
 import static si.fri.algator.entities.EAlgatorConfig.ID_DBServer;
+import si.fri.algator.execute.AbstractTestCase;
 
 /**
  * Methods to process the requests to ALGatorServer.
@@ -65,6 +67,9 @@ public class RequestProcessor {
     // najprej pocistim morebitne pozabljene ukaze in datoteke
     ASCommandManager.sanitize();
 
+    Set<String> headers = request.headers();
+    String host = request.headers("Host");
+    
     // request command
     command = (command == null || command.isEmpty()) ? "?": command.toUpperCase(); 
 
@@ -143,8 +148,6 @@ public class RequestProcessor {
       case ASGlobal.REQ_SET_TASK_PRIORITY:
         return changeTaskPriority(uid, jObj);
         
-        
-
       // storest the result of a test and tells client what to do next
       case ASGlobal.REQ_TASK_RESULT:
         return taskResult(uid, jObj);
@@ -159,6 +162,9 @@ public class RequestProcessor {
       // returns task (project algorithm testset mtype); paramaters: computerID  
       case ASGlobal.REQ_GET_TASK:
         return getTask(uid, jObj);
+        
+      case ASGlobal.REQ_ACTIVE_CLIENTS:
+        return getActiveClients(uid, jObj);
 
       // removes task from the queue; parameters: taskID  
       case ASGlobal.REQ_CLOSE_TASK:
@@ -222,8 +228,8 @@ public class RequestProcessor {
   
   private static String who(String uid) {
     DTOUser user = AUsersTools.getUser(uid);
-    return String.format("Thread: %s, user: %s",
-       Long.toString(Thread.currentThread().getId()), user != null ? user.getUsername() : "_unknown_");
+    return jAnswer(OK_STATUS, "who",new JSONObject(String.format("{'Thread': '%s', 'User': '%s'}",
+       Long.toString(Thread.currentThread().getId()), user != null ? user.getUsername() : "_unknown_")).toString());
   } 
 
   private static String dbinfo(String uid) {
@@ -231,9 +237,9 @@ public class RequestProcessor {
     String dbEngine   = ATTools.jSONObjectToMap(EAlgatorConfig.getConfig().getField(ID_DBServer), "Connection", "Database", "Username", "Password").get("Connection").toString();
     
     if (user.isIs_superuser()) 
-      return String.format("DBEngine: %s", dbEngine);
+      return sAnswer(OK_STATUS, "dbinfo", String.format("DBEngine: %s", dbEngine));
     else
-      return "Access denied.";
+      return sAnswer(2,"dbinfo", "Access denied.");
   } 
 
   
@@ -256,8 +262,20 @@ public class RequestProcessor {
 
     String ip = ASTools.getMyIPAddress();
     int port  = EAlgatorConfig.getALGatorServerPort();
-    return String.format("Server at %s:%d on for %s Thread: %d. Tasks: %d running, %d pending, %d queued, %d paused\n", 
-       ip, port, server.getServerRunningTime(), Thread.currentThread().getId(), r, p, q, pa);
+    String runningTime = server.getServerRunningTime();
+    //String msg = String.format("Server at %s:%d on for %s Thread: %d. Tasks: %d running, %d pending, %d queued, %d paused\n", 
+    //   ip, port,runningTime , Thread.currentThread().getId(), r, p, q, pa);
+    JSONObject jObj = new JSONObject();
+    jObj.put("IP", ip);
+    jObj.put("Port", port);
+    jObj.put("Running time", runningTime);
+    jObj.put("Thread ID", Thread.currentThread().getId());
+    jObj.put("Runnning tasks", r);
+    jObj.put("Pending tasks", p);
+    jObj.put("Queued tasks", q);
+    jObj.put("Paused tasks", p);
+    
+    return jAnswer(OK_STATUS, "status", jObj.toString());
   }
   
   public String notAnonymous() {
@@ -265,7 +283,7 @@ public class RequestProcessor {
   }
   
   public String getTimeStamp() {
-    return iAnswer(OK_STATUS, "Tmestamp", new Date().getTime());
+    return iAnswer(OK_STATUS, "Timestamp", new Date().getTime());
   }
 
   public String getServerPaths(String uid) {
@@ -331,7 +349,7 @@ public class RequestProcessor {
       case "Presenter":
         if (!(jObj.has("ProjectName")&&jObj.has("PresenterName")))
           return sAnswer(1, "getData of type=Presenters requires 'ProjectName' and 'PresenterName' properties.", "");
-        return ASTools.getPresenter(uid, jObj.getString("ProjectName"), jObj.getString("PresenterName"));
+        return ASTools.getPresenter(uid, jObj.getString("ProjectName"), jObj.getString("PresenterName"), jObj.optInt("Deep", 0));
 
       case "TestsetFiles":
         if (!(jObj.has("ProjectName")&& jObj.has("TestsetName")))
@@ -370,7 +388,7 @@ public class RequestProcessor {
         if (!(jObj.has("ProjectName") && jObj.has("What")))
           return sAnswer(1, "getData of type=LastModified requires 'ProjectName' and 'What' properties.", "");
         return ASTools.getLastModified(uid, jObj.getString("ProjectName"), jObj.get("What"));                
-        
+                
       default: return sAnswer(1, "Unknown type '"+type+"'.", "");
     }    
   }
@@ -668,7 +686,11 @@ public class RequestProcessor {
 
     ASTask task = ASTools.findTask(activeTasks, taskID);    
     if (task != null) {
+      GettaskRequest gtr = GettaskRequest.findGettaskRequest(compUID, taskID+"");
+      
       if (taskType.equals(ASTask.ID_TaskType_Execute)) { // "normal" task
+        if (gtr != null) gtr.setParams(GettaskRequest.GTR_ALG_EXEC, taskID+"", testNo+"");
+      
         // result can only be returned by someone that has "can_execute" permission over the tasks' algorithm
         if (!(uid.equals(DTOUser.USER_CLIENT) || CanUtil.can(uid, task.getString(ASTask.ID_Algorithm_EID), "can_execute"))) 
           return sAnswer(99, "taskResult", accessDeniedString);
@@ -690,9 +712,12 @@ public class RequestProcessor {
           ASTaskStatus pausedOrCanceledTaskStatus = pausedAndCanceledTasks.get(task.getTaskID());
           if (pausedOrCanceledTaskStatus != null) {
             ASTools.setTaskStatus(task, pausedOrCanceledTaskStatus, null, null);
+            String stst = ASTaskStatus.CANCELED.equals(pausedOrCanceledTaskStatus) ? "canceled" : "paused";
+            
+            if (gtr != null) gtr.setTimestamp(stst);
+            
             pausedAndCanceledTasks.remove(task.getTaskID());
-            return sAnswer(OK_STATUS, "Result accepted, task "
-                    + (ASTaskStatus.CANCELED.equals(pausedOrCanceledTaskStatus) ? "canceled" : "paused"), "BREAK");
+            return sAnswer(OK_STATUS, "Result accepted, task " + stst, "BREAK");
           }
   
           // tole sem dodal, ker se izvajanje taska ni ustavilo, če je 
@@ -714,6 +739,8 @@ public class RequestProcessor {
           return sAnswer(3, "Task does not belong to this computer", compUID);
         }
       } else { // "misc" task 
+        if (gtr != null) gtr.setParams(taskType, taskID+"", "/");
+      
         task.set(ASTask.ID_TaskType, taskType);
         task.set(ASTask.ID_EID, taskID);
         String rsFilename = ASTools.getMiscResultFilename(task);
@@ -796,17 +823,24 @@ public class RequestProcessor {
       return sAnswer(1, ASGlobal.ERROR_INVALID_NPARS, "Expecting JSON with \"" + EComputer.ID_ComputerUID + "\" property.");
     }
     String cuid = jObj.getString(EComputer.ID_ComputerUID);
+    
+    // log the request
+    GettaskRequest gtr = GettaskRequest.newGettaskRequest(cuid);
+
     String family = ASTools.familyOfComputer(cuid);
     if ("?".equals(family)) {
       return sAnswer(2, ASGlobal.NO_TASKS, "Invalid computer or computer family");
     }
+    
+    String computerDesc = ASTools.getFamilyAndComputerName(cuid);
+    gtr.setComputerDesc(computerDesc);
 
     ASTask task = null;
     if (CanUtil.can(uid, "e0_P", "can_execute")) 
       task = ASTools.findFirstTaskForComputer(activeTasks, cuid, true);
     
     if (task != null) {
-        ASTools.setTaskStatus(task, ASTaskStatus.INPROGRESS, null, cuid);
+      ASTools.setTaskStatus(task, ASTaskStatus.INPROGRESS, null, cuid);
       ASTools.setComputerFamilyForProject(task, family);
       
       int progress = task.getProgress();
@@ -814,10 +848,22 @@ public class RequestProcessor {
       // tega izvajanja shranili v prazno datoteko (rewrite namesto append)
       if (progress <= 0)
         ASTools.removeTaskResultFile(task);
+      
+      gtr.setParams(progress<=0 ? GettaskRequest.GTR_TASK_NEW : GettaskRequest.GTR_TASK_CONT, task.getEID(), progress+"");
+      
       return jAnswer(0, "Task for computer " + cuid, task.toJSONString(0));
     } else {
       return sAnswer(3, ASGlobal.NO_TASKS, "No tasks available for this computer.");
     }
+  }
+
+  public String getActiveClients(String uid, JSONObject jObj) {
+    if (CanUtil.can(uid, "e0_S", "can_edit_clients")) {
+      boolean details = jObj.has("Details");
+      
+      return jAnswer(OK_STATUS, "Active task clients", GettaskRequest.getActiveClients(details).toString());
+    } else 
+      return sAnswer(99, "Active task clients", accessDeniedString);
   }
 
   /**
@@ -840,6 +886,9 @@ public class RequestProcessor {
     } catch (Exception e) {
       return errorAnswer;
     }
+    
+    GettaskRequest gtr = GettaskRequest.findGettaskRequestByTaskID(taskID+"");
+
 
     // find a task with a given ID in activeTasks queue    
     ASTask task = ASTools.findTask(activeTasks, taskID);
@@ -848,10 +897,13 @@ public class RequestProcessor {
       if (!CanUtil.can(uid, "e0_P", "can_execute")) return "NOK, access denied.";
       if (exitCode == 0) {
         ASTools.setTaskStatus(task, ASTaskStatus.COMPLETED, msg, null);
+        if (gtr != null) gtr.setTimestamp("done");
       } else if (exitCode == ErrorStatus.PROCESS_KILLED.ordinal()) {
         ASTools.setTaskStatus(task, ASTaskStatus.KILLED, msg, null);
+        if (gtr != null) gtr.setTimestamp("killed");
       } else {
         ASTools.setTaskStatus(task, ASTaskStatus.FAILED, "Execution failed, : " + msg, null);
+        if (gtr != null) gtr.setTimestamp("failed");
       }
 
       return "OK";
@@ -988,7 +1040,8 @@ public class RequestProcessor {
   
         sb.append((sb.length() > 0 ? ",\n" : "")).append(taskS);
       }
-      return "[" + sb.toString() + "]";
+      JSONArray tsks = new JSONArray("[" + sb.toString() + "]");
+      return jAnswer(OK_STATUS, "getTasks", tsks.toString());
   }
 
 /**

@@ -231,7 +231,7 @@ public class Analysis {
       
       long time = result.getVariable(MY_TIMER).getLongValue(timeLimit * 1000000); 
 
-      String status = (String) result.getVariable(EResult.passParName).getValue();
+      String status = (String) result.getVariable(EResult.passIndName).getValue();
       if (time > 1000000 * timeLimit) {
         status = ExecutionStatus.KILLED.toString();
       }
@@ -324,7 +324,7 @@ public class Analysis {
 
       long time = result.getVariable(MY_TIMER).getLongValue(2 * timeLimit * 1000000);
 
-      String status = (String) result.getVariable(EResult.passParName).getValue();
+      String status = (String) result.getVariable(EResult.passIndName).getValue();
       if (time > 1000000 * timeLimit) {
         status = ExecutionStatus.KILLED.toString();
       }

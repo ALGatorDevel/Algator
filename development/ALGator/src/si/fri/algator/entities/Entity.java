@@ -159,7 +159,12 @@ public class Entity implements Cloneable, Serializable {
   }
 
   public String getEID() {
-    String eid = getField(ID_EID);
+    Object oEID = getField(ID_EID); 
+    
+    String eid = EID_UNDEFINED;
+    if (oEID instanceof Integer) eid = ((Integer) oEID).toString();
+    if (oEID instanceof String)  eid = (String)   oEID;
+    
     if (eid == null || eid.isEmpty()) eid = EID_UNDEFINED;
     return eid;
   }
@@ -333,7 +338,9 @@ public class Entity implements Cloneable, Serializable {
   public <E> E getField(String fieldKey) {
     E result = null;
     if (fields.containsKey(fieldKey)) {
-      result = (E) fields.get(fieldKey);
+      try {
+        result = (E) fields.get(fieldKey);
+      } catch (Exception e) {}
     }
     return result;
   }
@@ -400,9 +407,6 @@ public class Entity implements Cloneable, Serializable {
       }
       return result;
     } catch (Exception e) {
-      // ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_NOT_A_STRING_ARRAY, 
-      //String.format("[%s.%s, %s]", entity_name, entity_file_ext, fieldKey));
-
       return new String[0];
     }
   }

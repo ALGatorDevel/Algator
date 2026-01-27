@@ -2,13 +2,17 @@ package si.fri.algator.execute;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.HashMap;
+import org.json.JSONObject;
 import si.fri.algator.entities.EGenerator;
 import si.fri.algator.entities.ETestCase;
 import si.fri.algator.entities.EVariable;
 import si.fri.algator.entities.Project;
 import si.fri.algator.entities.VariableType;
 import si.fri.algator.entities.Variables;
+import si.fri.algator.global.ATGlobal;
+import si.fri.algator.global.Answer;
 import si.fri.algator.global.ErrorStatus;
 
 /**
@@ -106,11 +110,11 @@ public abstract class AbstractTestCase implements Serializable {
           }
         return generateTestCase(type, generatingParameters);
       } else {
-        ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "Invalid generator definition for type " + type);
+        ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "Invalid generator definition for name " + type);
         return null;
       }
     } else {
-      ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "Invalid generator type: " + type);
+      ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR, "Invalid generator name: " + type);
       return null;
     }
   }
@@ -134,5 +138,48 @@ public abstract class AbstractTestCase implements Serializable {
     } catch (Exception e) {
       return null;
     }
+  }
+  
+  /**
+   *
+   * Method returna a string representation (in JSON form) 
+   * of testsets' intput and expectedOutput.
+   */
+  public String toJSONString() {
+    JSONObject result = new JSONObject();
+    result.put("Input",          getInput() != null ? getInput().toString(): "null");
+    result.put("ExpectedOutput", getExpectedOutput() != null ? getExpectedOutput().toString() : "null");
+    return result.toString();
+  }
+  
+  
+  /** 
+   * Method generates and returns a testcase of a given project 
+   * defined by a given generatingline 
+   */
+  public static AbstractTestCase generateTestcase(String projectName, String generatingLine) {    
+    try {
+      String data_root         = ATGlobal.getALGatorDataRoot();
+      Project project          = new Project(data_root, projectName);
+      URL[]  urls              = New.getClassPathsForProjectAlgorithm(project, "");
+      String currentJobID      = New.generateClassloaderAndJobID(urls);    
+      String testCaseClassName = project.getEProject().getTestCaseClassname();
+      String testsRoot         = ATGlobal.getTESTSroot(data_root, projectName);
+      AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).getTestCase(project, generatingLine, testsRoot, "tmp");
+    
+      return testCase;
+    } catch (Exception e) {
+      ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_INVALID_GENERATINGLINE, e.toString());
+      return null;
+    }
+  }
+  
+  public static Answer generateTestcaseWithAnswer(String projectName, String generatingLine) {
+    AbstractTestCase testcase = generateTestcase(projectName, generatingLine);
+    if (testcase==null) 
+      return new Answer(ErrorStatus.getLastErrorStatus(),
+        String.format("Generate testcase error: %s", ErrorStatus.getLastErrorMessage()));
+    else
+      return new Answer(ErrorStatus.STATUS_OK, testcase.toJSONString());
   }
 } 

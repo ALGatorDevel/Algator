@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Scanner; 
 import java.util.TreeMap;
 import org.json.JSONArray;
@@ -1136,7 +1137,7 @@ public class Maintenance {
       projInfo.put("Name", project.getName());
 
       // list of algorithms
-      TreeMap<String, EAlgorithm> algs = project.getAlgorithms();
+      LinkedHashMap<String, EAlgorithm> algs = project.getAlgorithms();
       JSONArray jaA = new JSONArray();
       for (String algName : algs.keySet()) {
         jaA.put(algName);
@@ -1144,7 +1145,7 @@ public class Maintenance {
       projInfo.put("Algorithms", jaA);
 
       // list of algorithms
-      TreeMap<String, ETestSet> testsets = project.getTestSets();
+      LinkedHashMap<String, ETestSet> testsets = project.getTestSets();
       JSONArray jaS = new JSONArray();
       for (String testsetName : testsets.keySet()) {
         jaS.put(testsetName);

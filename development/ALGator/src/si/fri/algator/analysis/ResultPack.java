@@ -25,7 +25,11 @@ public class ResultPack {
   
   public void putResult(String key, Variables value) {
     results.put(key, value);
-    keyOrder.add(key);
+    
+    // keys here are of type: testset-test@computerID; 
+    // as a key in keyorder we store only testset-test
+    String keyPrefix = key.split("@")[0];
+    keyOrder.add(keyPrefix);
   }
 
   public Variables getResult(String key) {

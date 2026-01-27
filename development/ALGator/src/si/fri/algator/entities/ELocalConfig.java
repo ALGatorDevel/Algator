@@ -28,7 +28,7 @@ public class ELocalConfig extends Entity {
   public  static final String ID_ALGatorServerPort = "ALGatorServerPort";   // String
   
   public  static final String ID_RSyncServerPort   = "RSyncServerPort";  // String (port on which task server listens for rsync actions)
-  public  static final String ID_DoSyncProjects    = "DoSyncProjects";   // boolean (set to false when TaskClient runs on the same machine as task client (this is true in testing environment))
+  public  static final String ID_DoSyncProjects    = "DoSyncProjects";   // boolean (set to false when TaskClient runs on the same machine as task server (this is the case only in testing environment))
   
   public  static final String ID_ALGatorUser       = "AlgatorUser";  // JSonObject
   private static final String ID_Username          = "Username";     // String

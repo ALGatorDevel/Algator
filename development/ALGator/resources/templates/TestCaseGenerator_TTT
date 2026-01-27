@@ -11,8 +11,10 @@ import si.fri.algator.execute.AbstractTestCaseGenerator;
 public class TestCaseGenerator_<TTT> extends AbstractTestCaseGenerator {    
   @Override
   public TestCase generateTestCase(Variables generatingParameters) {
-    // all testset input files are located in testsFolder and its subfolders
-    String testsFolder = generatingParameters.getVariable(TESTS_PATH,    "").getStringValue();
+    // Folder containing test set-specific files
+    String testsetResourcesPath  = getTestsetResourcesPath (generatingParameters);
+    // Folder containing common test set files
+    String commonResourcesPath  = getCommonResourcesPath (generatingParameters);
 
     // read params from generatingParameters
     <params>

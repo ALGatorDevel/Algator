@@ -25,6 +25,7 @@ import org.json.JSONObject;
 import static si.fri.algator.analysis.Analysis.OtherTestsetName;
 import si.fri.algator.server.ASTask;
 import si.fri.algator.client.Requester;
+import si.fri.algator.entities.EComputer;
 import si.fri.algator.entities.ELocalConfig;
 import si.fri.algator.entities.EVariable;
 import si.fri.algator.entities.EResult;
@@ -38,6 +39,7 @@ import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
 import si.fri.algator.global.ErrorStatus;
 import si.fri.algator.global.ExecutionStatus;
+import si.fri.algator.server.ASTools;
 import si.fri.algator.tools.DT;
 import si.fri.algator.tools.UniqueIDGenerator;
 
@@ -200,7 +202,8 @@ public class ExternalExecutor {
 
         Variables resultVariables = runTestCase(project, algName, testCase, currentJobID, mType,
                 testSetName, testID, timesToExecute, timeLimit, notificator, testName);
-
+        
+        
         if (ATGlobal.verboseLevel == 2) {
           System.out.print("\r                     \r");
           System.out.flush();
@@ -215,6 +218,12 @@ public class ExternalExecutor {
         taskProgress++;
         if (task!= null) {
           resultVariables.addVariable(new EVariable("TaskID", task.getTaskID()));
+          
+          // set "cID" ... id of comupter that executed this task
+          EComputer comp = ASTools.getComputer(task.getComputerUID());
+          if (comp != null)
+            resultVariables.addVariable(EResult.getComputerIDNameIndicator(comp.getFCName()), true);
+
           // obvesti server -> pošlji mu podatke: taskID, computerUID, taskProgress ter result 
           String[] order = EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc);
           if (asJSON) {order = Arrays.copyOf(order, order.length+1);order[order.length-1]="TaskID";}
@@ -377,18 +386,19 @@ public class ExternalExecutor {
       resultVariables.addVariables(algResultIndicators, false);
       resultVariables.addVariable(EResult.getAlgorithmNameParameter(algName), true);
       resultVariables.addVariable(EResult.getTestsetNameParameter(testSetName), true);
-      resultVariables.addVariable(EResult.getTimestampParameter(System.currentTimeMillis()), true);
+      resultVariables.addVariable(EResult.getTimestampIndicator(System.currentTimeMillis()), true);
       resultVariables.addVariable(EResult.getInstanceIDParameter(instanceID), true);
-
+      
+      resultVariables.addVariable(EResult.getComputerIDNameIndicator("<_unknown_>"), true);
+      
       resultVariables.addVariable(executionStatusParameter, true);
-
+      
     } catch (Exception e) {
     } finally {
       ATGlobal.deleteTMPDir(cFolderName, project.getName());
     }
 
     return resultVariables;
-
   }
 
   /**

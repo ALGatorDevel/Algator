@@ -5,6 +5,8 @@ import java.util.HashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import static si.fri.algator.entities.Entity.ID_LAST_MODIFIED;
+import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ErrorStatus;
 
 
@@ -31,6 +33,11 @@ public class ETestCase extends Entity {
   private Variables parameters;
   HashMap<String, EGenerator> generators;
 
+  public static ETestCase getTestCaseDescription(String projectName) {
+    String data_root = ATGlobal.getALGatorDataRoot();
+    ETestCase tstd = new ETestCase(new File(ATGlobal.getTESTCASEDESCfilename(data_root, projectName)));
+    return tstd;
+  } 
   
    
   public ETestCase() {

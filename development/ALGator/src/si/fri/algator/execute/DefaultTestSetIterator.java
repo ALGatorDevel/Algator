@@ -105,7 +105,7 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
       
       currentInputLine = null;             
       while (inputSource.hasNextLine()) {
-        currentInputLine = inputSource.nextLine(); lineNumber++;
+        currentInputLine = inputSource.nextLine().trim(); lineNumber++;
         
         if (!currentInputLine.startsWith("#")) break;        
       }

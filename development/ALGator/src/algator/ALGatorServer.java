@@ -11,6 +11,7 @@ import org.apache.commons.cli.ParseException;
 import si.fri.algator.server.ASGlobal;
 import si.fri.algator.server.ASLog;
 import si.fri.algator.client.Requester;
+import si.fri.algator.execute.AbstractTestCase;
 import si.fri.algator.global.ATGlobal;
 
 /**
@@ -81,10 +82,10 @@ public class ALGatorServer {
 	dataRoot = line.getOptionValue("data_root");
       }
       ATGlobal.setALGatorDataRoot(dataRoot);
-      
+            
       // ALGatorServer uses only data_root folder
       ATGlobal.setALGatorDataLocal(ATGlobal.getALGatorDataRoot());      
-
+            
       boolean statusOnly = false;
       if (line.hasOption("status")) {
 	statusOnly = true;

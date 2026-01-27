@@ -34,6 +34,8 @@ public class ASGlobal {
   public static final String REQ_RESUME_TASK      = "RESUMETASK";     // parameters: json(TaskID)
   public static final String REQ_SET_TASK_PRIORITY= "SETTASKPRIORITY";// parameters: json(TaskID)
   public static final String REQ_TASK_RESULT      = "TASKRESULT";     // parameters: json(ComputerUID, TaskID, TestNo, Result)
+  
+  public static final String REQ_ACTIVE_CLIENTS   = "ACTIVECLIENTS";  // no parameters
  
   public static final String REQ_QUERY_RES        = "GETQUERYRESULT"; // parameters: projectName
   public static final String REQ_QUERY            = "QUERY";          // parameters: json(projectName, query, ComputerID, Parameters)
@@ -79,9 +81,10 @@ public class ASGlobal {
     nonlogableRequests = new TreeSet(String.CASE_INSENSITIVE_ORDER);
     nonlogableRequests.add(REQ_UPLOAD_STATIC);        
     nonlogableRequests.add(REQ_STATUS);
-    nonlogableRequests.add(REQ_WHO);    
-    nonlogableRequests.add(REQ_GET_TASK);
-    nonlogableRequests.add(REQ_TASK_STATUS);    
+    nonlogableRequests.add(REQ_WHO);
+    nonlogableRequests.add(REQ_GETAWRESULTS);
+    //nonlogableRequests.add(REQ_GET_TASK);
+    //nonlogableRequests.add(REQ_TASK_STATUS);    
   }
   
 

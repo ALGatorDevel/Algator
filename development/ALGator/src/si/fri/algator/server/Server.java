@@ -7,6 +7,7 @@ import javax.servlet.MultipartConfigElement;
 import si.fri.algator.ausers.AUsersHelper;
 import si.fri.algator.ausers.AUsersTools;
 import si.fri.algator.entities.EAlgatorConfig;
+import si.fri.algator.execute.AbstractTestCase;
 import si.fri.algator.global.ATGlobal;
 import static spark.Spark.*;
 
@@ -76,10 +77,32 @@ public class Server {
     ASLog.log(String.format("ALGatorServer [%s] initialized on %s:%s ", serverID, host, port));  
     
     threadPool(16);
+
+    /*
+    // add this to support CORS ----
+    options("/*", (request, response) -> {
+      String origin = request.headers("Origin");
+      response.header("Access-Control-Allow-Origin", origin);
+      response.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+      response.header("Access-Control-Allow-Headers", "Content-Type, burden");
+      response.header("Access-Control-Allow-Credentials", "true");
+      return "OK";
+    });
+    */
+
     
     before((request, response) -> {
-      request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(tmpUploadLocation ));
-    });
+      request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(tmpUploadLocation ));      
+      
+      /*
+      // add this to support CORS ----      
+      if (!"OPTIONS".equalsIgnoreCase(request.requestMethod())) {
+        String origin = request.headers("Origin");
+        response.header("Access-Control-Allow-Origin", origin);
+        response.header("Access-Control-Allow-Credentials", "true");
+      }
+      */
+    }); 
 
     post("/id", (req, res) -> {
       requestCounter.count();
@@ -99,7 +122,7 @@ public class Server {
 
       String path = req.pathInfo().toUpperCase();
       if (path.length() > 0 && path.charAt(0)=='/') path = path.substring(1);
-            
+              
       String uid = AUsersHelper.getUIDFromHeaders(req);
       //uid += " {"+req.ip()+"} ";
       
@@ -129,7 +152,7 @@ public class Server {
     });
     
     after((request, response) -> {      
-      response.header("Access-Control-Allow-Origin", "*");
+      //response.header("Access-Control-Allow-Origin", "*");
       response.header("Access-Control-Allow-Methods", "POST, OPTIONS");
       response.header("Access-Control-Allow-Headers", "Content-Type, Content-Encoding, SessionID");
       response.header("Access-Control-Max-Age", "5");
