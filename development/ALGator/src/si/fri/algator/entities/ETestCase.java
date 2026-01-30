@@ -65,7 +65,7 @@ public class ETestCase extends Entity {
   
   public Variables getParameters() {  
     if (parameters != null) return parameters;
-    
+    // 
     try {
       Variables result = new Variables();      
       parameters = new Variables();
