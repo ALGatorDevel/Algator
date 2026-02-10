@@ -325,6 +325,8 @@ public class RequestProcessor {
     
       case "Projects":
         return ASTools.getProjectsData(uid);
+      case "ProjectsExtended": // both: Projects and ProjectDescription for each project
+        return ASTools.getProjectsDataExtended(uid);
       case "Project":
         if (!jObj.has("ProjectName"))
           return sAnswer(1, "getData of type=Project requires 'ProjectName' property.", "");

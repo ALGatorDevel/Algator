@@ -94,4 +94,17 @@ public class AUsersTools {
     else
       return null;
   }
+  
+  // this method is used for several (in sequence) use of getUser name fetch.
+  // it is faster than other methods (getUser() + getUsername(), because it uses
+  // the same Connection and it fetches only username (not all data)
+  public static String getUsernameFast(String uid, Connection con) {
+    final String sql = userSelectSQL + " where uid='"+uid+"'";
+    try {
+      PreparedStatement stmt = con.prepareStatement(sql);
+      ResultSet rs = stmt.executeQuery();
+      if (rs.next()) return rs.getString("username");
+    } catch (Exception e) {}
+    return "";
+  }
 }

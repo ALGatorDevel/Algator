@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +45,8 @@ import si.fri.algator.ausers.CanUtil;
 import static si.fri.algator.ausers.CanUtil.accessDeniedString;
 import si.fri.algator.ausers.EntitiesDAO;
 import si.fri.algator.ausers.dto.DTOEntity;
+import si.fri.algator.ausers.dto.DTOUser;
+import si.fri.algator.database.Database;
 
 import si.fri.algator.entities.CompCap;
 import si.fri.algator.entities.EAlgatorConfig;
@@ -221,6 +224,70 @@ public class ASTools {
             new JSONArray(readableProjects).toString()
     );
   }
+  
+  
+  // returns data for all projects (this was done before by calling "getData Projects" + 
+  // for each project "getData ProjectDescription", but this was slow!
+  public static String getProjectsDataExtended(String uid) {
+    String projectsRoot = ATGlobal.getPROJECTSfolder(ATGlobal.getALGatorDataRoot());
+    String[] projects = new File(projectsRoot).list((dir, name) -> {
+      File proj = new File(dir, name);
+      return proj.isDirectory()
+              && name.startsWith(String.format(ATGlobal.ATDIR_projRootDir, ""))
+              && new File(new File(proj, ATGlobal.ATDIR_projConfDir), ATGlobal.getPROJECTConfigName()).exists();
+    });
+
+    // TODO:  filter-out projects according to user rights 
+    ArrayList<EProject> readableProjects = new ArrayList();
+    for (String project : projects) {
+      EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(
+              ATGlobal.getALGatorDataRoot(), project.substring(5))));
+      String eid = eProject.getString(Entity.ID_EID);
+      if (CanUtil.can(uid, eid, "can_read")) {
+        readableProjects.add(eProject);
+      }
+    }
+    
+    // connection to database that will be used for all usesr to get their username
+    Connection con = Database.getConnectionToDatabase();
+    
+    JSONArray result = new JSONArray();
+    for (EProject project : readableProjects) {
+      String eid = project.getEID();
+      
+      int numberOfA  = project.getStringArray(EProject.ID_Algorithms).length;
+      int numberOfT  = project.getStringArray(EProject.ID_TestSets).length;      
+      int popularity = numberOfT + numberOfA; // redefine !!!!
+      
+      long lastModified = project.getLastModified(project.getName(), "Project");
+      File pFile = new File(project.entity_file_name);
+      lastModified = Math.max(lastModified, pFile.lastModified()/1000);
+
+      DTOEntity entity = EntitiesDAO.getEntity(eid);
+      String owner = entity==null ? "" : entity.getOwner();
+      String user = AUsersTools.getUsernameFast(owner, con);
+
+       JSONObject jProj = new JSONObject();
+       jProj.put("Name", project.getName());
+       jProj.put("St",   project.getString(EProject.ID_ShortTitle));
+       jProj.put("Ow",   owner);
+       jProj.put("On",   user);
+       jProj.put("Tg",   project.getStringArray(EProject.ID_Tags));
+       jProj.put("Na",   numberOfA);
+       jProj.put("Nt",   numberOfT);
+       jProj.put("Mo",   lastModified);
+       jProj.put("De",   project.getString(EProject.ID_Description));
+       jProj.put("Po",   popularity);
+       jProj.put("eid",  eid);       
+              
+       result.put(jProj);
+    }
+    
+    return jAnswer(OK_STATUS, "Projects", result.toString()
+    );
+  }
+  
+  
 
   public static JSONObject getProjectJSON(String uid, String projectName) {
     EProject project = EProject.getProject(projectName);
@@ -322,7 +389,11 @@ public class ASTools {
     
     DTOEntity entity = EntitiesDAO.getEntity(eid);
     String owner = entity==null ? "" : entity.getOwner();
-    String user = owner.isEmpty() ? "" : AUsersTools.getUser(owner).getUsername();
+    String user = "";
+    if (!owner.isEmpty()) {
+      DTOUser uuser = AUsersTools.getUser(owner);
+      if (uuser != null) user = uuser.getUsername();
+    }
 
     int numberOfA = project.getStringArray(EProject.ID_Algorithms).length;
     int numberOfT = project.getStringArray(EProject.ID_TestSets).length;
