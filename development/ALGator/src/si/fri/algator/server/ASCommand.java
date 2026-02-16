@@ -1,5 +1,6 @@
 package si.fri.algator.server;
 
+import algator.ExternalExecute;
 import algator.Version;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -136,7 +137,7 @@ public class ASCommand {
     
       //if (classPath.startsWith("/")) classPath = classPath.substring(1);
       
-      String[] command = ArrayUtils.addAll(new String[] {jvmCommand, "-cp", classPath, "-Xss1024k", "algator."+ukaz}, args);
+      String[] command = ArrayUtils.addAll(new String[] {jvmCommand, "-cp", classPath, ExternalExecute.defaultXss, ExternalExecute.defaultXmx, "algator."+ukaz}, args);
       
       ProcessBuilder probuilder = new ProcessBuilder( command );
       Map<String, String> environment = probuilder.environment();

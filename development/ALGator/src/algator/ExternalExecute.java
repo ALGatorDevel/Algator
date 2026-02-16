@@ -34,6 +34,8 @@ public class ExternalExecute {
   
   private static String introMsg = "ALGator ExternalExecute, " + Version.getVersion();
   
+  public static String defaultXss = "-Xss1024k";
+  public static String defaultXmx = "-Xmx1500m";
   
   private static Options getOptions() {
     Options options = new Options();
@@ -147,7 +149,7 @@ public class ExternalExecute {
           classPath += File.pathSeparator + vmepCP;
       }
     
-      String[] command = {jvmCommand, "-cp", classPath, "-Xss1024k", "algator.ExternalExecute", folderName};
+      String[] command = {jvmCommand, "-cp", classPath, defaultXss, defaultXmx, "algator.ExternalExecute", folderName};
       ProcessBuilder probuilder = new ProcessBuilder( command );
     
       return probuilder.start();      

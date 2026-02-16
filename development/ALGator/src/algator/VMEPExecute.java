@@ -333,7 +333,7 @@ public class VMEPExecute {
       if (!algJARs.isEmpty())
         classPath += File.pathSeparator + algJARs;
 
-      String[] command = {jvmCommand, "-cp", classPath, "-Xss1024k", "algator.VMEPExecute", 
+      String[] command = {jvmCommand, "-cp", classPath, ExternalExecute.defaultXss, ExternalExecute.defaultXmx, "algator.VMEPExecute", 
         project_name, alg_name, testset_name, Integer.toString(testID), commFolder, 
         "-dr", data_root, "-dl", data_local, "-v", Integer.toString(ATGlobal.verboseLevel), 
         "-log", Integer.toString(ATGlobal.logTarget)};
