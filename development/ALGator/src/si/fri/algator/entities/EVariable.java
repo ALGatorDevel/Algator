@@ -82,6 +82,8 @@ public class EVariable extends Entity  implements Serializable {
 	  case INT: case TIMER: case COUNTER:
             if (object instanceof Integer || object instanceof Long)
               fields.put(fieldKey, object);
+            else if (object instanceof Double)
+              fields.put(fieldKey, ((Double)object).intValue());
             else
 	      try {
                 fields.put(fieldKey, Integer.parseInt((String) object));
@@ -93,8 +95,10 @@ public class EVariable extends Entity  implements Serializable {
 	  case DOUBLE:
             if (object instanceof Double)
               fields.put(fieldKey, object);
-            else 
+            else if (object instanceof String)
               fields.put(fieldKey, Double.parseDouble((String) object));
+            else if (object instanceof Integer)
+              fields.put(fieldKey, ((Integer)object).doubleValue());
 	    break;
 	  default:
 	    fields.put(fieldKey, object);
