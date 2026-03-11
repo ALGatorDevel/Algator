@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Scanner;
 
 /**
  * Logiram vse dogajanje. Ob zagonu programa vse morebitne napake pri preverjanju parametrov zapisujem v 
@@ -14,16 +15,13 @@ import java.util.Date;
  * @author tomaz
  */
 public class ATLog {
-  
-  public static final String logFile = "algator.log";
-  
+   
   public static final int TARGET_OFF    = 0;
   public static final int TARGET_STDOUT = 1;
   public static final int TARGET_FILE   = 2;
 
-  private static int logTarget     = TARGET_STDOUT; // default
-  private static int lastLogTarget = TARGET_STDOUT;
-    
+  private static boolean loggingEnabled = true;
+  
   // maximal error size in bytes (to truncate very long error messages)
   private static int MAX_ERROR_SIZE = 2048;
 
@@ -38,7 +36,7 @@ public class ATLog {
   public static void setPateFilename(String pateFN) {
     pateFilename = pateFN;
 
-    if (logTarget == TARGET_FILE) {
+    if (ATGlobal.logTarget == TARGET_FILE) {
       // ob priklopu na datoteko izpišem ločilo, da so logi jasno ločeni eden od drugega
       try (PrintWriter pw = new PrintWriter(new FileWriter(new File(pateFN), true))) {
         pw.println("-------------------------------------------------------------");
@@ -47,30 +45,37 @@ public class ATLog {
   }
   
   
+  // returns lines of log file, skip first "from" lines
+  // (if from==0, return all file; if from==1, return all file but first line
+  public static ArrayList<String> readLogFile(int from) {
+    ArrayList<String> result = new ArrayList();
+    try (Scanner sc = new Scanner(new File(pateFilename))) {
+      for (int i = 0; i < from; i++) sc.nextLine();
+      while(sc.hasNextLine()) result.add(sc.nextLine());
+    } catch (Exception e) {} 
+    return result;
+  }
+  
   public static void disableLog() {
-    lastLogTarget = logTarget;
-    logTarget = TARGET_OFF;
+    loggingEnabled = false;
   }
   public static void enableLog(){
-    logTarget = lastLogTarget;
+    loggingEnabled = true;
   }
   
-  public static void setLogTarget(int target) {
-    logTarget = target;
-    lastLogTarget = logTarget;    
-  }
-  
-  public static int getLogTarget() {
-    return logTarget;
-  }
   
   /**
-   * Parameter kam ima pomen le v primeru, da je logLevel & LOG_LEVEL_FILE != 0 (torej zapisujem v file).
-   * parameter določa, v kateri file zapisujem - v algator.log (kam=1) ali v P-A-T-em.history (kam=2) 
-   * ali oboje (kam=3).
+   * Kam se logira:
+   * - če je ATGlobal.logTarget & TARGET_STDOUT (1) != 0 .... logiras na stdout
+   * - če je ATGlobal.logTarget & TARGET_FILE (2) != 0 
+   *     če je pateFilename nastavljen -> v pateFilename
+   *     sicer v algatorLogFileName
+   * 
+   * 
    */
-  public static void log(String msg, int kam) {
-    if (logTarget == TARGET_OFF || ATGlobal.verboseLevel == 0) return;
+  public static void log(String msg) {
+    if (!loggingEnabled || ATGlobal.logTarget == TARGET_OFF || ATGlobal.verboseLevel == 0) 
+      return;
     
     msg = msg.substring(0, Math.min(msg.length(), MAX_ERROR_SIZE));
 
@@ -86,23 +91,22 @@ public class ATLog {
 
     
     // loggint to stdout
-    if ((logTarget & TARGET_STDOUT) != 0)
+    if ((ATGlobal.logTarget & TARGET_STDOUT) != 0)
       System.out.println(logMsg);
 
+    
+    
     // loging to file
-    if ((logTarget & TARGET_FILE) != 0) {
-      if (algatorLogFileName.isEmpty())
-        algatorLogFileName = ATGlobal.getAlgatorLogFilename();
+    if ((ATGlobal.logTarget & TARGET_FILE) != 0) {
+      if (algatorLogFileName.isEmpty()) algatorLogFileName = ATGlobal.getAlgatorLogFilename();
       
-      if ((kam & 1) != 0) 
-        try (PrintWriter pw = new PrintWriter(new FileWriter(new File(algatorLogFileName), true))) {
-          pw.println(logMsg);
-        } catch (Exception e) {} // nothing can be done
-          
-      if ((kam & 2) != 0) 
-        try (PrintWriter pw = new PrintWriter(new FileWriter(new File(pateFilename), true))) {
-          pw.println(logMsg);
-        } catch (Exception e) {} // nothing can be done          
+      String fileToLog = algatorLogFileName;
+    
+      if (!pateFilename.isEmpty()) fileToLog = pateFilename;
+      
+      try (PrintWriter pw = new PrintWriter(new FileWriter(new File(fileToLog), true))) {
+        pw.println(logMsg);
+      } catch (Exception e) {} // nothing can be done          
     }      
   }
   

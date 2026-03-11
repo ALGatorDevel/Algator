@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Scanner;
+import java.util.Set;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -126,39 +127,45 @@ public class VMEPExecute {
           String testsetName, int testNumber, String commFolder, boolean asJSON) {
 
     ATLog.setPateFilename(ATGlobal.getTaskHistoryFilename(projName, algName, testsetName, "jvm"));
+    /*
+    ATLog.setPateFilename(task == null ? 
+      ATGlobal.getTaskHistoryFilename(projName, algName, testsetName, "jvm") :
+      ATGlobal.getTaskLogFilename(task.getTaskID())
+    );    
+    */
     
     // Test the project
     Project projekt = new Project(dataRoot, projName);
     if (!projekt.getErrors().get(0).equals(ErrorStatus.STATUS_OK)) {
       if (ATGlobal.verboseLevel > 0)
-        ATLog.log("VMEP Execute: Invalid project name - " + projName, 1);
+        ATLog.log("VMEP Execute: Invalid project name - " + projName);
       System.exit(VMEPErrorStatus.INVALID_PROJECT.getValue()); // invalid project
     }
 
     // Test algorithms
     if (algName == null || algName.isEmpty()) {
       if (ATGlobal.verboseLevel > 0)
-        ATLog.log("VMEP Execute: Invalid algorithm name - " + algName, 1);
+        ATLog.log("VMEP Execute: Invalid algorithm name - " + algName);
       System.exit(VMEPErrorStatus.INVALID_ALGORITHM.getValue());
     }
     EAlgorithm alg = projekt.getAlgorithms().get(algName);
     if (alg == null) {
       if (ATGlobal.verboseLevel > 0)
-        ATLog.log("VMEP Execute: Invalid algorithm name - " + algName, 1);
+        ATLog.log("VMEP Execute: Invalid algorithm name - " + algName);
       System.exit(VMEPErrorStatus.INVALID_ALGORITHM.getValue()); // invalid algorithm
     }
 
     // Test testsets
     if (testsetName == null || testsetName.isEmpty()) {
       if (ATGlobal.verboseLevel > 0)
-        ATLog.log("VMEP Execute: Invalid testset name - " + testsetName, 1);
+        ATLog.log("VMEP Execute: Invalid testset name - " + testsetName);
       System.exit(VMEPErrorStatus.INVALID_TESTSET.getValue());
     }
     
     ETestSet testSet = projekt.getTestSets().get(testsetName);
     if (testSet == null) {
       if (ATGlobal.verboseLevel > 0)
-        ATLog.log("VMEP Execute: Invalid testset name - " + testsetName, 1);
+        ATLog.log("VMEP Execute: Invalid testset name - " + testsetName);
 
       System.exit(VMEPErrorStatus.INVALID_TESTSET.getValue()); // invalid testset
     }    
@@ -172,7 +179,7 @@ public class VMEPExecute {
     EResult resultDescription = projekt.getResultDescriptions().get(MeasurementType.JVM);
     if (resultDescription == null) {
       if (ATGlobal.verboseLevel > 0)
-        ATLog.log("VMEP Execute: JVM result description file does not exist - " + projName + ", " + algName, 3);
+        ATLog.log("VMEP Execute: JVM result description file does not exist - " + projName + ", " + algName);
       System.exit(VMEPErrorStatus.INVALID_RESULTDESCRIPTION.getValue()); // JVM result descritpion does not exist
     }
     
@@ -180,7 +187,7 @@ public class VMEPExecute {
     int allTests = testsetIterator.getNumberOfTestInstances();
     if (testNumber > allTests) {
       if (ATGlobal.verboseLevel > 0)
-        ATLog.log("VMEP Execute: Invalid test number - " + projName + ", " + algName + " - " + testNumber, 3);
+        ATLog.log("VMEP Execute: Invalid test number - " + projName + ", " + algName + " - " + testNumber);
 
       System.exit(VMEPErrorStatus.INVALID_TEST.getValue()); // invalid testset   
     }
@@ -229,9 +236,9 @@ public class VMEPExecute {
         AbstractInput input = testCase.getInput();
                    
         if (ATGlobal.verboseLevel == 2) {           
-          ATLog.log(String.format("Project: %s, Algorithm: %s, TestSet: %s, Test: %d\n", project.getName(), algName, testsetName, testNumber), 2);
-          ATLog.log(String.format("********* Before execution       *********************************************"), 2);
-          ATLog.log(input.toString(), 2);
+          ATLog.log(String.format("Project: %s, Algorithm: %s, TestSet: %s, Test: %d\n", project.getName(), algName, testsetName, testNumber));
+          ATLog.log(String.format("********* Before execution       *********************************************"));
+          ATLog.log(input.toString());
         }
         
         InstructionMonitor instrMonitor = new InstructionMonitor();
@@ -242,12 +249,12 @@ public class VMEPExecute {
         result = curAlg.done();
         
         if (ATGlobal.verboseLevel == 2) {
-          ATLog.log("********* After execution        *********************************************", 2);
-          ATLog.log(input.toString(), 3);
+          ATLog.log("********* After execution        *********************************************");
+          ATLog.log(input.toString());
         }
 
         if (ATGlobal.verboseLevel == 2) 
-          ATLog.log("********* Bytecode commands used *********************************************", 2);
+          ATLog.log("********* Bytecode commands used *********************************************");
                 
         // write results to the result set.
         Variables pSet = Variables.join(project.getTestCaseDescription().getParameters(), resultDesc.getVariables());
@@ -262,7 +269,7 @@ public class VMEPExecute {
             toLog += " " + pName;
         }  
         if (ATGlobal.verboseLevel == 2)
-            ATLog.log(toLog, 2);
+            ATLog.log(toLog);
         
         
         result.addVariable(EResult.getExecutionStatusIndicator(ExecutionStatus.DONE), true);
@@ -283,7 +290,7 @@ public class VMEPExecute {
       ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_RUN, e.toString());
 
       if (ATGlobal.verboseLevel > 0)
-        ATLog.log(e.toString(), 3);
+        ATLog.log(e.toString());
       
     } finally {
       if (!success) {
@@ -293,7 +300,7 @@ public class VMEPExecute {
           pw.println(result.toString(order, asJSON, delim));
       } catch (IOException e) {
         if (ATGlobal.verboseLevel > 0)
-          ATLog.log(e.toString(), 3);
+          ATLog.log(e.toString());
       }
     }
   }
@@ -411,15 +418,11 @@ public class VMEPExecute {
           ATGlobal.verboseLevel = 2;
       }
       
-      ATGlobal.logTarget = ATLog.TARGET_STDOUT;
-      if (line.hasOption("log")) {
-        if (line.getOptionValue("log").equals("2"))
-          ATGlobal.logTarget = ATLog.TARGET_FILE;
-        if (line.getOptionValue("log").equals("3"))
-          ATGlobal.logTarget = ATLog.TARGET_FILE + ATLog.TARGET_STDOUT;
-      }     
-      ATLog.setLogTarget(ATGlobal.logTarget);
-
+      ATGlobal.logTarget = ATLog.TARGET_STDOUT; // default: log only to stdout
+      if (Set.of("1", "2", "3").contains(line.getOptionValue("log")))
+        ATGlobal.logTarget = Integer.parseInt(line.getOptionValue("log"));
+      
+      
       // tu se ne bom nič zmišljeval - vmep naj izhod v vsakem primeru 
       // zapiše kot json; če bi želel to spremeniti, dodaj opcijo output_format
       // (poglej, kako je bilo to narejeno pri Execute .java)

@@ -230,7 +230,7 @@ public class EVariable extends Entity  implements Serializable {
     }
     return result;
   }
-
+  
   public String getStringValue() {
     return getStringValue("");       
   }

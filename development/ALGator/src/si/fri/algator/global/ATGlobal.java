@@ -28,8 +28,10 @@ public class ATGlobal {
   private static String ALGatorDataLocal = System.getenv("ALGATOR_DATA_LOCAL");
   
   
-  public static int logTarget = 1;    // stdout
-  public static int verboseLevel = 1; // print some information
+  public static int logTarget    = 1; // default log target: stdout
+  public static int verboseLevel = 1; // default log level: 1 (print some information)
+  public static int whereToPrint = 3; // where to print execution results (default: both)
+  
   
   public static final String DEFAULT_CSV_DELIMITER    = ";";
   
@@ -175,7 +177,9 @@ public class ATGlobal {
     return getTaskLogFolder() + File.separator + 
        String.format("%s-%s-%s-%s.history", project, algorithm, testset, mtype);
   }
-
+  public static String getTaskLogFilename(int taskID) {
+    return getTaskLogFolder() + File.separator + taskID + "." + ATDIR_logDir;
+  }
   /**
    * Returns "PROJ-" + name
    */

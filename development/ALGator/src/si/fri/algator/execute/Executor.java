@@ -205,7 +205,6 @@ public class Executor {
    * @param projName the name of the project
    * @param algName the name of the algorithm
    * @param testSetName the name of the test set
-   * @param notificator a notificator
    * @param alwaysCompile if true the sources are compiled although the classes
    * are up to date.
    * @param alwaysRun run the algorithm although the results already exist; if
@@ -213,8 +212,8 @@ public class Executor {
    * @return
    */
   public static ErrorStatus algorithmRun(Project project, String algName, String testSetName,
-          MeasurementType mType, Notificator notificator, boolean alwaysCompile, 
-          boolean alwaysRun, int whereToPrint, boolean asJSON, ASTask task) {
+          MeasurementType mType, boolean alwaysCompile, 
+          boolean alwaysRun, boolean asJSON, ASTask task) {
 
     if (project == null) {
       return ErrorStatus.ERROR;
@@ -222,7 +221,7 @@ public class Executor {
     
     String runningMsg = String.format("Running [%s, %s, %s]", mType.getExtension(), testSetName, algName);
     ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, "");
-    ATLog.log(runningMsg, 3);
+    ATLog.log(runningMsg);
 
     String projRoot = project .getProjectRoot();
 
@@ -279,8 +278,6 @@ public class Executor {
       AbstractTestSetIterator tsIt = new DefaultTestSetIterator(project, eTestSet, currentJobID);
       tsIt.initIterator();
 
-      notificator.setNumberOfInstances(numberOfInstances);
-
       // prepare file for results
       File resFile;
       try {
@@ -303,9 +300,9 @@ public class Executor {
 
       try {
         if (mType.equals(MeasurementType.EM) || mType.equals(MeasurementType.CNT)) 
-          ExternalExecutor.iterateTestSetAndRunAlgorithm(project, algName, currentJobID, tsIt, notificator, mType, resFile, whereToPrint, asJSON, task);
+          ExternalExecutor.iterateTestSetAndRunAlgorithm(project, algName, currentJobID, tsIt, mType, resFile, asJSON, task);
         else
-          VMEPExecutor.iterateTestSetAndRunAlgorithm(project, algName, currentJobID, testSetName, resDesc, tsIt, notificator, resFile, asJSON);
+          VMEPExecutor.iterateTestSetAndRunAlgorithm(project, algName, currentJobID, testSetName, resDesc, tsIt, resFile, asJSON);
       } catch (Exception e) {
         ASTools.logTaskStatus(task,  ASTaskStatus.FAILED, ErrorStatus.ERROR_CANT_RUN.toString(), ATGlobal.getThisComputerID());
         return ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR_CANT_RUN, e.toString());

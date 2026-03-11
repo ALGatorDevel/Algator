@@ -1,7 +1,6 @@
 package algator;
 
 import java.io.ByteArrayOutputStream;
-import java.io.Console;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;

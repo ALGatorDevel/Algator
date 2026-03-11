@@ -252,7 +252,14 @@ public class AEETaskClient {
   }
   
   
-  // Misc. tasks like Compile, RunOne, ...
+  /*
+    runMiscTask je namenjen poganjanju taskov, ki niso vezani na izvajanje algoritmov 
+    ali ustvarjanju testnih primerov ampak administratovnim opravilom!
+    POZOR: opravilo, ki se zažene preko tega mehanizma, se izvede na brez kontrole časa izvajanja. 
+    Zato se tu lahko izvede le opravilo, ki NE traja dolgo (ali 
+    lahko celo zacikla). Za opravila kot je GenerateTestCase (ki lahko zacikla, če ga uporabnik 
+    slabo napiše), je treba napisati drugačen mehanizem poganjanja.
+  */
   private static int runMiscTask(ASTask task) {
     String taskResult = "Task " + task.getString(ASTask.ID_TaskType, "?") + ".";
 
@@ -267,12 +274,20 @@ public class AEETaskClient {
         ans = Executor.algorithmMakeCompile(ATGlobal.getALGatorDataRoot(), task.getString("Project"), task.getString("Algorithm"), MeasurementType.EM, true);
         taskResult = ans.message;
         break;  
+      
       case "GenerateTestCase":
+        taskResult = "Cannot generate test case instance due to security restrictions. See documentation for details.";
+
+        /* 
+        POZOR: tega ne smem dovoliti - glej komentar zgoraj!
+        */
         ans = Executor.projectMakeCompile(ATGlobal.getALGatorDataRoot(), task.getString("Project"), true, task);
+        
         if (ans.status.equals(ErrorStatus.STATUS_OK))
-          ans = AbstractTestCase.generateTestcaseWithAnswer(task.getString("Project"), task.getString("Msg"));
+          ans = AbstractTestCase.generateTestcaseWithAnswer(task.getString("Project"), task.getString("Msg"));        
         taskResult = ans.message;
         break;
+      
       default: return 300;
     }
     
@@ -382,8 +397,8 @@ public class AEETaskClient {
     // Always execute
     cmdLine.addArgument("-e");
     // log into file
-    //cmdLine.addArgument("-log");
-    //cmdLine.addArgument("2");
+    cmdLine.addArgument("-log");
+    cmdLine.addArgument("3");
     // be verbosive
     cmdLine.addArgument("-v");
     cmdLine.addArgument("2");
@@ -483,20 +498,22 @@ public class AEETaskClient {
               } else {
                 int taskNo = task.getTaskID(); 
 
-                switch (exitCode) {
-                  case 0  : exitMsg = "Task completed successfully."; break;
-                  case 202: exitMsg = "TaskID and ComputerID mismatch."; break;
-                  case 203: exitMsg = "Invalid project name."; break;
-                  case 204: exitMsg = "Problems with testset synchronization."; break;
-                  case 205: exitMsg = "Invalid testset name."; break;
-                  case 206: exitMsg = "Invalid algorithm name."; break;
-                  case 207: exitMsg = "Invalid measurement type."; break;
-                  case 208: exitMsg = "Problems with vmep configuration."; break;
-                  case 214: exitMsg = "Problems with project synchronization."; break;
-                  case 215: exitMsg = "The database is not initialized."; break;
-                  case 300: exitMsg = "Can't execute misc. task"; break;
-                  default: exitMsg  = "Error code: " + exitCode + "; Error: " + exitMsg; 
-                }
+                exitMsg = switch (exitCode) {
+                  case 0   -> "Task completed successfully.";
+                  case 99  -> "Exception: " + exitMsg;
+                  case 201 -> "Unknown error (exit code: 201)";
+                  case 202 -> "Task.ComputerID mismatch.";
+                  case 203 -> "Invalid project name.";
+                  case 204 -> "Problems with testset synchronization.";
+                  case 205 -> "Invalid testset name.";
+                  case 206 -> "Invalid algorithm name.";
+                  case 207 -> "Invalid measurement type.";
+                  case 208 -> "Problems with vmep configuration.";
+                  case 214 -> "Problems with project synchronization.";
+                  case 215 -> "The database is not initialized.";
+                  case 300 -> "Can't execute misc. task";
+                  default  -> "Error code: " + exitCode + "; Error: " + exitMsg;
+                };
                 JSONObject answer = new JSONObject();
                 answer.put("ExitCode", exitCode); 
                 answer.put(ASTask.ID_TaskID, task.getFieldAsInt(ASTask.ID_TaskID));

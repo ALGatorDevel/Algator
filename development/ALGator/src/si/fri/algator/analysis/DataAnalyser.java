@@ -180,7 +180,7 @@ public class DataAnalyser {
         lines.add(line);
       }
     } catch (Exception e) {
-      ATLog.log("Can't read results: " + e, 1);
+      ATLog.log("Can't read results: " + e);
     }
 
     readResults(resPack, project, algorithm, testset, computerID, initData, lines);

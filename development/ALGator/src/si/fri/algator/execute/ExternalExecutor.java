@@ -14,7 +14,6 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -40,7 +39,6 @@ import si.fri.algator.global.ATLog;
 import si.fri.algator.global.ErrorStatus;
 import si.fri.algator.global.ExecutionStatus;
 import si.fri.algator.server.ASTools;
-import si.fri.algator.tools.DT;
 import si.fri.algator.tools.UniqueIDGenerator;
 
 /**
@@ -96,7 +94,7 @@ public class ExternalExecutor {
 
     AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).generateTestCase(generatorType, parameters);
 
-    Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, 1, timesToExecute, timeLimit, null, "1");
+    Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, 1, timesToExecute, timeLimit, "1");
   
     New.removeClassLoader(currentJobID);
     
@@ -119,7 +117,7 @@ public class ExternalExecutor {
    * @return
    */
   public static void iterateTestSetAndRunAlgorithm(Project project, String algName, String currentJobID, AbstractTestSetIterator it,
-          Notificator notificator, MeasurementType mType, File resultFile, int whereToPrint, boolean asJSON, ASTask task) {
+          MeasurementType mType, File resultFile, boolean asJSON, ASTask task) {
 
     String instanceID = "Test"; //UniqueIDGenerator.getNextID();
 
@@ -155,6 +153,9 @@ public class ExternalExecutor {
       resultDesc = new EResult();
     }
 
+    int numberOfReportedLogLines = 0;
+
+    
     int taskProgress = 0;
     if (task != null) 
       taskProgress = task.getProgress();
@@ -165,24 +166,18 @@ public class ExternalExecutor {
     String algatorServerName = ELocalConfig.getConfig().getALGatorServerName();
     int    algatorServerPort = ELocalConfig.getConfig().getALGatorServerPort();
 
+    String status = String.format("[%s, %s, %s, %s]: ", 
+            project.getName(), algName, it.testSet.getName(), mType.getExtension());
+    
     try {
       while (it.hasNext()) {
-        it.readNext();
+        it.readNext(); 
 
         // skip all the tests that were already completed
         if (taskProgress > testID++) continue;
         
-
-        if (ATGlobal.verboseLevel == 2) {
-          System.out.print("\rGenerating testcase...");
-          System.out.flush();
-        }
+        ATLog.log(status + String.format(" --> generating testcase (%d / %d)", testID, testSet.getFieldAsInt("N", 0)));
         AbstractTestCase testCase = it.getCurrent();
-
-        if (ATGlobal.verboseLevel == 2) {
-          System.out.print("\r                      ");
-          System.out.flush();
-        }
 
         String testSetName = it.testSet.getName();
 
@@ -195,24 +190,18 @@ public class ExternalExecutor {
           testName = instanceID + "-" + testID;
         }
 
-        if (ATGlobal.verboseLevel == 2) {
-          System.out.print("\rRunning algorithm...");
-          System.out.flush();
-        }
 
+        ATLog.log(status + String.format(" ... running '%s'", testName));
+        
         Variables resultVariables = runTestCase(project, algName, testCase, currentJobID, mType,
-                testSetName, testID, timesToExecute, timeLimit, notificator, testName);
+                testSetName, testID, timesToExecute, timeLimit, testName);
         
-        
-        if (ATGlobal.verboseLevel == 2) {
-          System.out.print("\r                     \r");
-          System.out.flush();
-        }
-
+        EVariable pass = resultVariables.getVariable(EResult.passIndName);
+        ATLog.log(status + String.format(" ... finished '%s' with status %s", testName, pass.getValue()));
         // print variables only in case that task==null; if task!=null this is taskClient version
         // of execute and results are not written to local results file
         if (task == null) {
-          printVariables(resultVariables, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), whereToPrint, asJSON);
+          printVariables(resultVariables, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), asJSON);
         }
         
         taskProgress++;
@@ -229,12 +218,18 @@ public class ExternalExecutor {
           if (asJSON) {order = Arrays.copyOf(order, order.length+1);order[order.length-1]="TaskID";}
           String result = 
             resultVariables.toString(order, asJSON, ATGlobal.DEFAULT_CSV_DELIMITER);
-                    
+          
+          // get log data produced by last execution
+          ArrayList<String> logLines = ATLog.readLogFile(numberOfReportedLogLines);
+          String thisLog = String.join("\n", logLines);
+          numberOfReportedLogLines += logLines.size();
+          
           JSONObject jObj = new JSONObject();
           jObj.put(ASTask.ID_ComputerUID, task.getComputerUID());
           jObj.put(ASTask.ID_TaskID, task.getTaskID());
           jObj.put("TestNo", testID);
           jObj.put("Result", result);
+          jObj.put("Log",    thisLog);
           String sResponse = Requester.askALGatorServer(
               algatorServerName, algatorServerPort, "TASKRESULT " + jObj.toString());
           
@@ -262,11 +257,10 @@ public class ExternalExecutor {
 
     ErrorStatus.setLastErrorMessage(eStatus, "");
   }
-
+  
   public static Variables runTestCase(
           Project project, String algName, AbstractTestCase testCase, String currentJobID, MeasurementType mType,
-          String testSetName, int testID, int timesToExecute, int timeLimit,
-          Notificator notificator, String instanceID) {
+          String testSetName, int testID, int timesToExecute, int timeLimit, String instanceID) {
 
     if (instanceID == null || instanceID.isEmpty()) {
       instanceID = UniqueIDGenerator.getNextID();
@@ -317,21 +311,12 @@ public class ExternalExecutor {
       EVariable executionStatusParameter;
       switch (executionStatus) {
         case STATUS_OK:
-          if (notificator != null) {
-            notificator.notify(testID, ExecutionStatus.DONE);
-          }
           executionStatusParameter = EResult.getExecutionStatusIndicator(ExecutionStatus.DONE);
           break;
         case PROCESS_KILLED:
-          if (notificator != null) {
-            notificator.notify(testID, ExecutionStatus.KILLED);
-          }
           executionStatusParameter = EResult.getExecutionStatusIndicator(ExecutionStatus.KILLED);
           break;
         default:
-          if (notificator != null) {
-            notificator.notify(testID, ExecutionStatus.FAILED);
-          }
           executionStatusParameter = failedErr;
       }
 
@@ -403,18 +388,18 @@ public class ExternalExecutor {
 
   /**
    * Prints varibles (parameters and indicators) in a given order to stdout
-   * and/or file. Parameter whereToPrint: 0 ... none, 1 ... stdout, 2 ... file
-   * (note: 3 = both, 1 and 2).
+   * and/or file. 
    */
-  public static void printVariables(Variables resultVariables, File resultFile, String[] order, int whereToPrint, boolean asJSON) {
+  public static void printVariables(Variables resultVariables, File resultFile, String[] order, boolean asJSON) {
     if (resultVariables != null) {
+      
       // print to stdout
-      if (((whereToPrint & ATLog.TARGET_STDOUT) == ATLog.TARGET_STDOUT)) {
+      if (((ATGlobal.whereToPrint & ATLog.TARGET_STDOUT) == ATLog.TARGET_STDOUT)) {
         resultVariables.printToFile(new PrintWriter(System.out), order, true, asJSON);
       }
 
       // print to file
-      if (((whereToPrint & ATLog.TARGET_FILE) == ATLog.TARGET_FILE) && (resultFile != null)) {
+      if (((ATGlobal.whereToPrint & ATLog.TARGET_FILE) == ATLog.TARGET_FILE) && (resultFile != null)) {
         resultVariables.printToFile(resultFile, order, asJSON);
       }
     }

@@ -17,7 +17,6 @@ import si.fri.algator.execute.AbstractTestCase;
 import si.fri.algator.execute.Executor;
 import si.fri.algator.execute.ExternalExecutor;
 import si.fri.algator.execute.New;
-import si.fri.algator.execute.Notificator;
 import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
 import si.fri.algator.global.ErrorStatus;
@@ -42,7 +41,7 @@ public class Analysis {
   // is <= precisionLevel, algorithm getParameterLimit will stop
   static final double precisionLevel        = 0.01; 
 
-  public static ArrayList<Variables> runOne(String data_root, Project project, ArrayList<String> algorithms, Variables defaultParams, int timeLimit, int timesToExecute, MeasurementType mType, String instanceID, int whereToPrint, boolean asJSON) {
+  public static ArrayList<Variables> runOne(String data_root, Project project, ArrayList<String> algorithms, Variables defaultParams, int timeLimit, int timesToExecute, MeasurementType mType, String instanceID, boolean asJSON) {
     ArrayList<Variables> results = new ArrayList<>();
     
     if (!Executor.projectMakeCompile(data_root, project.getName(), false, null).equals(ErrorStatus.STATUS_OK))
@@ -53,7 +52,7 @@ public class Analysis {
       if (!Executor.algorithmMakeCompile(data_root, project.getName(), algName, MeasurementType.EM, false).equals(ErrorStatus.STATUS_OK))
         continue;
             
-      Variables result = runOne(data_root, project, algName, defaultParams, timeLimit, timesToExecute, mType, instanceID, whereToPrint, asJSON);
+      Variables result = runOne(data_root, project, algName, defaultParams, timeLimit, timesToExecute, mType, instanceID, asJSON);
       if (result == null)
         break;
       else
@@ -62,11 +61,11 @@ public class Analysis {
     return results;
   }
 
-  public static Variables runOne(String data_root, Project project, String algName, Variables defaultParams, int timeLimit, int timesToExecute, MeasurementType mType, String instanceID, int whereToPrint, boolean asJSON) {    
+  public static Variables runOne(String data_root, Project project, String algName, Variables defaultParams, int timeLimit, int timesToExecute, MeasurementType mType, String instanceID, boolean asJSON) {    
     EAlgorithm eAlgorithm = project.getAlgorithms().get(algName);
     if (eAlgorithm == null) {
       ATGlobal.verboseLevel = 1;
-      ATLog.log(String.format("Algorithm '%s' does not exist.", algName), 1);
+      ATLog.log(String.format("Algorithm '%s' does not exist.", algName));
 
       return null;
     }
@@ -94,7 +93,7 @@ public class Analysis {
     
     AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).generateTestCase(generatorType, parameters);
     
-    Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, 1, timesToExecute, timeLimit, null, instanceID);
+    Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, 1, timesToExecute, timeLimit, instanceID);
 
     result.addVariable(EResult.getTestsetNameParameter(RunOneTestsetID));
     
@@ -102,14 +101,14 @@ public class Analysis {
         algName, OtherTestsetName, mType, ATGlobal.getThisComputerID()
     );
     
-    ExternalExecutor.printVariables(result, new File(resFilename), EResult.getVariableOrder(project.getTestCaseDescription(), emResultDesc), whereToPrint, asJSON);
+    ExternalExecutor.printVariables(result, new File(resFilename), EResult.getVariableOrder(project.getTestCaseDescription(), emResultDesc), asJSON);
     
     New.removeClassLoader(currentJobID);
     
     return result;
   }
 
-  public static ArrayList<Variables> getParameterLimits(String data_root, Project project, ArrayList<String> algorithms, String paramName, Variables parameters, int timeLimit, String instanceID, int whereToPrint, Notificator notificator, boolean asJSON) {
+  public static ArrayList<Variables> getParameterLimits(String data_root, Project project, ArrayList<String> algorithms, String paramName, Variables parameters, int timeLimit, String instanceID, boolean asJSON) {
     ArrayList<Variables> results = new ArrayList<>();
         
     // get all enum parameters
@@ -133,7 +132,6 @@ public class Analysis {
       maxCounterValues[i] = paramsValues[i].size()-1;
     }     
     PolyCounter pc = new PolyCounter(maxCounterValues);
-    if (notificator != null) notificator.setNumberOfInstances(pc.getNumberOfValues());
     int testID = 0;
     while (!pc.overflow()) {
       int [] pcValues = pc.getValue();
@@ -146,7 +144,7 @@ public class Analysis {
       String curInstanceID = instanceID + "-" + UniqueIDGenerator.formatNumber(++testID, 2);
       
       results.addAll(
-        getParameterLimit(data_root, project, algorithms, paramName, parameters, timeLimit, curInstanceID, whereToPrint, notificator, asJSON)
+        getParameterLimit(data_root, project, algorithms, paramName, parameters, timeLimit, curInstanceID,  asJSON)
       );
       
       pc.nextValue();
@@ -154,7 +152,7 @@ public class Analysis {
     return results;
   }
 
-  public static ArrayList<Variables> getParameterLimit(String data_root, Project project, ArrayList<String> algorithms, String paramName, Variables parameters, int timeLimit, String instanceID, int whereToPrint, Notificator notificator, boolean asJSON) {
+  public static ArrayList<Variables> getParameterLimit(String data_root, Project project, ArrayList<String> algorithms, String paramName, Variables parameters, int timeLimit, String instanceID, boolean asJSON) {
     Executor.projectMakeCompile(data_root, project.getName(), false, null);
 
     ArrayList<Variables> results = new ArrayList<>();
@@ -167,14 +165,14 @@ public class Analysis {
     for (String algName : algorithms) {
       Executor.algorithmMakeCompile(data_root, project.getName(), algName, MeasurementType.EM, false);
      
-      Variables result = getParameterLimit(project, algName, paramName, parameters, timeLimit, instanceID, whereToPrint, notificator);
+      Variables result = getParameterLimit(project, algName, paramName, parameters, timeLimit, instanceID);
       
       // print a result into a file and/or to stdout
       String resFilename = ATGlobal.getRESULTfilename(ATGlobal.getPROJECTroot(data_root, project.getName()), 
         algName, OtherTestsetName, MeasurementType.EM, ATGlobal.getThisComputerID()
       );
       File resultFile = new File(resFilename);
-      ExternalExecutor.printVariables(result, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), emResultDesc), whereToPrint, asJSON);
+      ExternalExecutor.printVariables(result, resultFile, EResult.getVariableOrder(project.getTestCaseDescription(), emResultDesc), asJSON);
       
       results.add(result);
     }
@@ -187,7 +185,7 @@ public class Analysis {
    * parameter paramName for which the execution of the test case generated with
    * parameters+paramName lasts about timeLimit seconds.
    */
-  public static Variables getParameterLimit(Project project, String algName, String paramName, Variables parameters, int timeLimit, String instanceID, int whereToPrint, Notificator notificator) {        
+  public static Variables getParameterLimit(Project project, String algName, String paramName, Variables parameters, int timeLimit, String instanceID) {        
     // to control the execution time we need one additional indicator - time of execution (_time_)
     EResult resultDesc = project.getResultDescriptions().get(MeasurementType.EM);
     EVariable timer = new EVariable(MY_TIMER, VariableType.TIMER, 0);
@@ -224,7 +222,7 @@ public class Analysis {
       param.setValue(curParamValue);
       AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).generateTestCase(ETestCase.defaultGeneratorType, parameters);
 
-      Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, ++testID, 1, timeLimit, notificator, instanceID);
+      Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, ++testID, 1, timeLimit, instanceID);
       
       result.addVariable(EResult.getTestsetNameParameter(FindLimitTestsetID));
       result.addProperty(AbstractTestCase.PROPS, "t", timeLimit);            
@@ -279,7 +277,7 @@ public class Analysis {
     return lastOKResult;
   }
   
-  public static Data getParameterLimitFullData(Project project, String algName, String paramName, Variables parameters, int timeLimit, String instanceID, int whereToPrint, Notificator notificator) {
+  public static Data getParameterLimitFullData(Project project, String algName, String paramName, Variables parameters, int timeLimit, String instanceID) {
     // to control the execution time we need one additional indicator - time of execution (_time_)
     EResult resultDesc = project.getResultDescriptions().get(MeasurementType.EM);
     EVariable timer = new EVariable(MY_TIMER, VariableType.TIMER, 0);
@@ -317,7 +315,7 @@ public class Analysis {
       param.setValue(curParamValue);
       AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).generateTestCase(ETestCase.defaultGeneratorType, parameters);
 
-      Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, ++testID, 1, 2 * timeLimit, notificator, instanceID);
+      Variables result = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, MeasurementType.EM, OtherTestsetName, ++testID, 1, 2 * timeLimit, instanceID);
 
       result.addVariable(EResult.getTestsetNameParameter(FindLimitTestsetID));
       result.addProperty(AbstractTestCase.PROPS, "t", timeLimit);      

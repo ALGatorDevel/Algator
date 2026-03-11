@@ -709,6 +709,14 @@ public class RequestProcessor {
           try ( PrintWriter pw = new PrintWriter(new FileWriter(new File(rsFilename), true));) {
             pw.println(result);
           } catch (Exception e) {}
+          
+          // .... appaend current log to log file
+          String thisLog = jObj.optString("Log", "?");
+          String logFilename = ATGlobal.getTaskLogFilename(taskID) + "s";
+          try ( PrintWriter pw = new PrintWriter(new FileWriter(new File(logFilename), true));) {
+            pw.println(thisLog);
+          } catch (Exception e) {}
+          
           // ... and respond to client: 
           // BREAK ... if user has paused  or canceled task   
           ASTaskStatus pausedOrCanceledTaskStatus = pausedAndCanceledTasks.get(task.getTaskID());

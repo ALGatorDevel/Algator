@@ -32,7 +32,7 @@ public class Variables implements Serializable, Iterable<EVariable> {
       try {
         addVariable((EVariable) var.clone(), true);
       } catch (CloneNotSupportedException ex) {
-	ATLog.log("Can't clone (EVariable)", 2);
+	ATLog.log("Can't clone (EVariable)");
       }
     } 
   }
@@ -93,7 +93,7 @@ public class Variables implements Serializable, Iterable<EVariable> {
       try {
         copy.variables.put(entry.getKey(), (EVariable) entry.getValue().clone());
       } catch (CloneNotSupportedException ex) {
-        ATLog.log("Can't clone (EVariable)", 3);
+        ATLog.log("Can't clone (EVariable)");
       }
     }
     return copy;
@@ -245,8 +245,8 @@ public class Variables implements Serializable, Iterable<EVariable> {
       // pri izpisu na zaslon (torej ne v datoteko z rezultati) vrstice, ki predstavljajo "results" označim
       // z nevidnim belim znakom; to je signal za programe, ki procesirajo izhod, da gre za "pravi podatek";
       // ti programi (na primer panel.html) lahko ostale vrstice zavržejo! 
-      if (isStdout) 
-        pw.print('~'); // Zero-Width Space       &#8203;
+      //if (isStdout) 
+      //  pw.print('~'); // '~', Zero-Width Space       &#8203;
       
       pw.println(this.toString(variablesOrder, asJSON, ATGlobal.DEFAULT_CSV_DELIMITER));
       pw.flush();

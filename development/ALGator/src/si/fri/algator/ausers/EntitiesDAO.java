@@ -55,7 +55,7 @@ public class EntitiesDAO {
         return entity;
       }
     } catch (Exception e) {
-      ATLog.log("Problem at getting values from table 'ausers_entities'. Error: " + e.getMessage(), 0);
+      ATLog.log("Problem at getting values from table 'ausers_entities'. Error: " + e.getMessage());
     }
     return null;
   }

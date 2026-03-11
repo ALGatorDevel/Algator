@@ -112,7 +112,7 @@ public class New {
 
       result.setmType(mType);
     } catch (Exception e) {
-      ATLog.log("Can't make an instance of algorithm " + algClassName + ": " + e, 2);
+      ATLog.log("Can't make an instance of algorithm " + algClassName + ": " + e);
     }
     return result;
   }
@@ -124,7 +124,7 @@ public class New {
       Class tcClass = Class.forName(testCaseClassName, true, classLoader);
       result = (AbstractTestCase) tcClass.newInstance();
     } catch (Exception e) {
-      ATLog.log("Can't make an instance of TestCase " + testCaseClassName + ": " + e, 2);
+      ATLog.log("Can't make an instance of TestCase " + testCaseClassName + ": " + e);
     }
     return result;
   }

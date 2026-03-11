@@ -39,7 +39,7 @@ public class VMEPExecutor {
    */
   public static void iterateTestSetAndRunAlgorithm(Project project, String algName, String currentJobID, 
           String testSetName, EResult resultDesc, AbstractTestSetIterator it, 
-          Notificator notificator, File resultFile, boolean asJSON) {
+          File resultFile, boolean asJSON) {
 
     ArrayList<Variables> allAlgsRestuls = new ArrayList();
     VMEPErrorStatus executionStatus;
@@ -93,12 +93,10 @@ public class VMEPExecutor {
         String testResultLine;
         if (!executionStatus.equals(VMEPErrorStatus.OK)) {
           if (executionStatus.equals(VMEPErrorStatus.KILLED)) {
-            notificator.notify(testID,ExecutionStatus.KILLED);
             result.addVariable(killedEx, true);
             result.addVariable(EResult.getErrorIndicator(
               String.format("Killed after %d second(s)", timeLimit)), true);
           } else {
-            notificator.notify(testID,ExecutionStatus.FAILED);
             result.addVariable(failedEx, true);
             result.addVariable(EResult.getErrorIndicator(
               ErrorStatus.getLastErrorMessage() + executionStatus.toString()), true);
@@ -109,16 +107,13 @@ public class VMEPExecutor {
           try (Scanner sc = new Scanner(new File(oneResultFilename))) {
             testResultLine = sc.nextLine();
             if (testResultLine.startsWith(algP + delim + tsP)) {
-              notificator.notify(testID,ExecutionStatus.DONE);
             } else {
-              notificator.notify(testID,ExecutionStatus.FAILED);
               result.addVariable(failedEx, true);
               result.addVariable(EResult.getErrorIndicator(
                 VMEPErrorStatus.UNKNOWN.toString()), true);
               testResultLine=result.toString(EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), asJSON, delim);
             }
           } catch (Exception e) {
-            notificator.notify(testID,ExecutionStatus.FAILED);
             result.addVariable(failedEx, true);
             result.addVariable(EResult.getErrorIndicator(e.toString()), true);
             testResultLine=result.toString(EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), asJSON, delim);

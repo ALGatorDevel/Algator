@@ -122,7 +122,7 @@ public abstract class AbstractAlgorithm implements Cloneable, Serializable {
         value = AbstractOutput
            .getIndicatorValue(currentTestCase, algorithmOutput, eVariable.getName());
       } catch (Exception e) {
-        ATLog.log("Invalid result " + e.toString(), 1);
+        ATLog.log("Invalid result " + e.toString());
       }
       
       if (value != null) {

@@ -69,13 +69,13 @@ public class Database {
         }
 
         if (USERNAME.isEmpty() || PASSWORD.isEmpty() || CONN_STRING.isEmpty() || DATABASE.isEmpty()) {
-          ATLog.log("Settings for database connection missing or incorrect.", 1);
+          ATLog.log("Settings for database connection missing or incorrect.");
           return null;
         }
         conn = DriverManager.getConnection(CONN_STRING + "/" + DATABASE + OPTIONS, USERNAME, PASSWORD);
       }
     } catch (SQLException e) {
-      ATLog.log(e.toString(), 1);
+      ATLog.log(e.toString());
     }
     return conn;
   }
@@ -104,16 +104,16 @@ public class Database {
       // preverim obstoj tabel -> ce ne obstajajo, jih skusam ustvariti -> ce ne gre, koncam!
       if (!AUsersTools.databaseAndTablesExist()) {
         if (ATGlobal.verboseLevel > 0) 
-          ATLog.log("The database is not initialized.",0  );
+          ATLog.log("The database is not initialized.");
         return false;        
       }        
       if (!AUsersTools.checkUser(username, password)) {
         if (ATGlobal.verboseLevel > 0) 
-          ATLog.log(String.format("Invalid username or password.", username),0  );
+          ATLog.log(String.format("Invalid username or password.", username));
         return false;           
       }            
     } else if (ATGlobal.verboseLevel > 0) 
-       ATLog.log("ALGator is running in the non-database mode.", 0);    
+       ATLog.log("ALGator is running in the non-database mode.");    
     return true;
   } 
   

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -302,16 +303,10 @@ public class Query {
       }
       
       ATGlobal.logTarget = ATLog.TARGET_STDOUT;
-      if (line.hasOption("log")) {
-        if (line.getOptionValue("log").equals("0"))
-          ATGlobal.logTarget = ATLog.TARGET_OFF;
-        if (line.getOptionValue("log").equals("2"))
-          ATGlobal.logTarget = ATLog.TARGET_FILE;
-        if (line.getOptionValue("log").equals("3"))
-          ATGlobal.logTarget = ATLog.TARGET_FILE + ATLog.TARGET_STDOUT;
-      }     
-      ATLog.setLogTarget(ATGlobal.logTarget);      
+      if (Set.of("1", "2", "3").contains(line.getOptionValue("log")))
+        ATGlobal.logTarget = Integer.parseInt(line.getOptionValue("log"));
                                   
+
       ELocalConfig localConfig = ELocalConfig.getConfig();
       
       String username=localConfig.getUsername();
@@ -518,7 +513,7 @@ public class Query {
     
     if (!ATGlobal.projectExists(dataRoot, projName)) {
       ATGlobal.verboseLevel=1;
-      ATLog.log("Project configuration file does not exist for " + projName, 1);
+      ATLog.log("Project configuration file does not exist for " + projName);
 
       return null;      
     }
@@ -528,7 +523,7 @@ public class Query {
     Project projekt = new Project(dataRoot, projName);
     if (!projekt.getErrors().get(0).equals(ErrorStatus.STATUS_OK)) {
       ATGlobal.verboseLevel=1;
-      ATLog.log("Invalid project: " + projekt.getErrors().get(0).toString(), 1);
+      ATLog.log("Invalid project: " + projekt.getErrors().get(0).toString());
 
       return null;
     }
@@ -539,7 +534,7 @@ public class Query {
       EAlgorithm alg = projekt.getAlgorithms().get(algName);
       if (alg == null) {
         ATGlobal.verboseLevel=1;
-	ATLog.log("Invalid algorithm - " + algName, 1);
+	ATLog.log("Invalid algorithm - " + algName);
 	return null;
       }
       eAlgs = new ArrayList(); 
@@ -557,7 +552,7 @@ public class Query {
       ETestSet test = (testsetName.equals(Analysis.OtherTestsetName)) ? otherTst : projekt.getTestSets().get(testsetName);
       if (test == null) {
         ATGlobal.verboseLevel=1;
-	ATLog.log("Invalid testset - " + testsetName, 1);
+	ATLog.log("Invalid testset - " + testsetName);
 	return null;
       }
       eTests = new ArrayList<>(); 

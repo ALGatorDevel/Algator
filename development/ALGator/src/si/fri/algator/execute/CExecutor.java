@@ -16,7 +16,7 @@ import si.fri.algator.tools.ATTools;
 public class CExecutor {
 
   public static Object runWithAlgatorC(String project_name, String alg_name, String testset_name, String mType) {    
-    ATLog.log(String.format("Running algatorc -e %s %s %s %s", project_name, alg_name, testset_name, mType), 3);
+    ATLog.log(String.format("Running algatorc -e %s %s %s %s", project_name, alg_name, testset_name, mType));
     try {      
       String algatorCCommand = "algatorc";            
       String[] command = {algatorCCommand, "-e", project_name, alg_name, testset_name};      

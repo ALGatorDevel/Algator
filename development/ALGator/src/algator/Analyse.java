@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.Set;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -21,7 +22,6 @@ import si.fri.algator.entities.EVariable;
 import si.fri.algator.entities.MeasurementType;
 import si.fri.algator.entities.Project;
 import si.fri.algator.entities.Variables;
-import si.fri.algator.execute.Notificator;
 import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
 import si.fri.algator.tools.ATTools;
@@ -230,25 +230,18 @@ public class Analyse {
           ATGlobal.verboseLevel = 2;
       }
       
-      ATGlobal.logTarget = ATLog.TARGET_STDOUT;
-      if (line.hasOption("log")) {
-        if (line.getOptionValue("log").equals("0"))
-          ATGlobal.logTarget = ATLog.TARGET_OFF;
-        if (line.getOptionValue("log").equals("2"))
-          ATGlobal.logTarget = ATLog.TARGET_FILE;
-        if (line.getOptionValue("log").equals("3"))
-          ATGlobal.logTarget = ATLog.TARGET_FILE + ATLog.TARGET_STDOUT;
-      }     
-      ATLog.setLogTarget(ATGlobal.logTarget);
-
+      ATGlobal.logTarget = ATLog.TARGET_STDOUT; // default: log only to stdout
+      if (Set.of("1", "2", "3").contains(line.getOptionValue("log")))
+        ATGlobal.logTarget = Integer.parseInt(line.getOptionValue("log"));
+      
       String instanceID = UniqueIDGenerator.getNextID();
       if (line.hasOption("instance_id"))
         instanceID = line.getOptionValue("instance_id");
         
-      int whereToPrint = 3; // both, stdout and file
-      if (line.hasOption("where_results")) try {
-        whereToPrint = Integer.parseInt(line.getOptionValue("where_results"));
-      } catch (Exception e) {}            
+      ATGlobal.whereToPrint = 3; // both, stdout and file
+      if (line.hasOption("w")) try {
+        ATGlobal.whereToPrint = Integer.parseInt(line.getOptionValue("w"));
+      } catch (Exception e) {}  
       
       int timeLimit = 1;
       if (line.hasOption("timelimit")) {
@@ -284,7 +277,7 @@ public class Analyse {
       // valid project?
       if (!ATGlobal.projectExists(dataRoot, projectName)) {
         ATGlobal.verboseLevel=1;
-        ATLog.log("Project configuration file does not exist for " + projectName, 1);
+        ATLog.log("Project configuration file does not exist for " + projectName);
 
         return;      
       }
@@ -300,13 +293,10 @@ public class Analyse {
         } catch (Exception e) {}        
       } else
         algorithms.add(algorithmName);
-      
-      //Notificator notificator = Notificator.getNotificator(projectName, "", FindLimitTestsetID, MeasurementType.EM);
-      Notificator notificator = null;
-      
+            
       switch (function.toUpperCase()) {
         case "RUNONE":
-          Analysis.runOne(dataRoot, project, algorithms, parameters, timeLimit, timesToExecute, mType, instanceID, whereToPrint, asJSON);
+          Analysis.runOne(dataRoot, project, algorithms, parameters, timeLimit, timesToExecute, mType, instanceID, asJSON);
           break;
         
         case "FINDLIMIT":
@@ -316,23 +306,23 @@ public class Analyse {
           
           if (parameterName.isEmpty()) {
             ATGlobal.verboseLevel=1;
-            ATLog.log("Missing parameter (option -p).", 1);
+            ATLog.log("Missing parameter (option -p).");
 
             return;
           }
           ArrayList<Variables> results = 
-            Analysis.getParameterLimit(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator, asJSON);
+            Analysis.getParameterLimit(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, asJSON);
           break;
                               
         case "FINDLIMITS":
           if (parameterName.isEmpty()) {
             ATGlobal.verboseLevel=1;
-            ATLog.log("Missing parameter (option -p).", 1);
+            ATLog.log("Missing parameter (option -p).");
 
             return;     
           }
           
-          Analysis.getParameterLimits(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, whereToPrint, notificator, asJSON);
+          Analysis.getParameterLimits(dataRoot, project, algorithms, parameterName, parameters, timeLimit, instanceID, asJSON);
           break;          
           
         case "TIMECOMPLEXITY":
@@ -442,7 +432,7 @@ public class Analyse {
             case "MAXDATA":
               // allow only one algorithm, use option -a to select algorithm
               algs = new String[]{algorithms.get(0)};
-              Data  dd= Analysis.getParameterLimitFullData(project,algs[0],"N",parameters,timeLimit,instanceID,3,notificator);
+              Data  dd= Analysis.getParameterLimitFullData(project,algs[0],"N",parameters,timeLimit,instanceID);
               prediction = dd.LeastSquares();
               System.out.println("Predicted class:");
               System.out.println(prediction.GetBest());
@@ -510,7 +500,7 @@ public class Analyse {
           
         default:
           ATGlobal.verboseLevel=1;
-          ATLog.log("Invalid function '" + projectName + "'.", 1);
+          ATLog.log("Invalid function '" + projectName + "'.");
           return;
       }           
     } catch (ParseException ex) {

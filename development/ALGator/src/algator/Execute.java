@@ -3,7 +3,7 @@ package algator;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Scanner;
-import javax.swing.JOptionPane;
+import java.util.Set;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -21,7 +21,6 @@ import si.fri.algator.entities.ETestSet;
 import si.fri.algator.entities.MeasurementType;
 import si.fri.algator.entities.Project;
 import si.fri.algator.execute.Executor;
-import si.fri.algator.execute.Notificator;
 import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
 import si.fri.algator.tools.ATTools;
@@ -249,23 +248,13 @@ public class Execute {
           ATGlobal.verboseLevel = 2;
       }
       
-      ATGlobal.logTarget = ATLog.TARGET_STDOUT;
-      if (line.hasOption("log")) {
-        if (line.getOptionValue("log").equals("0"))
-          ATGlobal.logTarget = ATLog.TARGET_OFF;
-        if (line.getOptionValue("log").equals("2"))
-          ATGlobal.logTarget = ATLog.TARGET_FILE;
-        if (line.getOptionValue("log").equals("3"))
-          ATGlobal.logTarget = ATLog.TARGET_FILE + ATLog.TARGET_STDOUT;
-      }     
-      ATLog.setLogTarget(ATGlobal.logTarget);
-                      
-      int whereToPrint = 3; // both, stdout and file
-      if (line.hasOption("where_results")) try {
-        whereToPrint = Integer.parseInt(line.getOptionValue("where_results"));
-      } catch (Exception e) {}         
+      ATGlobal.logTarget = ATLog.TARGET_STDOUT; // default: log only to stdout
+      if (Set.of("1", "2", "3").contains(line.getOptionValue("log", "?")))
+        ATGlobal.logTarget = Integer.parseInt(line.getOptionValue("log"));
       
-      
+      ATGlobal.whereToPrint = 3; // default: print results to both, stdout and file
+      if (Set.of("1", "2", "3").contains(line.getOptionValue("w", "?")))
+        ATGlobal.whereToPrint = Integer.parseInt(line.getOptionValue("w"));
       
       ELocalConfig localConfig = ELocalConfig.getConfig();
       
@@ -312,7 +301,7 @@ public class Execute {
         }
       }
       
-      runAlgorithms(dataRoot, projectName, algorithmName, testsetName, mType, alwaysCompile, alwaysRunTests, listOnly, whereToPrint, asJSON, task);
+      runAlgorithms(dataRoot, projectName, algorithmName, testsetName, mType, alwaysCompile, alwaysRunTests, listOnly, asJSON, task);
  
     } catch (ParseException ex) {
       printMsg(options);
@@ -334,7 +323,7 @@ public class Execute {
     int syncStatus = RSync.mirror(source, destinatoin);
     
     if (syncStatus != 0) {      
-      ATLog.log("Syncing project failed  (sync status: " + syncStatus +") " + ErrorStatus.getLastErrorMessage(), 1);      
+      ATLog.log("Syncing project failed  (sync status: " + syncStatus +") " + ErrorStatus.getLastErrorMessage());      
       return false;
     }
     ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing project done"));    
@@ -350,7 +339,7 @@ public class Execute {
     ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing tests from %s to %s", dataRootTests, dataLocalTests));
     int syncStatus = RSync.mirror(dataRootTests, dataLocalTests);    
     if (syncStatus != 0) {      
-      ATLog.log("Syncing failed  (sync status: " + syncStatus +") " + ErrorStatus.getLastErrorMessage(), 1);      
+      ATLog.log("Syncing failed  (sync status: " + syncStatus +") " + ErrorStatus.getLastErrorMessage());      
       return false;
     }
     ErrorStatus.setLastErrorMessage(ErrorStatus.STATUS_OK, String.format("Syncing tests done"));    
@@ -359,7 +348,7 @@ public class Execute {
   
   private static void runAlgorithms(String dataRoot, String projName, String algName,
 	  String testsetName, MeasurementType mType, boolean alwaysCompile, 
-          boolean alwaysRun, boolean printOnly, int whereToPrint, boolean asJSON, ASTask task) {
+          boolean alwaysRun, boolean printOnly, boolean asJSON, ASTask task) {
     
     // če je podan task (to pomeni, da sem bil pognan iz TaskClienta), potem 
     // moram pred izvajanje vse projektne datoteke sinhronizirati, da bo 
@@ -371,7 +360,7 @@ public class Execute {
     
     if (!ATGlobal.projectExists(dataRoot, projName)) {
       ATGlobal.verboseLevel=1;
-      ATLog.log("Project configuration file does not exist for " + projName, 1);
+      ATLog.log("Project configuration file does not exist for " + projName);
 
       // !!! we can only use exit() if Execute was  invoked by TaskClient 
       // in a separate JVM; this is the case if task != null
@@ -396,7 +385,7 @@ public class Execute {
     Project projekt = new Project(dataRoot, projName);
     if (!projekt.getErrors().get(0).equals(ErrorStatus.STATUS_OK)) {
       ATGlobal.verboseLevel=1;
-      ATLog.log("Invalid project: " + projekt.getErrors().get(0).toString(), 1);
+      ATLog.log("Invalid project: " + projekt.getErrors().get(0).toString());
 
         // !!! we can only use exit() if Execute was  invoked by TaskClient 
       // in a separate JVM; this is the case if task != null
@@ -412,7 +401,7 @@ public class Execute {
       EAlgorithm alg = projekt.getAlgorithms().get(algName);
       if (alg == null) {
         ATGlobal.verboseLevel=1;
-	ATLog.log("Invalid algorithm - " + algName, 1);
+	ATLog.log("Invalid algorithm - " + algName);
         
         // !!! we can only use exit() if Execute was  invoked by TaskClient 
         // in a separate JVM; this is the case if task != null
@@ -433,7 +422,7 @@ public class Execute {
       ETestSet test = projekt.getTestSets().get(testsetName);
       if (test == null) {
         ATGlobal.verboseLevel=1;
-	ATLog.log("Invalid testset - " + testsetName, 1);
+	ATLog.log("Invalid testset - " + testsetName);
         
         // !!! we can only use exit() if Execute was  invoked by TaskClient 
         // in a separate JVM; this is the case if task != null
@@ -452,7 +441,7 @@ public class Execute {
     EResult rDesc = projekt.getResultDescriptions().get(mType);  
     if (rDesc == null) {
       ATGlobal.verboseLevel=1;
-      ATLog.log(String.format("Result description file for '%s' does not exist.\n", mType.getExtension()), 1);
+      ATLog.log(String.format("Result description file for '%s' does not exist.\n", mType.getExtension()));
 
       // !!! we can only use exit() if Execute was  invoked by TaskClient 
       // in a separate JVM; this is the case if task != null
@@ -467,7 +456,7 @@ public class Execute {
 
       if (vmep == null || vmep.isEmpty() /*|| !vmepFile.exists()  || !vmepFile.canExecute()*/) {
         ATGlobal.verboseLevel=1;
-        ATLog.log(String.format("Invelid vmep executable: '%s'.\n", vmep), 1);
+        ATLog.log(String.format("Invelid vmep executable: '%s'.\n", vmep));
         
         // !!! we can only use exit() if Execute was  invoked by TaskClient 
         // in a separate JVM; this is the case if task != null
@@ -501,10 +490,13 @@ public class Execute {
       String errors = "";
       for (int i = 0; i < eAlgs.size(); i++) {
 	for (int j = 0; j < eTests.size(); j++) {
-          ATLog.setPateFilename(ATGlobal.getTaskHistoryFilename(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType.getExtension()));
-          Notificator notificator = Notificator.getNotificator(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType);
-	  error = Executor.algorithmRun(projekt, eAlgs.get(i).getName(), 
-		  eTests.get(j).getName(),  mType, notificator, alwaysCompile, alwaysRun, whereToPrint, asJSON, task);           
+          ATLog.setPateFilename(task == null ? 
+            ATGlobal.getTaskHistoryFilename(projName, eAlgs.get(i).getName(), eTests.get(j).getName(), mType.getExtension()) :
+            ATGlobal.getTaskLogFilename(task.getTaskID())
+          );
+	  
+          error = Executor.algorithmRun(projekt, eAlgs.get(i).getName(), 
+		  eTests.get(j).getName(),  mType, alwaysCompile, alwaysRun, asJSON, task);           
 
           // prislo je do prekinitve izvajanja TestSeta (s strani strežnika)?
           if (task!=null && error.equals(ErrorStatus.PROCESS_QUEUED))
@@ -518,7 +510,7 @@ public class Execute {
 	}        
       }
       if (!errors.isEmpty()) {
-        ATLog.log(errors, whereToPrint);
+        ATLog.log(errors);
       }
     }
   }

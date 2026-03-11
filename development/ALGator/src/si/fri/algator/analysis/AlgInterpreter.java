@@ -17,7 +17,7 @@ public class AlgInterpreter {
     public static String prepareExpression(String expression) {
         for (String str : stringsNotAllowed) {
             if (expression.contains(str)) {
-                ATLog.log("Illegal character in expression " + expression, 3);
+                ATLog.log("Illegal character in expression " + expression);
                 return "";
             }
         }

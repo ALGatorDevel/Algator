@@ -248,14 +248,14 @@ public class ExecuteOne {
     
     AbstractTestCase testCase = New.testCaseInstance(currentJobID, testCaseClassName).getTestCase(project, test, path, testsetName);
     
-    Variables resultVariables = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, mType, eTestSet.getName(), 1, timesToExecute, 100, null, null);
+    Variables resultVariables = ExternalExecutor.runTestCase(project, algName, testCase, currentJobID, mType, eTestSet.getName(), 1, timesToExecute, 100, null);
     
     EResult resultDesc = project.getResultDescriptions().get(mType);
     if (resultDesc == null) {
       resultDesc = new EResult();
     }
     
-    ExternalExecutor.printVariables(resultVariables, null, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), ATLog.TARGET_STDOUT, asJSON);    
+    ExternalExecutor.printVariables(resultVariables, null, EResult.getVariableOrder(project.getTestCaseDescription(), resultDesc), asJSON);    
     
     New.removeClassLoader(currentJobID); 
   }

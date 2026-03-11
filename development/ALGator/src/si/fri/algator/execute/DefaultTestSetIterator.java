@@ -58,6 +58,17 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
     ErrorStatus.setLastErrorMessage(ErrorStatus.ERROR,msg);
   }
 
+  private Scanner newTestsetScanner(String testFileName) {
+    try {
+      Path path = Paths.get(testFileName);
+      List<String> lines = Files.readAllLines(path);        
+      List<String> expandedLines = ExecutorTools.expandLoops(lines);
+      return new Scanner(String.join("\n", expandedLines));
+    } catch (Exception e) {
+      return null;
+    }
+  }
+  
   @Override
   /**
    * The constructor of this class was changed and initIterator() has to be called manually!
@@ -74,13 +85,9 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
         testFileName = filePath + File.separator + fileName;
         testsetName = testSet.getName();
         
-        // za podporo zančnemu sistemu podajanja testcasov, je bila spodnja vrstica 
-        // zamenjana z s štirimi vrsticami
-        // inputSource = new Scanner(new File(testFileName));
-        Path path = Paths.get(testFileName);
-        List<String> lines         = Files.readAllLines(path);        
-        List<String> expandedLines = ExecutorTools.expandLoops(lines);
-        inputSource = new Scanner(String.join("\n", expandedLines));
+        // za podporo zančnemu sistemu podajanja testov
+        // inputSource = new Scanner(new File(testFileName));        
+        inputSource = newTestsetScanner(testFileName);
         
 	lineNumber=0;        
       } catch (Exception e) {
@@ -120,11 +127,12 @@ public class DefaultTestSetIterator  extends AbstractTestSetIterator {
     if (lineNumber > testNumber) {
       try {
         inputSource.close();
-        inputSource = new Scanner(new File(testFileName));
+        //inputSource = new Scanner(new File(testFileName));
+        inputSource = newTestsetScanner(testFileName);
 	lineNumber=0;
       } catch (Exception e) {
 	inputSource = null;	
-	ATLog.log("Error reading test with number " + testNumber+ "! Error: " + e.toString(), 2);
+	ATLog.log("Error reading test with number " + testNumber+ "! Error: " + e.toString());
         return false;
       } 
     }

@@ -62,7 +62,7 @@ public class Version {
     System.out.println("Anonymous mode:     " + Database.isAnonymousMode());
     
     if (!Database.isAnonymousMode() && !AUsersTools.databaseAndTablesExist()) {
-      ATLog.log("The database is not initialized.",0  );
+      ATLog.log("The database is not initialized.");
       return;
     }  
     
