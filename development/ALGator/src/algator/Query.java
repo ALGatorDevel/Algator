@@ -303,7 +303,7 @@ public class Query {
       }
       
       ATGlobal.logTarget = ATLog.TARGET_STDOUT;
-      if (Set.of("1", "2", "3").contains(line.getOptionValue("log")))
+      if (Set.of("1", "2", "3").contains(line.getOptionValue("log", "?")))
         ATGlobal.logTarget = Integer.parseInt(line.getOptionValue("log"));
                                   
 

@@ -231,7 +231,7 @@ public class Analyse {
       }
       
       ATGlobal.logTarget = ATLog.TARGET_STDOUT; // default: log only to stdout
-      if (Set.of("1", "2", "3").contains(line.getOptionValue("log")))
+      if (Set.of("1", "2", "3").contains(line.getOptionValue("log", "?")))
         ATGlobal.logTarget = Integer.parseInt(line.getOptionValue("log"));
       
       String instanceID = UniqueIDGenerator.getNextID();
@@ -240,7 +240,7 @@ public class Analyse {
         
       ATGlobal.whereToPrint = 3; // both, stdout and file
       if (line.hasOption("w")) try {
-        ATGlobal.whereToPrint = Integer.parseInt(line.getOptionValue("w"));
+        ATGlobal.whereToPrint = Integer.parseInt(line.getOptionValue("w", "?"));
       } catch (Exception e) {}  
       
       int timeLimit = 1;
