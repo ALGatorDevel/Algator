@@ -114,7 +114,10 @@ public class RequestProcessor {
 
       case ASGlobal.REQ_ADMIN_PRINTLOG:
         return getServerLog(uid, pParams);
-       
+
+      case ASGlobal.REQ_ADMIN_TASKLOG:
+        return getTaskLog(uid, jObj);
+        
       case ASGlobal.REQ_GETTIMESTAMP:
         return getTimeStamp();
         
@@ -303,6 +306,20 @@ public class RequestProcessor {
     } else
       return accessDeniedString;
   }
+  
+  public String getTaskLog(String uid, JSONObject jObj) {
+    String errorAnswer = sAnswer(1, ASGlobal.ERROR_INVALID_NPARS, "Expecting JSON with \"TaskID\" property.");
+    
+    int taskID = 0;    
+    try {
+      taskID  = jObj.getInt("TaskID");
+    } catch (Exception e) {
+      return errorAnswer;
+    }
+    String filePath=ATGlobal.getTaskLogFilename(taskID);
+    return sAnswer(OK_STATUS, "File: " + filePath, ASTools.getFileContent(filePath));
+  }
+
   
   /**
    * Returns data depending on Type parameter:

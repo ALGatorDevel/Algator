@@ -41,6 +41,7 @@ public class ASGlobal {
   public static final String REQ_QUERY            = "QUERY";          // parameters: json(projectName, query, ComputerID, Parameters)
   public static final String REQ_ADMIN_PRINTPATHS = "PRINTPATHS";     // no parameters
   public static final String REQ_ADMIN_PRINTLOG   = "PRINTLOG";       // parameters: numberOfLogs (default: 10)
+  public static final String REQ_ADMIN_TASKLOG    = "TASKLOG";        // parameters: json(taskNumber)
   public static final String REQ_ADMIN            = "ADMIN";          // admin (povezava do programa algator.Admin)  
   public static final String REQ_GETFILE          = "GETFILE";        // parameters: json(ProjectName, fileName), result: file content 
   public static final String REQ_SAVEFILE         = "SAVEFILE";       // parameters: json(ProjectName, fileName, length, content)

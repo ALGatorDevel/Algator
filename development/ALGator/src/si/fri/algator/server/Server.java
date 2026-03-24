@@ -7,7 +7,6 @@ import javax.servlet.MultipartConfigElement;
 import si.fri.algator.ausers.AUsersHelper;
 import si.fri.algator.ausers.AUsersTools;
 import si.fri.algator.entities.EAlgatorConfig;
-import si.fri.algator.execute.AbstractTestCase;
 import si.fri.algator.global.ATGlobal;
 import static spark.Spark.*;
 
