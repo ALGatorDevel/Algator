@@ -62,6 +62,7 @@ import si.fri.algator.entities.EVariable;
 import si.fri.algator.entities.MeasurementType;
 import si.fri.algator.entities.Project;
 import si.fri.algator.global.ATGlobal;
+import si.fri.algator.global.ATLog;
 import si.fri.algator.global.ErrorStatus;
 import si.fri.algator.tools.SortedArray;
 import si.fri.algator.entities.Entity;
@@ -212,7 +213,7 @@ public class ASTools {
 
     // TODO:  filter-out projects according to user rights 
     ArrayList<String> readableProjects = new ArrayList();
-    for (String project : projects) {
+    if (projects!=null) for (String project : projects) {
       EProject eProject = new EProject(new File(ATGlobal.getPROJECTfilename(
               ATGlobal.getALGatorDataRoot(), project.substring(5))));
       String eid = eProject.getString(Entity.ID_EID);
@@ -249,40 +250,42 @@ public class ASTools {
     }
     
     // connection to database that will be used for all usesr to get their username
-    Connection con = Database.getConnectionToDatabase();
-    
     JSONArray result = new JSONArray();
-    for (EProject project : readableProjects) {
-      String eid = project.getEID();
-      
-      int numberOfA  = project.getStringArray(EProject.ID_Algorithms).length;
-      int numberOfT  = project.getStringArray(EProject.ID_TestSets).length;      
-      int popularity = numberOfT + numberOfA; // redefine !!!!
-      
-      long lastModified = project.getLastModified(project.getName(), "Project");
-      File pFile = new File(project.entity_file_name);
-      lastModified = Math.max(lastModified, pFile.lastModified()/1000);
+    try (Connection con = Database.getConnectionToDatabase()) {
+      for (EProject project : readableProjects) {
+        String eid = project.getEID();
 
-      DTOEntity entity = EntitiesDAO.getEntity(eid);
-      String owner = entity==null ? "" : entity.getOwner();
-      String user = AUsersTools.getUsernameFast(owner, con);
+        int numberOfA  = project.getStringArray(EProject.ID_Algorithms).length;
+        int numberOfT  = project.getStringArray(EProject.ID_TestSets).length;
+        int popularity = numberOfT + numberOfA; // redefine !!!!
 
-       JSONObject jProj = new JSONObject();
-       jProj.put("Name", project.getName());
-       jProj.put("St",   project.getString(EProject.ID_ShortTitle));
-       jProj.put("Ow",   owner);
-       jProj.put("On",   user);
-       jProj.put("Tg",   project.getStringArray(EProject.ID_Tags));
-       jProj.put("Na",   numberOfA);
-       jProj.put("Nt",   numberOfT);
-       jProj.put("Mo",   lastModified);
-       jProj.put("De",   project.getString(EProject.ID_Description));
-       jProj.put("Po",   popularity);
-       jProj.put("eid",  eid);       
-              
-       result.put(jProj);
+        long lastModified = project.getLastModified(project.getName(), "Project");
+        File pFile = new File(project.entity_file_name);
+        lastModified = Math.max(lastModified, pFile.lastModified()/1000);
+
+        DTOEntity entity = EntitiesDAO.getEntity(eid);
+        String owner = entity==null ? "" : entity.getOwner();
+        String user = AUsersTools.getUsernameFast(owner, con);
+
+         JSONObject jProj = new JSONObject();
+         jProj.put("Name", project.getName());
+         jProj.put("St",   project.getString(EProject.ID_ShortTitle));
+         jProj.put("Ow",   owner);
+         jProj.put("On",   user);
+         jProj.put("Tg",   project.getStringArray(EProject.ID_Tags));
+         jProj.put("Na",   numberOfA);
+         jProj.put("Nt",   numberOfT);
+         jProj.put("Mo",   lastModified);
+         jProj.put("De",   project.getString(EProject.ID_Description));
+         jProj.put("Po",   popularity);
+         jProj.put("eid",  eid);
+
+         result.put(jProj);
+      }
+    } catch (Exception e) {
+      ATLog.log("getProjectsDataExtended: DB error while resolving usernames: " + e.getMessage());
     }
-    
+
     return jAnswer(OK_STATUS, "Projects", result.toString()
     );
   }
@@ -1002,7 +1005,12 @@ public class ASTools {
     try {
       String error = ATTools.unzip(zipFileName, tmpDir);
       if (error.equals("OK")) {  
-        String[] content = tmpPath.list();
+        String[] rawContent = tmpPath.list();
+        // this prevents failure in case of MACOS import
+        String[] content = java.util.Arrays.stream(rawContent)
+          .filter(name -> !name.equals("__MACOSX") && !name.equals(".DS_Store"))
+          .toArray(String[]::new);        
+        
         if (content.length == 1 && content[0].startsWith("PROJ-")) {
           String pName = content[0].substring(5);
           if (!projectName.isEmpty()) pName=projectName;
@@ -1090,7 +1098,7 @@ public class ASTools {
           } else 
             result = sAnswer(4, "Error importing project.", "Invalid project name.");
         } else
-          result =  sAnswer(3, "Error importing project.", "The structure of the zip file in incorrect");
+          result =  sAnswer(3, "Error importing project.", "The structure of the zip file is incorrect, expecting zipped PROJ-<name> folder.");
       } else 
         result =  sAnswer(2, "Error importing project.", error);
       
@@ -1113,6 +1121,37 @@ public class ASTools {
     }
     return result;
   }
+  
+  public static String getPdeState(String uid, String projectName) {
+    String peid = EProject.getProject(projectName).getEID();
+    if (!CanUtil.can(uid, peid, "can_read"))
+        return sAnswer(99, "getPdeState: " + accessDeniedString, accessDeniedString);
+
+    String fileName = ATGlobal.getPDEStateFilename(ATGlobal.getALGatorDataRoot(), projectName);
+    File f = new File(fileName);
+    if (!f.exists())
+        return jAnswer(OK_STATUS, "No PDE state.", "");
+
+    try {
+        String content = FileUtils.readFileToString(f, "UTF-8");
+        return jAnswer(OK_STATUS, "PDE state loaded.", content);
+    } catch (Exception e) {
+        return sAnswer(1, "Error reading PDE state.", e.toString());
+    }
+  }  
+  public static String savePdeState(String uid, String projectName, String pdeState) {
+    String peid = EProject.getProject(projectName).getEID();
+    if (!CanUtil.can(uid, peid, "can_write"))
+        return sAnswer(99, "savePdeState: " + accessDeniedString, accessDeniedString);
+
+    String fileName = ATGlobal.getPDEStateFilename(ATGlobal.getALGatorDataRoot(), projectName);
+    try {
+        FileUtils.writeStringToFile(new File(fileName), pdeState, "UTF-8");
+        return sAnswer(OK_STATUS, "PDE state saved.", projectName);
+    } catch (Exception e) {
+        return sAnswer(1, "Error saving PDE state.", e.toString());
+    }
+  }  
   
   
   // Data should contain information about html type and html content 

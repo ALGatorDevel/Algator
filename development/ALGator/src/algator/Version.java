@@ -40,9 +40,9 @@ public class Version {
       return;
     }
     
-    try {
-      Statement stmt = (Statement) conn.createStatement();    
-      ResultSet rs = stmt.executeQuery("SELECT * FROM ausers_user");
+    try (Statement stmt = (Statement) conn.createStatement();    
+         ResultSet rs = stmt.executeQuery("SELECT * FROM ausers_user")){
+      
       System.out.print("Users in database:  ");
       while (rs.next()) {
           System.out.print(rs.getString("username") + (rs.isLast() ? "" :", "));

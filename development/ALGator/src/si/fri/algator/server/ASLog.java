@@ -24,6 +24,8 @@ public class ASLog {
   // maximal error size in bytes (to truncate very long error messages)
   private static int MAX_ERROR_SIZE = 256;
   
+  private static DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+
   
   public static void log(String msg) {
     if (logFileName == null) {
@@ -33,7 +35,6 @@ public class ASLog {
     String sufix = msg.length() > MAX_ERROR_SIZE ? " ..." : "";
     msg = msg.substring(0, Math.min(msg.length(), MAX_ERROR_SIZE)) + sufix;
 
-    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
     Date date = new Date();
     String logMsg = String.format("%15s: %s", dateFormat.format(date), msg);
     

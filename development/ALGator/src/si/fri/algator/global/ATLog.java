@@ -33,10 +33,11 @@ public class ATLog {
   
   // filename for Project-Algorithm-Testset-EM specific logging
   private static String pateFilename = "";
+  public static String getPateFilename() {return pateFilename;}
   public static void setPateFilename(String pateFN) {
     pateFilename = pateFN;
 
-    if (ATGlobal.logTarget == TARGET_FILE) {
+    if ((ATGlobal.logTarget & TARGET_FILE) == TARGET_FILE) {
       // ob priklopu na datoteko izpišem ločilo, da so logi jasno ločeni eden od drugega
       try (PrintWriter pw = new PrintWriter(new FileWriter(new File(pateFN), true))) {
         pw.println("-------------------------------------------------------------");

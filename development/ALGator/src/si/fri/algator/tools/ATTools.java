@@ -588,6 +588,10 @@ public class ATTools {
   }
 
   private static void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
+    File parent = new File(filePath).getParentFile();
+    if (parent != null && !parent.exists()) {
+      parent.mkdirs();
+    }    
     try ( BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath))) {
       byte[] bytesIn = new byte[4096];
       int read;

@@ -1,9 +1,9 @@
 package si.fri.algator.database;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import java.io.File;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.HashMap;
 import si.fri.algator.ausers.AUsersTools;
 import si.fri.algator.entities.EAlgatorConfig;
@@ -15,70 +15,66 @@ import si.fri.algator.global.ATLog;
  * @author tomaz
  */
 public class Database {
-  
-  private static Connection conn = null;
-  
+
   private static   String USERNAME     = "";
   private static   String PASSWORD     = "";
   private static   String CONN_STRING  = "";
   public  static   String DATABASE     = "";
-  
-  private static final   String OPTIONS      = "?serverTimezone=UTC";  
-  
- /*
-  // data source (connections pool)
+
+  private static final   String OPTIONS      = "?serverTimezone=UTC";
+
+  // data source (connections pool). Each caller must return its borrowed
+  // Connection (try-with-resources / explicit close()) -- close() on a
+  // pooled connection returns it to the pool, it does not disconnect.
+  // Replaces the previous single shared static Connection, which was not
+  // thread-safe: concurrent requests sharing one Connection/Statement/
+  // ResultSet caused "ResultSet is from UPDATE. No Data.", "No operations
+  // allowed after connection closed", and columnDefinition NPEs whenever two
+  // requests touched the DB (e.g. permission checks) at the same time.
   static HikariDataSource connectionPool;
-  private static void initConnectionPool() {
+  private static synchronized void initConnectionPool() {
+    if (connectionPool != null) return;
+
     if (USERNAME.isEmpty() || PASSWORD.isEmpty() || CONN_STRING.isEmpty() || DATABASE.isEmpty()) {
-        load_prop();  
+        load_prop();
     }
     HikariConfig config = new HikariConfig();
-    config.setJdbcUrl(CONN_STRING + "/" + DATABASE); // Replace with your database URL
-    config.setUsername(USERNAME); // Replace with your username
-    config.setPassword(PASSWORD); // Replace with your password
-    config.setMaximumPoolSize(10); // Maximum number of connections in the pool
-    config.setMinimumIdle(2); // Minimum number of idle connections
-    config.setIdleTimeout(30000); // Idle timeout (30 seconds)
-    config.setConnectionTestQuery("SELECT 1"); // Test query to validate connections
-    config.setConnectionTimeout(1000);
+    config.setJdbcUrl(CONN_STRING + "/" + DATABASE + OPTIONS);
+    config.setUsername(USERNAME);
+    config.setPassword(PASSWORD);
+    config.setMaximumPoolSize(16);   // Maximum number of connections in the pool
+    config.setMinimumIdle(2);        // Minimum number of idle connections
+    config.setIdleTimeout(30000);    // Idle timeout (30 seconds)
+    config.setValidationTimeout(5000);
+    config.setConnectionTimeout(10000);
+
+    // optimization
+    config.addDataSourceProperty("cachePrepStmts", "true");
+    config.addDataSourceProperty("prepStmtCacheSize", "250");
+    config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+    config.addDataSourceProperty("useServerPrepStmts", "true");
+    config.addDataSourceProperty("useLocalSessionState", "true");
+    config.addDataSourceProperty("rewriteBatchedStatements", "true");
+    config.addDataSourceProperty("cacheResultSetMetadata", "true");
+    config.addDataSourceProperty("cacheServerConfiguration", "true");
+    config.addDataSourceProperty("elideSetAutoCommits", "true");
+    config.addDataSourceProperty("maintainTimeStats", "false");
+
     connectionPool = new HikariDataSource(config);
   }
-   
+
   public static Connection getConnectionToDatabase() {
-    if (isAnonymousMode()) return null;                
+    if (isAnonymousMode()) return null;
     try {
       if (connectionPool == null)
         initConnectionPool();
       return connectionPool.getConnection();
     } catch (Exception e1) {
+      ATLog.log("DB connection failed: " + e1);
       return null;
     }
   }
-*/
-  
-  // getConnectionToDatabase sem po novem implementiral s pomočjo zHikariCP, ki
-  // povezave vrača iz bazena, pri tem pa preverja "delovanje" povezav, 
-  // nedelujoče izloča in jih zamenjuje z uporabnimi
-  public static Connection getConnectionToDatabase() {
-    if (isAnonymousMode()) return null;                
 
-    try {
-      if (conn == null || conn.isClosed()) {
-        if (USERNAME.isEmpty() || PASSWORD.isEmpty() || CONN_STRING.isEmpty() || DATABASE.isEmpty()) {
-          load_prop();  
-        }
-
-        if (USERNAME.isEmpty() || PASSWORD.isEmpty() || CONN_STRING.isEmpty() || DATABASE.isEmpty()) {
-          ATLog.log("Settings for database connection missing or incorrect.");
-          return null;
-        }
-        conn = DriverManager.getConnection(CONN_STRING + "/" + DATABASE + OPTIONS, USERNAME, PASSWORD);
-      }
-    } catch (SQLException e) {
-      ATLog.log(e.toString());
-    }
-    return conn;
-  }
   
   public static String getDatabase() {
     return DATABASE;

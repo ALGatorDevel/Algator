@@ -1,6 +1,7 @@
 package si.fri.algator.client;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,6 +28,7 @@ import si.fri.algator.entities.ETestSet;
 import si.fri.algator.entities.MeasurementType;
 import si.fri.algator.execute.AbstractTestCase;
 import si.fri.algator.execute.Executor;
+import si.fri.algator.global.ATLog;
 import si.fri.algator.global.Answer;
 
 /**
@@ -261,8 +263,15 @@ public class AEETaskClient {
     slabo napiše), je treba napisati drugačen mehanizem poganjanja.
   */
   private static int runMiscTask(ASTask task) {
+    int logTarget = ATGlobal.logTarget; 
+    ATGlobal.logTarget = ATLog.TARGET_FILE | ATLog.TARGET_STDOUT;
+    int verboseLevel = ATGlobal.verboseLevel;
+    ATGlobal.verboseLevel = 2;
+    ATLog.setPateFilename(ATGlobal.getTaskLogFilename(task.getTaskID()));
+    
     String taskResult = "Task " + task.getString(ASTask.ID_TaskType, "?") + ".";
-
+    ATLog.log(taskResult); 
+    
     // run a misc task
     String taskType = task.getString(ASTask.ID_TaskType, "NONE");
     switch (taskType) {
@@ -291,24 +300,42 @@ public class AEETaskClient {
       default: return 300;
     }
     
+    ATLog.log(taskResult); 
+    
+    String thisLog = String.join("\n", ATLog.readLogFile(0));
+    
     JSONObject jObj = new JSONObject();
     jObj.put(ASTask.ID_ComputerUID, task.getComputerUID());
     jObj.put(ASTask.ID_TaskID, task.getTaskID());
     jObj.put(ASTask.ID_TaskType, task.getString(ASTask.ID_TaskType, "?"));
     jObj.put("Result", taskResult);
+    jObj.put("Log",    thisLog);
 
+    int exitCode = 301;
+    
     // send an answer
     String algatorServerName = ELocalConfig.getConfig().getALGatorServerName();
     int    algatorServerPort = ELocalConfig.getConfig().getALGatorServerPort();
-    String sResponse = Requester.askALGatorServer(algatorServerName, algatorServerPort, "TASKRESULT " + jObj.toString());
+    String sResponse = Requester.askALGatorServer(algatorServerName, algatorServerPort, 
+        ASGlobal.REQ_TASK_RESULT+" "+ jObj.toString());
     try {
       JSONObject jAns = new JSONObject(sResponse);
-      if (jAns.getInt("Status")==0)
-        return 0;
-    } catch (Exception e) {}
+      exitCode = jAns.getInt("Status");
+      if (exitCode != 0) {
+        ATLog.log("TaskResultError: " + exitCode);
+        ATLog.log(jAns.get("Answer").toString());
+        
+        // "Can't execute misc. task"
+        exitCode = 301;
+      }
+    } catch (Exception e) {
+      ATLog.log(e.toString());
+    }
     
-    // "Can't execute misc. task"
-    return 300;
+    ATGlobal.logTarget = logTarget;
+    ATGlobal.verboseLevel = verboseLevel;
+
+    return exitCode;
   }    
 
   
@@ -511,7 +538,7 @@ public class AEETaskClient {
                   case 208 -> "Problems with vmep configuration.";
                   case 214 -> "Problems with project synchronization.";
                   case 215 -> "The database is not initialized.";
-                  case 300 -> "Can't execute misc. task";
+                  case 300, 301 -> "Can't execute misc. task (exit code: " + exitMsg + ")";
                   default  -> "Error code: " + exitCode + "; Error: " + exitMsg;
                 };
                 JSONObject answer = new JSONObject();

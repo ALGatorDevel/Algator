@@ -1003,7 +1003,7 @@ public class Maintenance {
       }
 
       copyFile("templates/TP.json", presenterRoot, presenterName + "." + ATGlobal.AT_FILEEXT_presenter, substitutions);
-      copyFile("templates/TP.html", presenterRoot, presenterName + ".html", substitutions);
+      //copyFile("templates/TP.html", presenterRoot, presenterName + ".html", substitutions);
 
       String id = EProject.ID_ProjPresenters;
       switch (type) {

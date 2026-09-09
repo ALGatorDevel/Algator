@@ -256,6 +256,10 @@ public class ATGlobal {
     return f.exists();
   }
 
+  public static String getPDEStateFilename(String data_root, String projectName) {
+    return getPRESENTERSroot(data_root, projectName) + File.separator + "pde_state.json";
+  }
+
   
   /**
    * Returns the name of the folder with template file(s) and other java

@@ -21,10 +21,10 @@ public class PermissionTypes {
   public static HashMap<String, DTOPermissionType> getAllPermissionTypes() {
     if (!pTypesRead) {
       HashMap<String, DTOPermissionType> permissionTypeMap = new HashMap<>();
-      Connection conn = Database.getConnectionToDatabase();
 
       String query = "SELECT id, name, codename, value FROM ausers_permissiontype";
-      try ( Statement stmt = conn.createStatement();  ResultSet rs = stmt.executeQuery(query)) {
+      try ( Connection conn = Database.getConnectionToDatabase();
+            Statement stmt = conn.createStatement();  ResultSet rs = stmt.executeQuery(query)) {
         while (rs.next()) {
           DTOPermissionType dto = new DTOPermissionType();
 

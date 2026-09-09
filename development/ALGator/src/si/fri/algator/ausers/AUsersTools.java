@@ -28,18 +28,19 @@ public class AUsersTools {
   
   private static ArrayList<String> getMissingTables() {
     ArrayList<String> tabele = new ArrayList(tabelePrograma);
-    try {
-      Statement stmt = (Statement) Database.getConnectionToDatabase().createStatement();
-      ResultSet rs = Database.getConnectionToDatabase().getMetaData().getTables(Database.DATABASE, null, null, new String[]{"TABLE"});
-      while (rs.next()){
-        String tName = rs.getString("TABLE_NAME");
-        tabele.remove(tName);
+    try (Connection conn = Database.getConnectionToDatabase()) {
+      if (conn == null) return new ArrayList<>(tabelePrograma);
+      try (ResultSet rs = conn.getMetaData().getTables(Database.DATABASE, null, null, new String[]{"TABLE"})) {
+        while (rs.next()){
+          String tName = rs.getString("TABLE_NAME");
+          tabele.remove(tName);
+        }
+        return tabele;
       }
-      return tabele;      
     } catch (Exception e) {
       return new ArrayList<>(tabelePrograma);
-    }    
-  }  
+    }
+  }
     
   public static boolean databaseAndTablesExist(){   
     return getMissingTables().isEmpty();
@@ -59,27 +60,27 @@ public class AUsersTools {
   public static ArrayList<DTOUser> readUsers(String where) {
     ArrayList<DTOUser> users = new ArrayList<>();
     final String sql = userSelectSQL + where;
-    try {
-      Connection con = Database.getConnectionToDatabase();
+    try (Connection con = Database.getConnectionToDatabase()) {
       if (con != null) {
-        PreparedStatement stmt = con.prepareStatement(sql);
-        ResultSet rs = stmt.executeQuery();
-        while (rs.next()) {
-          DTOUser user = new DTOUser(); 
-        
-          user.setUid(rs.getString("uid"));
-          user.setUsername(rs.getString("username"));
-          user.setFirst_name(rs.getString("first_name"));
-          user.setLast_name(rs.getString("last_name"));
-          user.setEmail(rs.getString("email"));
-          user.setDate_joined(rs.getDate("date_joined"));
-          user.setLast_login(rs.getDate("last_login"));
-          user.setIs_staff(rs.getBoolean("is_staff"));
-          user.setIs_superuser(rs.getBoolean("is_superuser"));
-          user.setIs_active(rs.getBoolean("is_active"));
-          
-          users.add(user);
-        } 
+        try (PreparedStatement stmt = con.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+          while (rs.next()) {
+            DTOUser user = new DTOUser();
+
+            user.setUid(rs.getString("uid"));
+            user.setUsername(rs.getString("username"));
+            user.setFirst_name(rs.getString("first_name"));
+            user.setLast_name(rs.getString("last_name"));
+            user.setEmail(rs.getString("email"));
+            user.setDate_joined(rs.getDate("date_joined"));
+            user.setLast_login(rs.getDate("last_login"));
+            user.setIs_staff(rs.getBoolean("is_staff"));
+            user.setIs_superuser(rs.getBoolean("is_superuser"));
+            user.setIs_active(rs.getBoolean("is_active"));
+
+            users.add(user);
+          }
+        }
       }
     } catch (Exception e) {
       ATLog.log("Error reading 'ausers_user'. Error: " + e.getMessage());
@@ -100,9 +101,8 @@ public class AUsersTools {
   // the same Connection and it fetches only username (not all data)
   public static String getUsernameFast(String uid, Connection con) {
     final String sql = userSelectSQL + " where uid='"+uid+"'";
-    try {
-      PreparedStatement stmt = con.prepareStatement(sql);
-      ResultSet rs = stmt.executeQuery();
+    try (PreparedStatement stmt = con.prepareStatement(sql);
+         ResultSet rs = stmt.executeQuery()) {
       if (rs.next()) return rs.getString("username");
     } catch (Exception e) {}
     return "";

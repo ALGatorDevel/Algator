@@ -316,7 +316,7 @@ public class RequestProcessor {
     } catch (Exception e) {
       return errorAnswer;
     }
-    String filePath=ATGlobal.getTaskLogFilename(taskID);
+    String filePath=ATGlobal.getTaskLogFilename(taskID) + "s";
     return sAnswer(OK_STATUS, "File: " + filePath, ASTools.getFileContent(filePath));
   }
 
@@ -356,6 +356,10 @@ public class RequestProcessor {
         if (!(jObj.has("ProjectName")&& jObj.has("FileName")))
           return sAnswer(1, "getData of type=JarFileContent requires 'ProjectName' and 'FileName' properties.", "");
         return ASJARTools.getJarFileContent(uid, jObj.getString("ProjectName"), jObj.getString("FileName"));
+      case "PdeState":
+        if (!jObj.has("ProjectName"))
+          return sAnswer(1, "getData of type=PdeState requires 'ProjectName' property.", "");
+      return ASTools.getPdeState(uid, jObj.getString("ProjectName"));        
         
       case "Algorithm":
         if (!(jObj.has("ProjectName")&& jObj.has("AlgorithmName")))
@@ -456,6 +460,10 @@ public class RequestProcessor {
           if (!(jObj.has("ProjectName")&& jObj.has("FileName")))
           return sAnswer(1, "alter of type=RemoveJARFile requires 'ProjectName' and 'FileName' properties.", "");
         return ASTools.removeJARFile(uid, jObj.getString("ProjectName"), jObj.getString("FileName"));
+        case "SavePdeState":
+          if (!jObj.has("PdeState"))
+            return sAnswer(1, "Alter of type=SavePdeState requires 'ProjectName' and 'PdeState' properties.", "");
+        return ASTools.savePdeState(uid, jObj.getString("ProjectName"), jObj.get("PdeState").toString());
 
         case "NewAlgorithm":
           if (!jObj.has("AlgorithmName"))
@@ -729,7 +737,7 @@ public class RequestProcessor {
           
           // .... appaend current log to log file
           String thisLog = jObj.optString("Log", "?");
-          String logFilename = ATGlobal.getTaskLogFilename(taskID) + "s";
+          String logFilename = ATGlobal.getTaskLogFilename(taskID) + "s"; // s-ending for "server" copy of log file
           try ( PrintWriter pw = new PrintWriter(new FileWriter(new File(logFilename), true));) {
             pw.println(thisLog);
           } catch (Exception e) {}
@@ -774,6 +782,13 @@ public class RequestProcessor {
         try (PrintWriter pw = new PrintWriter(new File(rsFilename))) {
           pw.write(result); 
         } catch (Exception e) {}
+        
+        String thisLog = jObj.optString("Log", "?");
+        String logFilename = ATGlobal.getTaskLogFilename(taskID) + "s"; // s-ending for "server" copy of log file
+        try ( PrintWriter pw = new PrintWriter(new FileWriter(new File(logFilename), true));) {
+          pw.println(thisLog);
+        } catch (Exception e) {}
+        
         return sAnswer(OK_STATUS, "Result recorder.", "");
       }
     } else {

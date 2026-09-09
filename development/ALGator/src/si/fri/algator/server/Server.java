@@ -3,6 +3,7 @@ package si.fri.algator.server;
 import java.io.File;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.servlet.MultipartConfigElement;
 import si.fri.algator.ausers.AUsersHelper;
 import si.fri.algator.ausers.AUsersTools;
@@ -12,12 +13,13 @@ import static spark.Spark.*;
 
 
 class RequestCounter {
-  int numberOfRequests = 0;
+  AtomicInteger numberOfRequests = new AtomicInteger();
+    
   void count() {
-    numberOfRequests++;
+    numberOfRequests.incrementAndGet();
   }
   int get() {
-    return numberOfRequests;
+    return numberOfRequests.get();
   }
 }
 
@@ -35,12 +37,19 @@ public class Server {
   RequestProcessor processor;   /// processor that processes the requests
   
   private long timeStarted;
+
+  private final MultipartConfigElement multipartConfig;
   
   public Server() {
     // each server has its own ID
-    this.serverID = AUsersTools.getUniqueDBid("s_");
-            
-    processor = new RequestProcessor(this);    
+    this.serverID = AUsersTools.getUniqueDBid("s_");            
+    processor = new RequestProcessor(this);      
+    
+    String tmpUploadLocation =
+      ATGlobal.getALGatorDataLocal() + File.separator + "webupload_tmp";
+
+    this.multipartConfig = new MultipartConfigElement(tmpUploadLocation);
+
   }
   
  
@@ -65,9 +74,7 @@ public class Server {
     RequestCounter requestCounter = new RequestCounter();
     
     ASCleaner.runCleaningDeamon();
-    
-    String tmpUploadLocation = ATGlobal.getALGatorDataLocal() + File.separator + "webupload_tmp";
-    
+        
     int    port = EAlgatorConfig.getALGatorServerPort();
     String host = EAlgatorConfig.getALGatorServerName();
     
@@ -77,30 +84,8 @@ public class Server {
     
     threadPool(16);
 
-    /*
-    // add this to support CORS ----
-    options("/*", (request, response) -> {
-      String origin = request.headers("Origin");
-      response.header("Access-Control-Allow-Origin", origin);
-      response.header("Access-Control-Allow-Methods", "POST, OPTIONS");
-      response.header("Access-Control-Allow-Headers", "Content-Type, burden");
-      response.header("Access-Control-Allow-Credentials", "true");
-      return "OK";
-    });
-    */
-
-    
     before((request, response) -> {
-      request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(tmpUploadLocation ));      
-      
-      /*
-      // add this to support CORS ----      
-      if (!"OPTIONS".equalsIgnoreCase(request.requestMethod())) {
-        String origin = request.headers("Origin");
-        response.header("Access-Control-Allow-Origin", origin);
-        response.header("Access-Control-Allow-Credentials", "true");
-      }
-      */
+      request.attribute("org.eclipse.jetty.multipartConfig", multipartConfig);      
     }); 
 
     post("/id", (req, res) -> {
@@ -123,7 +108,6 @@ public class Server {
       if (path.length() > 0 && path.charAt(0)=='/') path = path.substring(1);
               
       String uid = AUsersHelper.getUIDFromHeaders(req);
-      //uid += " {"+req.ip()+"} ";
       
       if (!ASGlobal.nonlogableRequests.contains(path)) 
           ASLog.log("[REQUEST from "+uid+"]:  " + path + " " + pParams);

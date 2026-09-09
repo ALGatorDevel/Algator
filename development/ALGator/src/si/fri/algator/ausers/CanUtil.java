@@ -14,6 +14,8 @@ import static si.fri.algator.ausers.AUsersHelper.isEmptyOrNull;
 import si.fri.algator.ausers.dto.PermissionTypes;
 import si.fri.algator.database.Database;
 import si.fri.algator.entities.Entity;
+import si.fri.algator.global.ATGlobal;
+import si.fri.algator.global.ATLog;
 import si.fri.algator.server.ASTask;
 
 /**
@@ -41,7 +43,7 @@ public class CanUtil {
     return can(uid, eid, pValue);
   }
     
-  // ena poizvedba can() vzame približno 6ms (izmerjeno z testSpeed() spodaj)  
+  // ena poizvedba can() vzame približno 6ms (izmerjeno z testSpeed() spodaj)    
   public static boolean can(final String uid, String eid, final long pValue) { 
     // in Anonymous mode user can do everything
     if (Database.isAnonymousMode()) return true;
@@ -84,17 +86,23 @@ public class CanUtil {
     }
     return contains(permValue, pValue);
   }
+  
 
-  // Returns HashMap with hiearchy (eid, parent) from given entity to the top (null)
-  public static HashMap<String, String> getParentHierarchyMap(String id) {
-    HashMap<String, String> hierarchyMap = new HashMap<>();
-    Connection conn = Database.getConnectionToDatabase();
-    String query = "SELECT parent_id FROM ausers_entities WHERE id = ?";
-    if (conn != null) try ( PreparedStatement stmt = conn.prepareStatement(query)) {
-      String currentId = id;
-      while (currentId != null) {
-        stmt.setString(1, currentId);
-        ResultSet rs = stmt.executeQuery();
+// Returns HashMap with hiearchy (eid, parent) from given entity to the top (null)
+public static HashMap<String, String> getParentHierarchyMap(String id) {
+  HashMap<String, String> hierarchyMap = new HashMap<>();
+
+  String query = "SELECT parent_id FROM ausers_entities WHERE id = ?";
+
+  try (Connection conn = Database.getConnectionToDatabase();
+       PreparedStatement stmt = conn.prepareStatement(query)) {
+
+    String currentId = id;
+
+    while (currentId != null) {
+      stmt.setString(1, currentId);
+
+      try (ResultSet rs = stmt.executeQuery()) {
         if (rs.next()) {
           String parentId = rs.getString("parent_id");
           hierarchyMap.put(currentId, parentId);
@@ -103,13 +111,18 @@ public class CanUtil {
           break;
         }
       }
-    } catch (Exception e) {
     }
-    return hierarchyMap;
+  } catch (Exception e) {
+    System.out.println(e);
   }
+
+  return hierarchyMap;
+}
 
   // Returns Hashmap (entity_id, permissionValue) where permissionValue is sum (|) of all
   // permissions for this entity for user and all groups it belongs to
+  
+  /*
   public static HashMap<String, Integer> getEntityPermissions(String uid) {
     HashMap<String, Integer> permissions = new HashMap<>();
     Connection conn = Database.getConnectionToDatabase();
@@ -160,6 +173,74 @@ public class CanUtil {
 
     return permissions;
   }
+ */
+// following replacement (for above commented method) was written by AI
+public static HashMap<String, Integer> getEntityPermissions(String uid) {
+  HashMap<String, Integer> permissions = new HashMap<>();
+
+  try (Connection conn = Database.getConnectionToDatabase()) {
+
+    // Check if user exists
+    boolean isUser;
+    String userQuery = "SELECT COUNT(*) FROM ausers_user WHERE uid = ?";
+    try (PreparedStatement stmt = conn.prepareStatement(userQuery)) {
+      stmt.setString(1, uid);
+      try (ResultSet rs = stmt.executeQuery()) {
+        isUser = rs.next() && rs.getInt(1) > 0;
+      }
+    }
+
+    // Build group list
+    ArrayList<String> groupIds = new ArrayList<>();
+    groupIds.add(isUser ? DTOGroup.GROUP_EVERYONE : DTOGroup.GROUP_ANONYMOUS);
+
+    String groupQuery = "SELECT group_id FROM ausers_group_user WHERE user_id = ?";
+    try (PreparedStatement stmt = conn.prepareStatement(groupQuery)) {
+      stmt.setString(1, uid);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          groupIds.add(rs.getString("group_id"));
+        }
+      }
+    }
+
+    // User permissions
+    String userPermQuery = "SELECT entity_id, value FROM ausers_entitypermissionuser WHERE user_id = ?";
+    try (PreparedStatement stmt = conn.prepareStatement(userPermQuery)) {
+      stmt.setString(1, uid);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          permissions.put(rs.getString("entity_id"), rs.getInt("value"));
+        }
+      }
+    }
+
+    // Group permissions (IN clause)
+    if (!groupIds.isEmpty()) {
+      String inClause = String.join(",", groupIds.stream().map(g -> "?").toList());
+      String query = "SELECT entity_id, value FROM ausers_entitypermissiongroup WHERE group_id IN (" + inClause + ")";
+
+      try (PreparedStatement stmt = conn.prepareStatement(query)) {
+        for (int i = 0; i < groupIds.size(); i++) {
+          stmt.setString(i + 1, groupIds.get(i));
+        }
+
+        try (ResultSet rs = stmt.executeQuery()) {
+          while (rs.next()) {
+            String entityId = rs.getString("entity_id");
+            int value = rs.getInt("value");
+            permissions.merge(entityId, value, (a, b) -> a | b);
+          }
+        }
+      }
+    }
+
+  } catch (Exception e) {
+    System.out.println(e);
+  }
+
+  return permissions;
+}
 
   private static boolean contains(long id, long p) {
     return (id & p) == p;

@@ -38,6 +38,7 @@ import si.fri.algator.global.ATGlobal;
 import si.fri.algator.global.ATLog;
 import si.fri.algator.global.ErrorStatus;
 import si.fri.algator.global.ExecutionStatus;
+import si.fri.algator.server.ASGlobal;
 import si.fri.algator.server.ASTools;
 import si.fri.algator.tools.UniqueIDGenerator;
 
@@ -231,7 +232,7 @@ public class ExternalExecutor {
           jObj.put("Result", result);
           jObj.put("Log",    thisLog);
           String sResponse = Requester.askALGatorServer(
-              algatorServerName, algatorServerPort, "TASKRESULT " + jObj.toString());
+              algatorServerName, algatorServerPort, ASGlobal.REQ_TASK_RESULT + " " + jObj.toString());
           
           // od serverja dobiš odgovor: CONTINUE ali QUEUED ali BREAK ali napako
           // samo odgovor CONTUNUE pomeni nadaljevanje, vse ostalo pa sproži
@@ -374,7 +375,7 @@ public class ExternalExecutor {
       resultVariables.addVariable(EResult.getTimestampIndicator(System.currentTimeMillis()), true);
       resultVariables.addVariable(EResult.getInstanceIDParameter(instanceID), true);
       
-      resultVariables.addVariable(EResult.getComputerIDNameIndicator("<_unknown_>"), true);
+      //resultVariables.addVariable(EResult.getComputerIDNameIndicator("<_unknown_>"), true);
       
       resultVariables.addVariable(executionStatusParameter, true);
       
